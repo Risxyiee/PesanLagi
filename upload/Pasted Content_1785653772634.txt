@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PesanLagi - Dashboard Warung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; overflow-x: hidden; }
+    .font-display { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.02em; }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    
+    .page-view { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .modal-overlay { transition: opacity 0.3s ease; }
+    .modal-box { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+    .modal-overlay.hidden .modal-box { transform: scale(0.9) translateY(20px); }
+    
+    .toggle-bg { transition: background-color 0.2s; }
+    .toggle-dot { transition: transform 0.2s; }
+    input:checked ~ .toggle-bg { background-color: #F97316; }
+    input:checked ~ .toggle-dot { transform: translateX(20px); }
+    
+    .watermark-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 20; overflow: hidden; }
+    .watermark-text { font-size: 2.5rem; font-weight: 800; color: rgba(255, 255, 255, 0.3); transform: rotate(-30deg); text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 10px rgba(0,0,0,0.1); letter-spacing: 0.2em; }
+
+    .nav-link.active { background-color: rgba(249, 115, 22, 0.1); color: #FB923C; }
+    .mob-nav.active { color: #F97316; }
+    .mob-nav.active svg { stroke: #F97316; }
+
+    /* Drag and Drop Styles */
+    .dragging { opacity: 0.5; transform: scale(0.95); }
+    .drag-over { border-top: 3px solid #F97316; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div class="flex min-h-screen">
+    
+    <!-- ================= SIDEBAR (DESKTOP) ================= -->
+    <aside class="hidden md:flex flex-col w-64 bg-[#0A0705] text-white fixed h-screen z-30">
+      <div class="p-6 flex items-center gap-2.5 border-b border-white/5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/></svg>
+        </div>
+        <span class="font-display font-bold text-lg">PesanLagi</span>
+      </div>
+      
+      <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+        <button onclick="navigateTo('overview')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors" data-page="overview">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Ringkasan
+        </button>
+        <button onclick="navigateTo('settings')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors" data-page="settings">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Profil Warung
+        </button>
+        <button onclick="navigateTo('menus')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors" data-page="menus">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Kelola Menu
+        </button>
+        <button onclick="navigateTo('designer')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors" data-page="designer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          Editor QR Code
+        </button>
+        <button onclick="navigateTo('billing')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-colors" data-page="billing">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          Tagihan & Paket
+        </button>
+      </nav>
+      
+      <div class="p-4 border-t border-white/5">
+        <div class="flex items-center gap-3 mb-3 px-2">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-sm font-bold text-white">BW</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-white truncate">pakbowo@warung.com</p>
+            <p class="text-xs text-orange-400/80">Paket Gratis</p>
+          </div>
+        </div>
+        <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Keluar
+        </button>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 md:ml-64 pb-20 md:pb-0">
+      
+      <header class="md:hidden sticky top-0 bg-white border-b border-slate-100 z-20 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/></svg>
+          </div>
+          <span class="font-display font-bold text-slate-800">PesanLagi</span>
+        </div>
+        <button onclick="handleLogout()" class="p-2 text-slate-500 hover:text-red-500">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </header>
+
+      <div class="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+        
+        <!-- ============ PAGE: OVERVIEW ============ -->
+        <div id="page-overview" class="page-view hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Ringkasan Warung</h1>
+              <p class="text-slate-500">Selamat datang kembali, Pak Bowo!</p>
+            </div>
+            <a href="https://pesanlagi.web.id/menu/warung-pak-bowo" target="_blank" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors">
+              <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Lihat Menu Publik
+            </a>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              </div>
+              <div>
+                <p class="text-sm text-slate-500">Total Menu</p>
+                <p class="text-2xl font-bold text-slate-800" id="stat-total-menus">4</p>
+              </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm text-slate-500">Scan Bulan Ini</p>
+                <p class="text-2xl font-bold text-slate-800">1.205</p>
+              </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <p class="text-sm text-slate-500">Status Langganan</p>
+                <p class="text-2xl font-bold text-slate-800">Gratis</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 class="font-display font-bold text-slate-800 mb-4">Statistik Scan (7 Hari Terakhir)</h3>
+              <div class="flex items-end justify-between gap-2 h-40 pt-4">
+                <!-- Simple CSS Chart -->
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-100 rounded-t-lg group-hover:bg-orange-200 transition-colors" style="height: 40%"></div>
+                  <span class="text-xs text-slate-400">Sen</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-200 rounded-t-lg group-hover:bg-orange-300 transition-colors" style="height: 60%"></div>
+                  <span class="text-xs text-slate-400">Sel</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-100 rounded-t-lg group-hover:bg-orange-200 transition-colors" style="height: 30%"></div>
+                  <span class="text-xs text-slate-400">Rab</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-300 rounded-t-lg group-hover:bg-orange-400 transition-colors" style="height: 80%"></div>
+                  <span class="text-xs text-slate-400">Kam</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-400 rounded-t-lg group-hover:bg-orange-500 transition-colors" style="height: 95%"></div>
+                  <span class="text-xs text-slate-400">Jum</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-500 rounded-t-lg group-hover:bg-orange-600 transition-colors" style="height: 100%"></div>
+                  <span class="text-xs text-slate-400">Sab</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 flex-1 group">
+                  <div class="w-full bg-orange-300 rounded-t-lg group-hover:bg-orange-400 transition-colors" style="height: 75%"></div>
+                  <span class="text-xs text-slate-400">Min</span>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 class="font-display font-bold text-slate-800 mb-4">Menu Terpopuler</h3>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <img src="https://picsum.photos/seed/nasigoreng/400/400.jpg" class="w-10 h-10 rounded-lg object-cover" alt="Nasi Goreng">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800">Nasi Goreng Spesial</p>
+                    <p class="text-xs text-slate-400">450x dilihat</p>
+                  </div>
+                  <span class="text-xs font-bold text-orange-500">#1</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <img src="https://picsum.photos/seed/esteh/400/400.jpg" class="w-10 h-10 rounded-lg object-cover" alt="Es Teh">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800">Es Teh Manis</p>
+                    <p class="text-xs text-slate-400">320x dilihat</p>
+                  </div>
+                  <span class="text-xs font-bold text-slate-400">#2</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <img src="https://picsum.photos/seed/miegoreng/400/400.jpg" class="w-10 h-10 rounded-lg object-cover" alt="Mie Goreng">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800">Mie Goreng Jawa</p>
+                    <p class="text-xs text-slate-400">280x dilihat</p>
+                  </div>
+                  <span class="text-xs font-bold text-slate-400">#3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="font-display font-bold text-slate-800 mb-4">Aksi Cepat</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <button onclick="navigateTo('menus')" class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-slate-800">Tambah Menu</p>
+                  <p class="text-xs text-slate-500">Buat menu baru</p>
+                </div>
+              </button>
+              <button onclick="navigateTo('designer')" class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-slate-800">Desain QR</p>
+                  <p class="text-xs text-slate-500">Cetak kartu meja</p>
+                </div>
+              </button>
+              <button onclick="navigateTo('settings')" class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-slate-800">Edit Profil</p>
+                  <p class="text-xs text-slate-500">Ubah nama & jam buka</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ PAGE: SETTINGS ============ -->
+        <div id="page-settings" class="page-view hidden">
+          <div class="mb-8">
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Profil Warung</h1>
+            <p class="text-slate-500">Atur informasi dasar, kontak, dan jam operasional warungmu.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8 max-w-2xl mb-6">
+            <h3 class="font-display font-bold text-slate-800 mb-4">Informasi Dasar</h3>
+            <form id="settings-form" class="space-y-5">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Logo Warung</label>
+                <div class="flex items-center gap-5">
+                  <div class="relative w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                    <img id="logo-preview" src="https://picsum.photos/seed/warunglogo/200/200.jpg" class="w-full h-full object-cover" alt="Logo">
+                  </div>
+                  <div>
+                    <button type="button" onclick="document.getElementById('logo-input').click()" class="px-4 py-2 text-sm font-medium text-orange-600 border border-orange-200 hover:bg-orange-50 rounded-lg transition-colors">Ganti Logo</button>
+                    <p class="text-xs text-slate-400 mt-1">PNG/JPG. Maks 1MB.</p>
+                    <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="handleLogoUpload(event)">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="store-name" class="block text-sm font-medium text-slate-700 mb-1.5">Nama Warung</label>
+                <input type="text" id="store-name" value="Warung Pak Bowo" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" required oninput="autoGenerateSlug()" />
+              </div>
+
+              <div>
+                <label for="store-desc" class="block text-sm font-medium text-slate-700 mb-1.5">Deskripsi Warung</label>
+                <textarea id="store-desc" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" placeholder="Contoh: Menyediakan masakan rumahan rasa Jawa asli sejak 1995."></textarea>
+              </div>
+
+              <div>
+                <label for="store-slug" class="block text-sm font-medium text-slate-700 mb-1.5">Link URL Menu (Slug)</label>
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-orange-500 focus-within:bg-white transition-all">
+                  <span class="pl-4 pr-2 py-2.5 text-sm text-slate-400 border-r border-slate-200 whitespace-nowrap">pesanlagi.web.id/menu/</span>
+                  <input type="text" id="store-slug" value="warung-pak-bowo" class="flex-1 pl-3 pr-4 py-2.5 bg-transparent text-slate-800 focus:outline-none lowercase" required oninput="formatSlug(this)" />
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8 max-w-2xl mb-6">
+            <h3 class="font-display font-bold text-slate-800 mb-4">Kontak & Lokasi</h3>
+            <div class="space-y-5">
+              <div>
+                <label for="store-wa" class="block text-sm font-medium text-slate-700 mb-1.5">No. WhatsApp Warung</label>
+                <input type="tel" id="store-wa" value="081234567890" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" />
+              </div>
+              <div>
+                <label for="store-addr" class="block text-sm font-medium text-slate-700 mb-1.5">Alamat Lengkap</label>
+                <textarea id="store-addr" rows="2" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" placeholder="Jl. Diponegoro No. 123, Semarang"></textarea>
+              </div>
+              <div>
+                <label for="store-map" class="block text-sm font-medium text-slate-700 mb-1.5">Link Google Maps</label>
+                <input type="url" id="store-map" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" placeholder="https://maps.google.com/..." />
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8 max-w-2xl">
+            <h3 class="font-display font-bold text-slate-800 mb-4">Jam Operasional</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Senin</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="21:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Selasa</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="21:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Rabu</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="21:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Kamis</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="21:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Jumat</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="21:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Sabtu</span>
+                <div class="flex items-center gap-2">
+                  <input type="time" value="08:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                  <span class="text-slate-400">-</span>
+                  <input type="time" value="22:00" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span class="font-medium text-slate-700">Minggu</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <span class="text-sm text-slate-500">Tutup</span>
+                  <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500/30">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-end max-w-2xl">
+            <button onclick="saveSettings()" id="settings-submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
+              <span class="btn-text">Simpan Semua Perubahan</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============ PAGE: MENUS ============ -->
+        <div id="page-menus" class="page-view hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Kelola Menu</h1>
+              <p class="text-slate-500">Total ada <span id="total-menus" class="font-semibold text-orange-600">4</span> menu di warungmu.</p>
+            </div>
+            <button onclick="openMenuModal()" class="w-full sm:w-auto px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+              Tambah Menu Baru
+            </button>
+          </div>
+
+          <!-- Search & Categories -->
+          <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <div class="relative flex-1">
+              <input type="text" id="search-menu" oninput="renderMenus()" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500" placeholder="Cari menu...">
+              <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </div>
+          </div>
+
+          <div class="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar" id="category-pills">
+            <!-- Generated by JS -->
+          </div>
+
+          <p class="text-xs text-slate-400 mb-4 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 9l-3 3m0 0l3 3m-3-3h18m0 0l-3-3m3 3l-3 3"/></svg>
+            Tarik kartu menu untuk mengubah urutan tampilan di pelanggan
+          </p>
+
+          <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+
+        <!-- ============ PAGE: DESIGNER ============ -->
+        <div id="page-designer" class="page-view hidden">
+          <div class="mb-8">
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Editor QR Code</h1>
+            <p class="text-slate-500">Desain kartu QR Code sesuai brand warungmu. Download siap cetak.</p>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+              <div>
+                <h3 class="font-display font-bold text-slate-800 mb-3">1. Pilih Template</h3>
+                <div class="grid grid-cols-3 gap-3">
+                  <button onclick="applyPreset('kopi-susu')" class="preset-btn group" data-preset="kopi-susu">
+                    <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center" style="background: #E8D0B3;">
+                      <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                        <div style="background: #4E342E"></div><div></div><div style="background: #4E342E"></div>
+                        <div style="background: #4E342E"></div><div style="background: #4E342E"></div><div></div>
+                        <div></div><div style="background: #4E342E"></div><div style="background: #4E342E"></div>
+                      </div>
+                    </div>
+                    <p class="text-xs font-medium text-slate-600 mt-2 text-center">Kopi Susu</p>
+                  </button>
+                  <button onclick="applyPreset('sage-segar')" class="preset-btn group" data-preset="sage-segar">
+                    <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center" style="background: #B2AC88;">
+                      <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                        <div style="background: #1A1A1A"></div><div></div><div style="background: #1A1A1A"></div>
+                        <div style="background: #1A1A1A"></div><div style="background: #1A1A1A"></div><div></div>
+                        <div></div><div style="background: #1A1A1A"></div><div style="background: #1A1A1A"></div>
+                      </div>
+                    </div>
+                    <p class="text-xs font-medium text-slate-600 mt-2 text-center">Sage Segar</p>
+                  </button>
+                  <button onclick="applyPreset('midnight-orange')" class="preset-btn group" data-preset="midnight-orange">
+                    <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center" style="background: #1A1A1A;">
+                      <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                        <div style="background: #FF6D00"></div><div></div><div style="background: #FF6D00"></div>
+                        <div style="background: #FF6D00"></div><div style="background: #FF6D00"></div><div></div>
+                        <div></div><div style="background: #FF6D00"></div><div style="background: #FF6D00"></div>
+                      </div>
+                    </div>
+                    <p class="text-xs font-medium text-slate-600 mt-2 text-center">Midnight Orange</p>
+                  </button>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-100">
+                  <p class="text-xs text-slate-400 mb-2">Template Premium <span class="text-orange-500 font-semibold">(Pro)</span></p>
+                  <div class="grid grid-cols-3 gap-3">
+                    <button onclick="applyPreset('neon-cyber')" class="preset-btn group" data-preset="neon-cyber">
+                      <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center relative" style="background: #0F0F0F;">
+                        <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                          <div style="background: #00F0FF"></div><div></div><div style="background: #00F0FF"></div>
+                          <div style="background: #00F0FF"></div><div style="background: #00F0FF"></div><div></div>
+                          <div></div><div style="background: #00F0FF"></div><div style="background: #00F0FF"></div>
+                        </div>
+                        <span class="absolute top-1 right-1 text-[8px] bg-orange-500 text-white px-1 py-0.5 rounded">PRO</span>
+                      </div>
+                      <p class="text-xs font-medium text-slate-600 mt-2 text-center">Neon Cyber</p>
+                    </button>
+                    <button onclick="applyPreset('warm-pastel')" class="preset-btn group" data-preset="warm-pastel">
+                      <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center relative" style="background: #FFE4E6;">
+                        <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                          <div style="background: #DB2777"></div><div></div><div style="background: #DB2777"></div>
+                          <div style="background: #DB2777"></div><div style="background: #DB2777"></div><div></div>
+                          <div></div><div style="background: #DB2777"></div><div style="background: #DB2777"></div>
+                        </div>
+                        <span class="absolute top-1 right-1 text-[8px] bg-orange-500 text-white px-1 py-0.5 rounded">PRO</span>
+                      </div>
+                      <p class="text-xs font-medium text-slate-600 mt-2 text-center">Warm Pastel</p>
+                    </button>
+                    <button onclick="applyPreset('minimalist-black')" class="preset-btn group" data-preset="minimalist-black">
+                      <div class="aspect-square rounded-xl border-2 border-transparent group-hover:border-orange-500 transition-all overflow-hidden flex items-center justify-center relative" style="background: #FFFFFF; border: 1px solid #E2E8F0;">
+                        <div class="w-3/4 h-3/4 grid grid-cols-3 gap-0.5">
+                          <div style="background: #000000"></div><div></div><div style="background: #000000"></div>
+                          <div style="background: #000000"></div><div style="background: #000000"></div><div></div>
+                          <div></div><div style="background: #000000"></div><div style="background: #000000"></div>
+                        </div>
+                        <span class="absolute top-1 right-1 text-[8px] bg-orange-500 text-white px-1 py-0.5 rounded">PRO</span>
+                      </div>
+                      <p class="text-xs font-medium text-slate-600 mt-2 text-center">Minimalist Black</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Color Picker -->
+              <div class="border-t border-slate-100 pt-6">
+                <h3 class="font-display font-bold text-slate-800 mb-3">2. Pilih Warna Bebas <span class="text-xs font-normal text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full ml-1">Pro</span></h3>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm text-slate-500 mb-2">Warna Latar Kartu</label>
+                    <div class="flex flex-wrap gap-2 items-center">
+                      <button onclick="setBgColor('#FFFFFF')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #FFFFFF;"></button>
+                      <button onclick="setBgColor('#F8FAFC')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #F8FAFC;"></button>
+                      <button onclick="setBgColor('#1A1A1A')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #1A1A1A;"></button>
+                      <button onclick="setBgColor('#E8D0B3')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #E8D0B3;"></button>
+                      <label class="relative w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm cursor-pointer overflow-hidden flex items-center justify-center bg-gradient-to-br from-red-500 via-yellow-500 to-blue-500 hover:scale-110 transition-transform">
+                        <input type="color" id="bg-color" value="#E8D0B3" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="applyCustomColor()">
+                        <svg class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm text-slate-500 mb-2">Warna QR Code</label>
+                    <div class="flex flex-wrap gap-2 items-center">
+                      <button onclick="setQrColor('#000000')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #000000;"></button>
+                      <button onclick="setQrColor('#1F2937')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #1F2937;"></button>
+                      <button onclick="setQrColor('#F97316')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #F97316;"></button>
+                      <button onclick="setQrColor('#EA580C')" class="w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm hover:scale-110 transition-transform" style="background: #EA580C;"></button>
+                      <label class="relative w-9 h-9 rounded-lg border-2 border-slate-200 shadow-sm cursor-pointer overflow-hidden flex items-center justify-center bg-gradient-to-br from-red-500 via-yellow-500 to-blue-500 hover:scale-110 transition-transform">
+                        <input type="color" id="qr-color" value="#4E342E" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="applyCustomColor()">
+                        <svg class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div id="pro-badge-custom" class="hidden mt-4 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-2 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
+                  Anda menggunakan warna kustom. Watermark akan terlihat di preview.
+                </div>
+              </div>
+              
+              <!-- Table Number Input -->
+              <div class="border-t border-slate-100 pt-6">
+                <h3 class="font-display font-bold text-slate-800 mb-3">3. Nomor Meja (Opsional)</h3>
+                <input type="text" id="table-number" oninput="updateCardUI()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-all" placeholder="Contoh: Meja 1 / Meja 5" />
+                <p class="text-xs text-slate-400 mt-2">Kosongkan jika kartu QR untuk display umum.</p>
+              </div>
+
+              <div class="border-t border-slate-100 pt-6 space-y-3">
+                <button onclick="handleSaveDesign()" id="save-design-btn" class="w-full px-4 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Simpan Desain Kartu
+                </button>
+                <button onclick="handleDownload()" id="download-btn" class="w-full px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  Download PDF / PNG High-Res
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center bg-slate-100 rounded-2xl p-6 sm:p-10 relative">
+              <div class="relative w-full max-w-xs">
+                <div id="qr-card" class="relative w-full aspect-[3/4] rounded-2xl shadow-2xl flex flex-col items-center justify-between p-6 transition-colors duration-300" style="background: #E8D0B3;">
+                  <div class="text-center">
+                    <img id="qr-logo" src="https://picsum.photos/seed/warunglogo/200/200.jpg" class="w-12 h-12 rounded-full mx-auto mb-2 object-cover" alt="Logo">
+                    <h4 id="qr-store-name" class="font-display font-bold text-lg" style="color: #4E342E">Warung Pak Bowo</h4>
+                  </div>
+                  <div class="bg-white p-3 rounded-xl shadow-sm w-3/4 aspect-square flex items-center justify-center">
+                    <div id="qrcode"></div>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-[10px] uppercase tracking-widest opacity-60" style="color: #4E342E">Scan untuk lihat menu</p>
+                    <p class="text-xs font-medium opacity-80" style="color: #4E342E">pesanlagi.web.id</p>
+                    <p id="qr-table-number" class="hidden mt-1 text-xs font-bold px-2 py-0.5 rounded-full inline-block" style="background-color: rgba(255,255,255,0.2); color: #4E342E"></p>
+                  </div>
+                  <div id="watermark" class="watermark-overlay hidden bg-black/20 rounded-2xl">
+                    <div class="watermark-text">PREVIEW MODE - UPGRADE PRO</div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 mt-6">Preview Real-time</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ PAGE: BILLING ============ -->
+        <div id="page-billing" class="page-view hidden">
+          <div class="mb-8">
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Tagihan & Paket</h1>
+            <p class="text-slate-500">Kelola langganan dan metode pembayaranmu.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-slate-500 mb-1">Paket Aktif Saat Ini</p>
+                <h3 class="font-display text-2xl font-bold text-slate-800">Paket Gratis (Free)</h3>
+                <p class="text-sm text-slate-500 mt-1">Berlaku Selamanya</p>
+              </div>
+              <button onclick="document.getElementById('upgrade-modal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:from-orange-400 hover:to-orange-500 transition-all">
+                Upgrade ke Pro
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl border-2 border-slate-100 shadow-sm p-6">
+              <h4 class="font-display font-bold text-slate-800 mb-4">Paket Gratis</h4>
+              <p class="font-display text-3xl font-bold text-slate-800 mb-4">Rp 0<span class="text-base font-medium text-slate-500">/bln</span></p>
+              <ul class="space-y-3 text-sm text-slate-600">
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Unlimited Menu</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 3 Template Dasar</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Watermark PesanLagi</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-2xl border-2 border-orange-500 shadow-lg shadow-orange-500/10 p-6 relative">
+              <span class="absolute top-0 right-6 -translate-y-1/2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">REKOMENDASI</span>
+              <h4 class="font-display font-bold text-slate-800 mb-4">Paket Pro</h4>
+              <p class="font-display text-3xl font-bold text-slate-800 mb-4">Rp 29.000<span class="text-base font-medium text-slate-500">/bln</span></p>
+              <ul class="space-y-3 text-sm text-slate-600">
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Semua Fitur Gratis</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Template & Warna Kustom</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Download PDF Tanpa Watermark</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Analytics Scan & View</li>
+                <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Support Priority WhatsApp</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= BOTTOM NAV (MOBILE) ================= -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-30 grid grid-cols-5">
+    <button onclick="navigateTo('overview')" class="mob-nav flex flex-col items-center gap-1 py-3 text-slate-400" data-page="overview">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span class="text-[10px] font-medium">Beranda</span>
+    </button>
+    <button onclick="navigateTo('menus')" class="mob-nav flex flex-col items-center gap-1 py-3 text-slate-400" data-page="menus">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      <span class="text-[10px] font-medium">Menu</span>
+    </button>
+    <button onclick="navigateTo('designer')" class="mob-nav flex flex-col items-center gap-1 py-3 text-slate-400" data-page="designer">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+      <span class="text-[10px] font-medium">QR Editor</span>
+    </button>
+    <button onclick="navigateTo('billing')" class="mob-nav flex flex-col items-center gap-1 py-3 text-slate-400" data-page="billing">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+      <span class="text-[10px] font-medium">Paket</span>
+    </button>
+    <button onclick="navigateTo('settings')" class="mob-nav flex flex-col items-center gap-1 py-3 text-slate-400" data-page="settings">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="text-[10px] font-medium">Profil</span>
+    </button>
+  </nav>
+
+  <!-- ================= MODAL: ADD/EDIT MENU ================= -->
+  <div id="menu-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-box bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white p-6 border-b border-slate-100 flex items-center justify-between rounded-t-2xl">
+        <h3 id="modal-title" class="font-display text-xl font-bold text-slate-800">Tambah Menu Baru</h3>
+        <button onclick="closeMenuModal()" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      
+      <form id="menu-form" class="p-6 space-y-5" onsubmit="saveMenu(event)">
+        <input type="hidden" id="menu-id">
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Nama Menu</label>
+          <input type="text" id="menu-name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white" placeholder="Contoh: Nasi Goreng Spesial" />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Deskripsi</label>
+          <textarea id="menu-desc" rows="2" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white" placeholder="Beri tahu pelanggan apa yang membuat ini spesial"></textarea>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Harga (Rp)</label>
+            <input type="number" id="menu-price" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white" placeholder="15000" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Kategori</label>
+            <select id="menu-cat" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white">
+              <!-- Options generated by JS -->
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Foto Menu</label>
+          <div class="flex items-center gap-4">
+            <img id="menu-img-preview" src="https://picsum.photos/seed/foodplaceholder/200/200.jpg" class="w-16 h-16 rounded-xl object-cover bg-slate-100" alt="Preview">
+            <button type="button" onclick="document.getElementById('menu-img-input').click()" class="px-3 py-1.5 text-xs font-medium text-orange-600 border border-orange-200 hover:bg-orange-50 rounded-lg">Pilih Foto</button>
+            <input type="file" id="menu-img-input" class="hidden" accept="image/*" onchange="handleMenuImageUpload(event)">
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl">
+          <div>
+            <p class="text-sm font-medium text-slate-800">Status Ketersediaan</p>
+            <p class="text-xs text-slate-500">Matikan jika menu sedang habis</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="menu-available" class="sr-only" checked>
+            <div class="toggle-bg w-11 h-6 bg-slate-200 rounded-full"></div>
+            <div class="toggle-dot absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
+          </label>
+        </div>
+        
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeMenuModal()" class="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-xl hover:bg-slate-50">Batal</button>
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/20 hover:from-orange-400 hover:to-orange-500">Simpan Menu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: DELETE CONFIRMATION ================= -->
+  <div id="delete-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-box bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+      <div class="w-16 h-16 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-5">
+        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+      <h3 class="font-display text-xl font-bold text-slate-800 mb-2">Hapus Menu Ini?</h3>
+      <p class="text-slate-500 text-sm mb-6">Menu yang dihapus tidak bisa dikembalikan. Yakin ingin melanjutkan?</p>
+      <div class="flex gap-3">
+        <button onclick="closeModal('delete-modal')" class="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-xl hover:bg-slate-50">Batal</button>
+        <button id="confirm-delete-btn" class="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD CATEGORY ================= -->
+  <div id="cat-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-box bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <h3 class="font-display text-xl font-bold text-slate-800 mb-4">Tambah Kategori Baru</h3>
+      <input type="text" id="new-cat-name" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white mb-4" placeholder="Contoh: Paket Komplit" oninput="document.getElementById('add-cat-btn').disabled = !this.value.trim()">
+      <div class="flex gap-3">
+        <button onclick="closeModal('cat-modal')" class="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-xl hover:bg-slate-50">Batal</button>
+        <button id="add-cat-btn" onclick="addCategory()" disabled class="flex-1 py-2.5 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed">Tambah</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: UPGRADE PRO ================= -->
+  <div id="upgrade-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-box bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+      <div class="w-16 h-16 mx-auto rounded-full bg-orange-100 flex items-center justify-center mb-5">
+        <svg class="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
+      </div>
+      <h3 class="font-display text-2xl font-bold text-slate-800 mb-2">Upgrade ke Paket Pro</h3>
+      <p class="text-slate-500 mb-6">Untuk menggunakan warna kustom dan menghilangkan watermark, kamu perlu upgrade akun ke Paket Pro.</p>
+      
+      <div class="bg-slate-50 rounded-xl p-4 mb-6 text-left">
+        <div class="flex items-center gap-2 text-sm text-slate-700 mb-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Download PDF/PNG Tanpa Watermark
+        </div>
+        <div class="flex items-center gap-2 text-sm text-slate-700 mb-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Warna Kustom & Template Premium
+        </div>
+        <div class="flex items-center gap-2 text-sm text-slate-700">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Support Priority via WhatsApp
+        </div>
+      </div>
+      
+      <button onclick="closeModal('upgrade-modal'); showToast('Mengarahkan ke halaman pembayaran...')" class="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:scale-[1.02] transition-all mb-2">
+        Upgrade Sekarang - Rp 29.000/bln
+      </button>
+      <button onclick="closeModal('upgrade-modal')" class="w-full py-2 text-sm text-slate-400 hover:text-slate-600 font-medium">Nanti Saja</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-lg opacity-0 transition-opacity duration-300 z-[100] flex items-center gap-2 pointer-events-none">
+    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span id="toast-message">Berhasil!</span>
+  </div>
+
+  <script>
+    // ==========================================
+    // MOCK STATE & DB
+    // ==========================================
+    const InsForgeDB = {
+      users: { id: 'usr_123', email: 'pakbowo@warung.com', is_pro: false },
+      stores: { id: 'store_1', user_id: 'usr_123', name: 'Warung Pak Bowo', slug: 'warung-pak-bowo', logo_url: 'https://picsum.photos/seed/warunglogo/200/200.jpg' },
+      categories: ['Makanan', 'Minuman', 'Snack'],
+      menus: [
+        { id: 'm1', name: 'Nasi Goreng Spesial', desc: 'Nasi goreng dengan telur, ayam, dan kerupuk', price: 18000, category: 'Makanan', image_url: 'https://picsum.photos/seed/nasigoreng/400/400.jpg', is_available: true },
+        { id: 'm2', name: 'Mie Goreng Jawa', desc: 'Mie goreng dengan sayuran dan telur', price: 15000, category: 'Makanan', image_url: 'https://picsum.photos/seed/miegoreng/400/400.jpg', is_available: true },
+        { id: 'm3', name: 'Es Teh Manis', desc: 'Teh manis dingin segar', price: 5000, category: 'Minuman', image_url: 'https://picsum.photos/seed/esteh/400/400.jpg', is_available: true },
+        { id: 'm4', name: 'Kopi Susu Gula Aren', desc: 'Kopi susu dengan gula aren asli', price: 12000, category: 'Minuman', image_url: 'https://picsum.photos/seed/kopisusu/400/400.jpg', is_available: false },
+      ],
+      saveStore: (data) => { InsForgeDB.stores = {...InsForgeDB.stores, ...data}; return true; },
+      saveMenu: (menu) => {
+        if (menu.id) {
+          const idx = InsForgeDB.menus.findIndex(m => m.id === menu.id);
+          if(idx > -1) InsForgeDB.menus[idx] = menu;
+        } else {
+          menu.id = 'm' + Date.now();
+          InsForgeDB.menus.push(menu);
+        }
+      },
+      deleteMenu: (id) => { InsForgeDB.menus = InsForgeDB.menus.filter(m => m.id !== id); }
+    };
+
+    let currentMenuFilter = 'all';
+    let isCustomColor = false;
+    let menuToDelete = null;
+    let draggedId = null;
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+    function navigateTo(page) {
+      document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById('page-' + page);
+      if (target) {
+        target.classList.remove('hidden');
+        target.style.animation = 'none';
+        target.offsetHeight;
+        target.style.animation = '';
+      }
+      
+      document.querySelectorAll('.nav-link, .mob-nav').forEach(link => {
+        if (link.dataset.page === page) {
+          link.classList.add('active', 'bg-orange-500/10', 'text-orange-500');
+          link.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+        } else {
+          link.classList.remove('active', 'bg-orange-500/10', 'text-orange-500');
+          link.classList.add('text-slate-400');
+          if (link.classList.contains('nav-link')) link.classList.add('hover:bg-white/5', 'hover:text-white');
+        }
+      });
+
+      if (page === 'overview') document.getElementById('stat-total-menus').textContent = InsForgeDB.menus.length;
+      if (page === 'menus') { renderCategories(); renderMenus(); }
+      if (page === 'designer') initQRDesigner();
+    }
+
+    // ==========================================
+    // SETTINGS LOGIC
+    // ==========================================
+    function autoGenerateSlug() {
+      const name = document.getElementById('store-name').value;
+      const slugInput = document.getElementById('store-slug');
+      if (!slugInput.dataset.touched) {
+        slugInput.value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      }
+    }
+
+    function formatSlug(input) {
+      input.dataset.touched = true;
+      input.value = input.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+
+    function handleLogoUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('logo-preview').src = ev.target.result;
+          showToast('Logo diupload ke InsForge Storage...');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    async function saveSettings() {
+      const btn = document.getElementById('settings-submit-btn');
+      setLoading(btn, true, 'Menyimpan...');
+      await new Promise(r => setTimeout(r, 1000));
+      InsForgeDB.saveStore({
+        name: document.getElementById('store-name').value,
+        slug: document.getElementById('store-slug').value,
+        logo_url: document.getElementById('logo-preview').src
+      });
+      setLoading(btn, false);
+      showToast('Profil warung berhasil disimpan!');
+    }
+
+    // ==========================================
+    // MENUS LOGIC (CRUD + SEARCH + DRAG DROP)
+    // ==========================================
+    function renderCategories() {
+      const container = document.getElementById('category-pills');
+      let html = `<button class="cat-pill ${currentMenuFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`;
+      InsForgeDB.categories.forEach(cat => {
+        html += `<button class="cat-pill ${currentMenuFilter === cat ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat}" onclick="setCategory('${cat}')">${cat}</button>`;
+      });
+      html += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`;
+      container.innerHTML = html;
+
+      // Also update select in modal
+      const select = document.getElementById('menu-cat');
+      select.innerHTML = InsForgeDB.categories.map(c => `<option>${c}</option>`).join('');
+    }
+
+    function setCategory(cat) {
+      currentMenuFilter = cat;
+      renderCategories();
+      renderMenus();
+    }
+
+    function addCategory() {
+      const newCat = document.getElementById('new-cat-name').value.trim();
+      if (newCat && !InsForgeDB.categories.includes(newCat)) {
+        InsForgeDB.categories.push(newCat);
+        renderCategories();
+        showToast('Kategori baru ditambahkan!');
+      }
+      document.getElementById('new-cat-name').value = '';
+      closeModal('cat-modal');
+    }
+
+    function renderMenus() {
+      const grid = document.getElementById('menu-grid');
+      const searchQuery = document.getElementById('search-menu').value.toLowerCase();
+      const menus = InsForgeDB.menus.filter(m => 
+        (currentMenuFilter === 'all' || m.category === currentMenuFilter) &&
+        (m.name.toLowerCase().includes(searchQuery) || m.desc.toLowerCase().includes(searchQuery))
+      );
+      
+      document.getElementById('total-menus').textContent = InsForgeDB.menus.length;
+      
+      if (menus.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200">
+            <svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <h4 class="font-display font-bold text-slate-700 mb-1">Menu tidak ditemukan</h4>
+            <p class="text-sm text-slate-400">Coba kata kunci lain atau tambah menu baru.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = menus.map(m => `
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group cursor-move" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')">
+          <div class="relative h-40 overflow-hidden">
+            <img src="${m.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${m.name}">
+            ${!m.is_available ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}
+            <div class="absolute top-2 right-2 bg-white/80 backdrop-blur p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 9l-3 3m0 0l3 3m-3-3h18m0 0l-3-3m3 3l-3 3"/></svg>
+            </div>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <h4 class="font-display font-bold text-slate-800 text-sm leading-tight">${m.name}</h4>
+              <span class="text-xs font-bold text-orange-600 whitespace-nowrap">Rp ${m.price.toLocaleString('id-ID')}</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3 line-clamp-2">${m.desc}</p>
+            <div class="flex gap-2">
+              <button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg">Edit</button>
+              <button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-500 border border-red-100 hover:bg-red-50 rounded-lg">Hapus</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Drag & Drop Handlers
+    function dragStart(e, id) {
+      draggedId = id;
+      e.target.classList.add('dragging');
+    }
+
+    function dragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function drop(e, targetId) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      
+      if (draggedId && draggedId !== targetId) {
+        const draggedIndex = InsForgeDB.menus.findIndex(m => m.id === draggedId);
+        const targetIndex = InsForgeDB.menus.findIndex(m => m.id === targetId);
+        
+        // Remove dragged item and insert at target index
+        const [draggedItem] = InsForgeDB.menus.splice(draggedIndex, 1);
+        InsForgeDB.menus.splice(targetIndex, 0, draggedItem);
+        
+        renderMenus();
+        showToast('Urutan menu berhasil diubah!');
+      }
+    }
+
+    function openMenuModal() {
+      document.getElementById('modal-title').innerText = 'Tambah Menu Baru';
+      document.getElementById('menu-form').reset();
+      document.getElementById('menu-id').value = '';
+      document.getElementById('menu-img-preview').src = 'https://picsum.photos/seed/foodplaceholder/200/200.jpg';
+      document.getElementById('menu-available').checked = true;
+      renderCategories(); // Ensure dropdown is populated
+      document.getElementById('menu-modal').classList.remove('hidden');
+    }
+
+    function editMenu(id) {
+      const m = InsForgeDB.menus.find(x => x.id === id);
+      if (!m) return;
+      
+      document.getElementById('modal-title').innerText = 'Edit Menu';
+      document.getElementById('menu-id').value = m.id;
+      document.getElementById('menu-name').value = m.name;
+      document.getElementById('menu-desc').value = m.desc;
+      document.getElementById('menu-price').value = m.price;
+      document.getElementById('menu-cat').value = m.category;
+      document.getElementById('menu-img-preview').src = m.image_url;
+      document.getElementById('menu-available').checked = m.is_available;
+      
+      document.getElementById('menu-modal').classList.remove('hidden');
+    }
+
+    function deleteMenu(id) {
+      menuToDelete = id;
+      document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+      if (menuToDelete) {
+        InsForgeDB.deleteMenu(menuToDelete);
+        renderMenus();
+        showToast('Menu berhasil dihapus.');
+        menuToDelete = null;
+      }
+      closeModal('delete-modal');
+    });
+
+    function handleMenuImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('menu-img-preview').src = ev.target.result;
+          showToast('Foto diupload ke InsForge Storage...');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveMenu(e) {
+      e.preventDefault();
+      const id = document.getElementById('menu-id').value;
+      const menuData = {
+        id: id || null,
+        name: document.getElementById('menu-name').value,
+        desc: document.getElementById('menu-desc').value,
+        price: parseInt(document.getElementById('menu-price').value),
+        category: document.getElementById('menu-cat').value,
+        image_url: document.getElementById('menu-img-preview').src,
+        is_available: document.getElementById('menu-available').checked
+      };
+      
+      InsForgeDB.saveMenu(menuData);
+      closeMenuModal();
+      renderMenus();
+      showToast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!');
+    }
+
+    function closeMenuModal() {
+      document.getElementById('menu-modal').classList.add('hidden');
+    }
+
+    // ==========================================
+    // DESIGNER LOGIC
+    // ==========================================
+    function initQRDesigner() {
+      generateQRCode();
+      updateCardUI(); // To show table number if any
+    }
+
+    function generateQRCode() {
+      const qrContainer = document.getElementById('qrcode');
+      if (!qrContainer) return;
+      qrContainer.innerHTML = '';
+      const slug = InsForgeDB.stores.slug;
+      const url = `https://pesanlagi.web.id/menu/${slug}`;
+      
+      new QRCode(qrContainer, {
+        text: url,
+        width: 120,
+        height: 120,
+        colorDark: document.getElementById('qr-color').value,
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function applyPreset(presetName) {
+      let bg, qr;
+      if (presetName === 'kopi-susu') { bg = '#E8D0B3'; qr = '#4E342E'; isCustomColor = false; }
+      else if (presetName === 'sage-segar') { bg = '#B2AC88'; qr = '#1A1A1A'; isCustomColor = false; }
+      else if (presetName === 'midnight-orange') { bg = '#1A1A1A'; qr = '#FF6D00'; isCustomColor = false; }
+      else if (presetName === 'neon-cyber') { bg = '#0F0F0F'; qr = '#00F0FF'; isCustomColor = true; }
+      else if (presetName === 'warm-pastel') { bg = '#FFE4E6'; qr = '#DB2777'; isCustomColor = true; }
+      else if (presetName === 'minimalist-black') { bg = '#FFFFFF'; qr = '#000000'; isCustomColor = true; }
+      
+      document.getElementById('bg-color').value = bg;
+      document.getElementById('qr-color').value = qr;
+      
+      updateCardUI();
+      checkFreemiumLogic();
+    }
+
+    function setBgColor(color) {
+      isCustomColor = true;
+      document.getElementById('bg-color').value = color;
+      updateCardUI();
+      checkFreemiumLogic();
+    }
+
+    function setQrColor(color) {
+      isCustomColor = true;
+      document.getElementById('qr-color').value = color;
+      updateCardUI();
+      checkFreemiumLogic();
+    }
+
+    function applyCustomColor() {
+      isCustomColor = true;
+      updateCardUI();
+      checkFreemiumLogic();
+    }
+
+    function updateCardUI() {
+      const bg = document.getElementById('bg-color').value;
+      const qr = document.getElementById('qr-color').value;
+      const tableNum = document.getElementById('table-number').value;
+      
+      const card = document.getElementById('qr-card');
+      card.style.backgroundColor = bg;
+      
+      const texts = card.querySelectorAll('h4, p');
+      texts.forEach(t => t.style.color = qr);
+      
+      const tableNumEl = document.getElementById('qr-table-number');
+      if (tableNum.trim()) {
+        tableNumEl.textContent = tableNum;
+        tableNumEl.classList.remove('hidden');
+        tableNumEl.style.color = qr;
+        tableNumEl.style.backgroundColor = `rgba(255,255,255,0.2)`;
+      } else {
+        tableNumEl.classList.add('hidden');
+      }
+      
+      generateQRCode();
+    }
+
+    function checkFreemiumLogic() {
+      const isPro = InsForgeDB.users.is_pro;
+      const watermark = document.getElementById('watermark');
+      const proBadge = document.getElementById('pro-badge-custom');
+      
+      if (!isPro && isCustomColor) {
+        watermark.classList.remove('hidden');
+        proBadge.classList.remove('hidden');
+      } else {
+        watermark.classList.add('hidden');
+        if (!isCustomColor) proBadge.classList.add('hidden');
+      }
+    }
+
+    function handleSaveDesign() {
+      const isPro = InsForgeDB.users.is_pro;
+      const bg = document.getElementById('bg-color').value;
+      const qr = document.getElementById('qr-color').value;
+      
+      if (!isPro && isCustomColor) {
+        document.getElementById('upgrade-modal').classList.remove('hidden');
+      } else {
+        InsForgeDB.saveStore({ bg_color: bg, qr_color: qr });
+        showToast('Desain kartu berhasil disimpan!');
+      }
+    }
+
+    function handleDownload() {
+      const isPro = InsForgeDB.users.is_pro;
+      
+      if (!isPro && isCustomColor) {
+        document.getElementById('upgrade-modal').classList.remove('hidden');
+      } else {
+        showToast('Mengunduh PDF High-Res tanpa watermark...');
+      }
+    }
+
+    // ==========================================
+    // UTILITY FUNCTIONS
+    // ==========================================
+    function setLoading(btn, isLoading, text) {
+      if (!btn) return;
+      if (isLoading) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${text}`;
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalText;
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = message;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 3000);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function handleLogout() {
+      showToast('Berhasil logout. Mengarahkan ke /auth/login...');
+      setTimeout(() => { window.location.href = '#'; }, 1500);
+    }
+
+    // INIT DASHBOARD
+    navigateTo('overview');
+  </script>
+</body>
+</html>

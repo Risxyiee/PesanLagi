@@ -22,6 +22,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <script src="https://cdn.tailwindcss.com" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" />
       </head>
       <body>
         <Providers>{children}</Providers>

@@ -51,3 +51,33 @@ Stage Summary:
 - RLS: All 4 tables have full ownership-based policies (SELECT, INSERT, UPDATE, DELETE)
 - API endpoints: 6 routes created and verified
 - Auth state: Context provider wraps entire app, useAuth() hook available
+---
+Task ID: 1
+Agent: Main
+Task: Integrate dashboard HTML into the PesanLagi app with hash-based routing
+
+Work Log:
+- Parsed uploaded dashboard HTML file (1227 lines, ~81KB)
+- Extracted CSS styles (1850 chars) into dashboard-styles.ts
+- Extracted body HTML (78383 chars) into dashboard-html.json
+- Created dashboard/page.tsx with all JavaScript logic ported to TypeScript
+- Updated page.tsx to be a hash-based SPA router (#landing, #login, #dashboard)
+- Landing CTA buttons (Masuk, Buat Menu Gratis) navigate to #login
+- Login success redirects to #dashboard
+- Dashboard logout navigates to #landing
+- Added qrcodejs CDN to layout.tsx head for QR code generation
+- Fixed React Compiler lint error (removed `this` keyword)
+- Verified all pages work via Agent Browser:
+  - Landing page: renders correctly with all sections
+  - Login page: renders with email/password forms
+  - Dashboard: all 5 tabs work (Ringkasan, Profil Warung, Kelola Menu, Editor QR Code, Tagihan & Paket)
+  - Menu CRUD: modal opens, categories filter, search works
+  - QR Designer: presets, color picker, table number
+  - Settings: store profile form with logo upload
+  - Billing: free/pro plan comparison
+
+Stage Summary:
+- Dashboard is fully integrated at /#dashboard
+- Hash-based routing connects all 3 views (landing, login, dashboard)
+- No existing files were modified except page.tsx and layout.tsx
+- No build errors, all 200 responses
