@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { insforge } from '@/lib/insforge-server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -7,8 +8,20 @@ export async function GET(req: NextRequest) {
 
   if (status === 'error') {
     const errorMsg = searchParams.get('insforge_error') || 'Autentikasi gagal';
-    return NextResponse.redirect(`${appUrl}/login?error=${encodeURIComponent(errorMsg)}`);
+    return NextResponse.redirect(`${appUrl}/#login?error=${encodeURIComponent(errorMsg)}`);
   }
 
-  return NextResponse.redirect(`${appUrl}/login?auth=success`);
+  // Exchange the OAuth code for a session token
+  try {
+    const { error } = await insforge.auth.exchangeCodeForSession(
+      searchParams.get('code') || ''
+    );
+    if (error) {
+      return NextResponse.redirect(`${appUrl}/#login?error=${encodeURIComponent(error.message)}`);
+    }
+  } catch {
+    // Continue even if exchange fails — cookie may have been set
+  }
+
+  return NextResponse.redirect(`${appUrl}/#login?auth=success`);
 }

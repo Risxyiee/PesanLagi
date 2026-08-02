@@ -179,19 +179,87 @@ function initApp() {
     function swView(v: string) { document.querySelectorAll('.view').forEach(el => el.classList.add('hidden')); const t = document.getElementById(v + '-view'); if (t) { t.classList.remove('hidden'); (t as HTMLElement).style.animation = 'none'; void (t as HTMLElement).offsetHeight; (t as HTMLElement).style.animation = ''; } }
     function showOk(title: string, msg: string) { swView('success'); const t = document.getElementById('success-title'); const m = document.getElementById('success-msg'); const b = document.getElementById('success-bar'); if (t) t.textContent = title; if (m) m.textContent = msg; if (b) { b.style.width = '0%'; setTimeout(() => { b.style.width = '100%'; }, 100); } }
     function chkPwd() { const pwd = (document.getElementById('register-password') as HTMLInputElement)?.value || ''; const bars = [document.getElementById('strength-1'), document.getElementById('strength-2'), document.getElementById('strength-3'), document.getElementById('strength-4')]; const txt = document.getElementById('strength-text'); let s = 0; if (pwd.length >= 6) s++; if (pwd.length >= 10) s++; if (/[A-Z]/.test(pwd)) s++; if (/[0-9]/.test(pwd)) s++; bars.forEach(b => { if (b) b.style.backgroundColor = '#E2E8F0'; }); if (!txt) return; if (!pwd.length) { txt.textContent = 'Gunakan minimal 6 karakter'; txt.className = 'text-xs text-slate-400 mt-1.5'; } else if (s <= 1) { if (bars[0]) bars[0].style.backgroundColor = '#EF4444'; txt.textContent = 'Lemah'; txt.className = 'text-xs text-red-500 mt-1.5'; } else if (s <= 2) { if (bars[0]) bars[0].style.backgroundColor = '#F59E0B'; if (bars[1]) bars[1].style.backgroundColor = '#F59E0B'; txt.textContent = 'Cukup'; txt.className = 'text-xs text-yellow-500 mt-1.5'; } else if (s === 3) { if (bars[0]) bars[0].style.backgroundColor = '#10B981'; if (bars[1]) bars[1].style.backgroundColor = '#10B981'; if (bars[2]) bars[2].style.backgroundColor = '#10B981'; txt.textContent = 'Kuat'; txt.className = 'text-xs text-green-500 mt-1.5'; } else { bars.forEach(b => { if (b) b.style.backgroundColor = '#10B981'; }); txt.textContent = 'Sangat Kuat'; txt.className = 'text-xs text-green-500 mt-1.5'; } }
-    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; };
+
+    // Forgot password: show email input modal
+    function showForgotPassword() {
+      const view = document.getElementById('login-view');
+      if (!view) return;
+      let modal = document.getElementById('forgot-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'forgot-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm';
+        modal.innerHTML = `
+          <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 relative">
+            <button id="forgot-modal-close" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            <div class="text-center mb-5">
+              <div class="w-14 h-14 mx-auto rounded-full bg-orange-100 flex items-center justify-center mb-3"><svg class="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+              <h3 class="font-display font-bold text-lg text-slate-800">Lupa Password?</h3>
+              <p class="text-sm text-slate-500 mt-1">Masukkan email kamu untuk reset password.</p>
+            </div>
+            <div id="forgot-error" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl p-3 mb-4"><span id="forgot-error-text"></span></div>
+            <div id="forgot-success" class="hidden bg-green-50 border border-green-200 text-green-600 text-sm rounded-xl p-3 mb-4"><span id="forgot-success-text"></span></div>
+            <form id="forgot-form" class="space-y-4">
+              <input type="email" id="forgot-email" placeholder="contoh@warung.com" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all" required />
+              <button type="submit" id="forgot-btn" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"><span class="btn-text">Kirim Link Reset</span></button>
+            </form>
+          </div>`;
+        view.appendChild(modal);
+        document.getElementById('forgot-modal-close')?.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        document.getElementById('forgot-form')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = (document.getElementById('forgot-email') as HTMLInputElement)?.value;
+          if (!email) { const fe = document.getElementById('forgot-error'); const ft = document.getElementById('forgot-error-text'); if (fe && ft) { ft.textContent = 'Email tidak boleh kosong.'; fe.classList.remove('hidden'); } return; }
+          setLoad('forgot-btn', true, 'Mengirim...');
+          try { await fetch('/api/auth/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) }); const fs = document.getElementById('forgot-success'); const fst = document.getElementById('forgot-success-text'); if (fs && fst) { fst.textContent = 'Jika email terdaftar, link reset password telah dikirim.'; fs.classList.remove('hidden'); } } catch { const fe = document.getElementById('forgot-error'); const ft = document.getElementById('forgot-error-text'); if (fe && ft) { ft.textContent = 'Terjadi kesalahan jaringan.'; fe.classList.remove('hidden'); } }
+          setLoad('forgot-btn', false);
+        });
+      }
+    }
+
+    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
+
+    // Check if user is already authenticated — redirect to dashboard
+    fetch('/api/auth/me').then(r => { if (r.ok) goTo('#dashboard'); }).catch(() => {});
+
+    // Check for OAuth callback params (from redirect after Google OAuth)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'success') {
+      showToastL('Login berhasil! Selamat datang.');
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+      // Small delay then go to dashboard
+      setTimeout(() => goTo('#dashboard'), 500);
+    }
+    if (params.get('error')) {
+      const errorMsg = params.get('error') || 'Autentikasi gagal';
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+      // Show error after view is set
+      setTimeout(() => showErr('login', decodeURIComponent(errorMsg)), 100);
+    }
 
     const hash = window.location.hash.replace('#', ''); if (hash === 'register') swView('register'); else swView('login');
 
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
       e.preventDefault(); const em = (document.getElementById('login-email') as HTMLInputElement)?.value; const pw = (document.getElementById('login-password') as HTMLInputElement)?.value;
       if (!em || !pw) { showErr('login', 'Email dan password tidak boleh kosong.'); return; }
-      setLoad('login-btn', true, 'Memproses...'); try { const res = await fetch('/api/auth/sign-in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) }); const data = await res.json(); if (!res.ok) showErr('login', data.error || 'Login gagal'); else { showOk('Login Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); } } catch { showErr('login', 'Terjadi kesalahan jaringan.'); } setLoad('login-btn', false);
+      setLoad('login-btn', true, 'Memproses...'); try {
+        const res = await fetch('/api/auth/sign-in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) });
+        const data = await res.json();
+        if (!res.ok) showErr('login', data.error || 'Login gagal');
+        else { showOk('Login Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); }
+      } catch { showErr('login', 'Terjadi kesalahan jaringan.'); } setLoad('login-btn', false);
     });
     document.getElementById('register-form')?.addEventListener('submit', async (e) => {
       e.preventDefault(); const em = (document.getElementById('register-email') as HTMLInputElement)?.value; const pw = (document.getElementById('register-password') as HTMLInputElement)?.value; const cn = (document.getElementById('register-confirm') as HTMLInputElement)?.value; const tm = (document.getElementById('register-terms') as HTMLInputElement)?.checked;
       if (!em || !pw || !cn) { showErr('register', 'Semua field wajib diisi.'); return; } if (pw.length < 6) { showErr('register', 'Password minimal harus 6 karakter.'); return; } if (pw !== cn) { showErr('register', 'Password dan konfirmasi tidak cocok.'); return; } if (!tm) { showErr('register', 'Anda harus menyetujui Syarat & Ketentuan.'); return; }
-      setLoad('register-btn', true, 'Mendaftarkan Warungmu...'); try { const res = await fetch('/api/auth/sign-up', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) }); const data = await res.json(); if (!res.ok) showErr('register', data.error || 'Daftar gagal'); else if (data.requireEmailVerification) showOk('Cek Email Kamu!', 'Kode verifikasi dikirim ke email kamu.'); else { showOk('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); } } catch { showErr('register', 'Terjadi kesalahan jaringan.'); } setLoad('register-btn', false);
+      setLoad('register-btn', true, 'Mendaftarkan Warungmu...'); try {
+        const res = await fetch('/api/auth/sign-up', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) });
+        const data = await res.json();
+        if (!res.ok) showErr('register', data.error || 'Daftar gagal');
+        else if (data.requireEmailVerification) showOk('Cek Email Kamu!', 'Kode verifikasi dikirim ke email kamu.');
+        else { showOk('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); }
+      } catch { showErr('register', 'Terjadi kesalahan jaringan.'); } setLoad('register-btn', false);
     });
     window.addEventListener('hashchange', () => { const h = window.location.hash.replace('#', ''); if (h === 'register') swView('register'); else if (h === 'login') swView('login'); });
   }
@@ -259,7 +327,7 @@ function initApp() {
     function sLoad(b: HTMLElement | null, on: boolean, t?: string) { if (!b) return; if (on) { b.disabled = true; b.dataset.orig = b.innerHTML; b.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${t || 'Loading...'}`; } else { b.disabled = false; b.innerHTML = b.dataset.orig || ''; } }
     function toast(msg: string) { const t = document.getElementById('toast'); const m = document.getElementById('toast-message'); if (t && m) { (m as HTMLElement).textContent = msg; (t as HTMLElement).style.opacity = '1'; setTimeout(() => { (t as HTMLElement).style.opacity = '0'; }, 3000); } }
     function cM(id: string) { document.getElementById(id)?.classList.add('hidden'); }
-    function logout() { toast('Berhasil logout. Mengarahkan...'); setTimeout(() => goTo('#landing'), 1500); }
+    function logout() { fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {}); toast('Berhasil logout. Mengarahkan...'); setTimeout(() => goTo('#landing'), 1500); }
 
     window.navigateTo = nav; window.autoGenerateSlug = autoSlug; window.formatSlug = fmtSlug; window.handleLogoUpload = logoUp; window.saveSettings = saveSet; window.renderCategories = renCats; window.setCategory = setCat; window.addCategory = addCat; window.renderMenus = renMenus; window.dragStart = dStart; window.dragOver = dOver; window.drop = dDrop; window.openMenuModal = openMM; window.editMenu = editMenu; window.deleteMenu = delMenu; window.handleMenuImageUpload = menuImgUp; window.saveMenu = saveMenu; window.closeMenuModal = closeMM; window.initQRDesigner = initQR; window.generateQRCode = genQR; window.applyPreset = applyPre; window.setBgColor = setBg; window.setQrColor = setQr; window.applyCustomColor = applyCC; window.updateCardUI = updCard; window.checkFreemiumLogic = chkFree; window.handleSaveDesign = saveDes; window.handleDownload = handleDl; window.setLoading = sLoad; window.showToast = toast; window.closeModal = cM; window.handleLogout = logout;
 
