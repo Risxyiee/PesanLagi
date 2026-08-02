@@ -9,12 +9,20 @@ import dashboardBodyHtml from "./dashboard/dashboard-html.json";
 import { dashboardStyles } from "./dashboard/dashboard-styles";
 
 export default function Home() {
-  // Render a minimal empty shell — identical on server & client = zero hydration mismatch.
-  // ALL HTML content is injected client-side via DOM in initApp().
+  // NO state = NO re-renders = NO blank page
+  // React only renders landing page for SSR/hydration
+  // Everything else is vanilla JS in useEffect
 
   useEffect(() => { initApp(); }, []);
 
-  return <div id="app-root" style={{ minHeight: '100vh', background: '#0A0705' }} suppressHydrationWarning />;
+  return (
+    <>
+      <style id="view-styles" dangerouslySetInnerHTML={{ __html: styles }} />
+      <div id="app-root">
+        <div id="view-landing" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      </div>
+    </>
+  );
 }
 
 // ============================================
@@ -26,18 +34,6 @@ function initApp() {
 
   const appRoot = document.getElementById('app-root');
   if (!appRoot) return;
-
-  // Inject styles into head
-  const styleEl = document.createElement('style');
-  styleEl.id = 'view-styles';
-  styleEl.textContent = styles;
-  document.head.appendChild(styleEl);
-
-  // Inject landing view
-  const landingDiv = document.createElement('div');
-  landingDiv.id = 'view-landing';
-  landingDiv.innerHTML = bodyHtml;
-  appRoot.appendChild(landingDiv);
 
   // Inject hidden login & dashboard views into DOM
   const loginDiv = document.createElement('div');
@@ -161,7 +157,7 @@ function initApp() {
     document.querySelectorAll('#template-picker .template-option').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('#template-picker .template-option').forEach(x => x.classList.remove('active')); b.classList.add('active'); qrT = (b as HTMLElement).dataset.template || 'square'; updPrev(); }));
     document.querySelectorAll('#bg-picker .color-swatch').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('#bg-picker .color-swatch').forEach(x => x.classList.remove('active')); b.classList.add('active'); qrB = (b as HTMLElement).dataset.bg || '#FFF7ED'; qrD = (b as HTMLElement).dataset.dark === 'true'; updPrev(); }));
     (document.getElementById('restaurant-name') as HTMLInputElement)?.addEventListener('input', (e) => { rN = (e.target as HTMLInputElement).value; updPrev(); });
-    document.querySelectorAll('#view-landing a[href^="#"]').forEach(a => a.addEventListener('click', function (e: Event) { const href = (a as HTMLAnchorElement).getAttribute('href'); if (href && href !== '#') { const t = document.querySelector(href); if (t) { e.preventDefault(); window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' }); } } }));
+    document.querySelectorAll('#view-landing aref^="#"]').forEach(a => a.addEventListener('click', function (e: Event) { const href = (a as HTMLAnchorElement).getAttribute('href'); if (href && href !== '#') { const t = document.querySelector(href); if (t) { e.preventDefault(); window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' }); } } }));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => { m.classList.remove('active'); document.body.style.overflow = ''; }); });
   }
 
