@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pesanlagi — QR Menu Digital untuk UMKM Kuliner Indonesia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0A0705;
+      --bg-2: #14100B;
+      --bg-3: #1C1410;
+      --fg: #FFF7ED;
+      --fg-2: #FED7AA;
+      --muted: #A8A29E;
+      --accent: #F97316;
+      --accent-2: #EA580C;
+      --accent-3: #FB923C;
+      --accent-light: #FED7AA;
+      --border: #2D2017;
+    }
+    
+    * { -webkit-font-smoothing: antialiased; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+    
+    .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+    
+    /* Background orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      will-change: transform;
+    }
+    @keyframes orb-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, -40px) scale(1.15); }
+    }
+    @keyframes orb-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-30px, 30px) scale(0.9); }
+    }
+    
+    /* iPhone float */
+    @keyframes phone-float {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-18px) rotate(-3deg); }
+    }
+    .phone-frame { animation: phone-float 6s ease-in-out infinite; }
+    
+    /* QR pulse ring */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      70% { transform: scale(1.3); opacity: 0; }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .qr-pulse-ring { animation: pulse-ring 2.5s ease-out infinite; }
+    
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #FDBA74 0%, #F97316 50%, #EA580C 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Glass */
+    .glass {
+      background: rgba(20, 16, 11, 0.7);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(249, 115, 22, 0.15);
+    }
+    
+    /* Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Noise texture */
+    .noise {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+    }
+    
+    /* Grid pattern */
+    .grid-pattern {
+      background-image: 
+        linear-gradient(rgba(249, 115, 22, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(249, 115, 22, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    
+    /* Button glow */
+    @keyframes btn-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5), 0 10px 30px -10px rgba(249, 115, 22, 0.6); }
+      70% { box-shadow: 0 0 0 18px rgba(249, 115, 22, 0), 0 10px 30px -10px rgba(249, 115, 22, 0.6); }
+      100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0), 0 10px 30px -10px rgba(249, 115, 22, 0.6); }
+    }
+    .btn-glow { animation: btn-pulse 2.5s infinite; }
+    
+    /* Color swatch */
+    .color-swatch {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+    .color-swatch.active {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+    }
+    .color-swatch:hover:not(.active) {
+      transform: scale(1.08);
+    }
+    
+    /* Template option */
+    .template-option {
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+    .template-option.active {
+      border-color: var(--accent) !important;
+      background: rgba(249, 115, 22, 0.1);
+    }
+    
+    .qr-cell { transition: all 0.3s ease; }
+    
+    /* Scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .glow-orange { box-shadow: 0 0 80px -10px rgba(249, 115, 22, 0.5); }
+    
+    /* Card hover */
+    .feature-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .feature-card:hover { transform: translateY(-6px); }
+    
+    .divider-glow {
+      background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.4), transparent);
+      height: 1px;
+    }
+    
+    .counter { font-variant-numeric: tabular-nums; }
+    
+    /* WhatsApp pulse */
+    @keyframes wa-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+      50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    }
+    .wa-pulse { animation: wa-pulse 2s infinite; }
+    
+    /* Floating dots */
+    @keyframes float-dot {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-20px); opacity: 0.8; }
+    }
+    .float-dot { animation: float-dot 4s ease-in-out infinite; }
+    
+    ::selection {
+      background: rgba(249, 115, 22, 0.3);
+      color: #FFF7ED;
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 300;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    
+    /* Mobile menu */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .mobile-menu.open { max-height: 400px; }
+    
+    /* Live indicator */
+    @keyframes live-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .live-dot { animation: live-dot 1.5s infinite; }
+    
+    @media (max-width: 768px) {
+      .phone-frame { transform: scale(0.85); }
+    }
+    
+    /* === MODAL SYSTEM === */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(10, 7, 5, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-box {
+      background: #14100B;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      border-radius: 24px;
+      max-width: 580px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 25px 80px -10px rgba(0,0,0,0.6), 0 0 60px -10px rgba(249,115,22,0.15);
+    }
+    .modal-overlay.active .modal-box {
+      transform: scale(1) translateY(0);
+    }
+    .modal-box::-webkit-scrollbar { width: 6px; }
+    .modal-box::-webkit-scrollbar-track { background: transparent; }
+    .modal-box::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.3); border-radius: 3px; }
+    
+    .modal-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(249,115,22,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #FED7AA;
+    }
+    .modal-close-btn:hover {
+      background: rgba(249,115,22,0.15);
+      border-color: rgba(249,115,22,0.4);
+      transform: rotate(90deg);
+    }
+    
+    /* FAQ Accordion */
+    .faq-item {
+      border: 1px solid rgba(249,115,22,0.12);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+      background: rgba(255,255,255,0.02);
+    }
+    .faq-item:hover { border-color: rgba(249,115,22,0.25); }
+    .faq-item.active { border-color: rgba(249,115,22,0.4); background: rgba(249,115,22,0.04); }
+    
+    .faq-question {
+      width: 100%;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: #FED7AA;
+      transition: color 0.2s;
+    }
+    .faq-question:hover { color: #FB923C; }
+    .faq-item.active .faq-question { color: #F97316; }
+    
+    .faq-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(249,115,22,0.1);
+      transition: transform 0.3s ease, background 0.2s;
+    }
+    .faq-item.active .faq-icon {
+      transform: rotate(45deg);
+      background: rgba(249,115,22,0.25);
+    }
+    
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .faq-answer-inner {
+      padding: 0 18px 16px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(255,247,237,0.6);
+    }
+    
+    /* Step connector */
+    .step-connector {
+      position: absolute;
+      left: 27px;
+      top: 56px;
+      bottom: -16px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(249,115,22,0.4), rgba(249,115,22,0.05));
+    }
+    
+    /* Blog card */
+    .blog-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .blog-card:hover {
+      transform: translateY(-4px);
+    }
+    .blog-card:hover .blog-img {
+      transform: scale(1.05);
+    }
+    .blog-img {
+      transition: transform 0.4s ease;
+    }
+    
+    /* Legal text */
+    .legal-section {
+      margin-bottom: 20px;
+    }
+    .legal-section h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #FB923C;
+      margin-bottom: 8px;
+    }
+    .legal-section p {
+      font-size: 13px;
+      line-height: 1.75;
+      color: rgba(255,247,237,0.55);
+    }
+    
+    @media (max-width: 640px) {
+      .modal-box { border-radius: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div class="orb" style="background: #F97316; width: 700px; height: 700px; top: -250px; left: -200px; opacity: 0.25; animation: orb-1 20s ease-in-out infinite;"></div>
+    <div class="orb" style="background: #EA580C; width: 600px; height: 600px; top: 40%; right: -200px; opacity: 0.2; animation: orb-2 25s ease-in-out infinite;"></div>
+    <div class="orb" style="background: #FB923C; width: 400px; height: 400px; bottom: 10%; left: 30%; opacity: 0.15; animation: orb-1 30s ease-in-out infinite reverse;"></div>
+    <div class="noise"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="#" class="flex items-center gap-2.5 group">
+          <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/50 transition-shadow">
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/>
+            </svg>
+            <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-[#14100B]"></div>
+          </div>
+          <div class="flex flex-col leading-none">
+            <span class="font-display font-bold text-lg tracking-tight">Pesanlagi</span>
+            <span class="text-[10px] text-orange-400/80 font-medium">QR Menu Digital</span>
+          </div>
+        </a>
+        
+        <div class="hidden md:flex items-center gap-1">
+          <a href="#fitur" class="px-4 py-2 text-sm text-orange-100/70 hover:text-orange-300 transition rounded-lg hover:bg-white/5">Fitur</a>
+          <a href="#harga" class="px-4 py-2 text-sm text-orange-100/70 hover:text-orange-300 transition rounded-lg hover:bg-white/5">Harga</a>
+          <a href="#demo" class="px-4 py-2 text-sm text-orange-100/70 hover:text-orange-300 transition rounded-lg hover:bg-white/5">Demo</a>
+        </div>
+        
+        <div class="hidden md:flex items-center gap-2">
+          <button onclick="showToast('Mengarahkan ke halaman login...')" class="px-4 py-2 text-sm font-medium text-orange-100 hover:text-white transition">Masuk</button>
+          <button onclick="showToast('Akun gratis sedang disiapkan untukmu!')" class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-105 transition-all">
+            Buat Menu Gratis
+          </button>
+        </div>
+        
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-orange-100" aria-label="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div id="mobile-menu" class="mobile-menu md:hidden">
+      <div class="px-4 pb-4 flex flex-col gap-2">
+        <a href="#fitur" class="px-4 py-3 text-orange-100/80 hover:text-orange-300 hover:bg-white/5 rounded-lg">Fitur</a>
+        <a href="#harga" class="px-4 py-3 text-orange-100/80 hover:text-orange-300 hover:bg-white/5 rounded-lg">Harga</a>
+        <a href="#demo" class="px-4 py-3 text-orange-100/80 hover:text-orange-300 hover:bg-white/5 rounded-lg">Demo</a>
+        <div class="flex gap-2 mt-2">
+          <button onclick="showToast('Mengarahkan ke halaman login...')" class="flex-1 px-4 py-3 text-sm font-medium border border-orange-500/30 text-orange-100 rounded-xl">Masuk</button>
+          <button onclick="showToast('Akun gratis sedang disiapkan!')" class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-orange-500 rounded-xl">Buat Menu Gratis</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <div class="absolute inset-0 grid-pattern opacity-50"></div>
+    <div class="max-w-7xl mx-auto relative">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        
+        <!-- Left content -->
+        <div class="text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm mb-6 reveal">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+            </span>
+            <span class="text-orange-100">⚡ Stop Cetak Ulang! Pakai Menu Digital Gratis</span>
+          </div>
+          
+          <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.05] mb-6 reveal">
+            Bikin Menu Digital <br class="hidden sm:block"/>
+            <span class="gradient-text">QR Code</span> Warungmu <br class="hidden sm:block"/>
+            Cuma Dalam <span class="relative inline-block">
+              <span class="gradient-text">2 Menit</span>
+              <svg class="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8" fill="none" preserveAspectRatio="none">
+                <path d="M2 6C50 2 150 2 198 6" stroke="#F97316" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </h1>
+          
+          <p class="text-base sm:text-lg text-orange-100/70 mb-8 max-w-xl mx-auto lg:mx-0 reveal">
+            Solusi menu digital praktis tanpa biaya cetak ulang. Tampil keren, rapi, dan mudah di-scan pelanggan dari smartphone.
+          </p>
+          
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 reveal">
+            <button onclick="showToast('Yay! Mengarahkan ke pendaftaran gratis...')" class="btn-glow group px-7 py-4 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl hover:from-orange-400 hover:to-orange-500 transition-all flex items-center justify-center gap-2">
+              Coba Buat Gratis Sekarang
+              <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+            <a href="#demo" class="px-7 py-4 text-base font-medium text-orange-100 hover:text-white border border-orange-500/30 hover:border-orange-500/60 rounded-2xl transition-all flex items-center justify-center gap-2 group">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M5 3l14 9-14 9V3z"/>
+              </svg>
+              Lihat Contoh Menu Live
+            </a>
+          </div>
+          
+          <div class="flex items-center justify-center lg:justify-start gap-4 reveal">
+            <div class="flex -space-x-3">
+              <div class="w-10 h-10 rounded-full border-2 border-[#14100B] bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-xs font-bold text-white">WB</div>
+              <div class="w-10 h-10 rounded-full border-2 border-[#14100B] bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-xs font-bold text-white">KS</div>
+              <div class="w-10 h-10 rounded-full border-2 border-[#14100B] bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-xs font-bold text-white">RM</div>
+              <div class="w-10 h-10 rounded-full border-2 border-[#14100B] bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-bold text-white">+</div>
+            </div>
+            <div class="text-left">
+              <div class="flex items-center gap-1 text-orange-400">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+              </div>
+              <p class="text-sm text-orange-100/70">Digunakan <span class="text-white font-semibold">100+ Warung & Kafe</span> di Jawa Tengah</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right: iPhone mockup -->
+        <div class="relative flex justify-center lg:justify-end reveal">
+          <div class="absolute top-10 left-10 w-2 h-2 rounded-full bg-orange-400 float-dot"></div>
+          <div class="absolute top-1/2 left-0 w-3 h-3 rounded-full bg-orange-500 float-dot" style="animation-delay: -1s"></div>
+          <div class="absolute bottom-20 right-10 w-2 h-2 rounded-full bg-amber-400 float-dot" style="animation-delay: -2s"></div>
+          
+          <div class="phone-frame relative">
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-500/20 blur-3xl scale-110"></div>
+            
+            <div class="relative w-[300px] h-[620px] bg-black rounded-[3rem] p-2.5 shadow-2xl border-[3px] border-neutral-800">
+              <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-20"></div>
+              
+              <div class="relative w-full h-full bg-[#FFF7ED] rounded-[2.5rem] overflow-hidden">
+                <div class="h-full overflow-y-auto no-scrollbar pb-16">
+                  <div class="flex justify-between items-center px-6 pt-3 pb-1 text-[10px] text-neutral-900 font-semibold">
+                    <span>9:41</span>
+                    <div class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M2 22h20V2L2 22z"/></svg>
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3C7 3 3 7 3 12h2c0-4 3-7 7-7s7 3 7 7h2c0-5-4-9-9-9z"/></svg>
+                      <div class="w-5 h-2.5 border border-neutral-900 rounded-sm relative">
+                        <div class="absolute inset-0.5 bg-neutral-900 rounded-sm" style="width: 80%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="relative h-32 mx-3 mt-2 rounded-2xl overflow-hidden">
+                    <img src="https://picsum.photos/seed/warung-bu-tini/600/300.jpg" class="w-full h-full object-cover" alt="Warung Bu Tini"/>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                    <div class="absolute bottom-2 left-3 right-3 text-white">
+                      <div class="flex items-center gap-1.5 text-[10px] mb-0.5">
+                        <span class="flex items-center gap-1 bg-white/20 backdrop-blur px-1.5 py-0.5 rounded-full">
+                          <span class="w-1.5 h-1.5 rounded-full bg-green-400 live-dot"></span> Buka
+                        </span>
+                        <span class="bg-white/20 backdrop-blur px-1.5 py-0.5 rounded-full">~15 menit</span>
+                        <span class="bg-green-500/80 backdrop-blur px-1.5 py-0.5 rounded-full font-semibold">Halal</span>
+                      </div>
+                      <h3 class="font-display font-bold text-base">Warung Bu Tini</h3>
+                      <p class="text-[10px] opacity-90">Masakan Rumahan • Jawa Tengah</p>
+                    </div>
+                  </div>
+                  
+                  <div class="px-3 mt-3">
+                    <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 text-[11px] text-neutral-400 border border-neutral-200">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                      Cari menu favoritmu...
+                    </div>
+                  </div>
+                  
+                  <div class="px-3 mt-3 flex gap-1.5 overflow-x-auto no-scrollbar">
+                    <button class="px-3 py-1.5 text-[11px] font-semibold text-white bg-orange-500 rounded-full whitespace-nowrap">Semua</button>
+                    <button class="px-3 py-1.5 text-[11px] font-medium text-neutral-600 bg-white border border-neutral-200 rounded-full whitespace-nowrap">Makanan</button>
+                    <button class="px-3 py-1.5 text-[11px] font-medium text-neutral-600 bg-white border border-neutral-200 rounded-full whitespace-nowrap">Minuman</button>
+                    <button class="px-3 py-1.5 text-[11px] font-medium text-neutral-600 bg-white border border-neutral-200 rounded-full whitespace-nowrap">Snack</button>
+                  </div>
+                  
+                  <div class="px-3 mt-3 space-y-2.5">
+                    <div class="flex gap-3 bg-white rounded-2xl p-2.5 border border-neutral-100">
+                      <img src="https://picsum.photos/seed/nasigoreng-special/100/100.jpg" class="w-16 h-16 rounded-xl object-cover" alt="Nasi Goreng"/>
+                      <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-bold text-neutral-900">Nasi Goreng Spesial</h4>
+                        <p class="text-[10px] text-neutral-500 line-clamp-1">Nasi goreng dengan telur, ayam, dan kerupuk</p>
+                        <div class="flex items-center justify-between mt-1">
+                          <span class="text-sm font-bold text-orange-600">Rp 18.000</span>
+                          <button class="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex gap-3 bg-white rounded-2xl p-2.5 border border-neutral-100">
+                      <img src="https://picsum.photos/seed/ayam-bakar-madu/100/100.jpg" class="w-16 h-16 rounded-xl object-cover" alt="Ayam Bakar"/>
+                      <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-bold text-neutral-900">Ayam Bakar Madu</h4>
+                        <p class="text-[10px] text-neutral-500 line-clamp-1">Ayam bakar bumbu madu, sambal matah</p>
+                        <div class="flex items-center justify-between mt-1">
+                          <span class="text-sm font-bold text-orange-600">Rp 25.000</span>
+                          <button class="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex gap-3 bg-white rounded-2xl p-2.5 border border-neutral-100">
+                      <img src="https://picsum.photos/seed/mie-goreng-jawa/100/100.jpg" class="w-16 h-16 rounded-xl object-cover" alt="Mie Goreng"/>
+                      <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-bold text-neutral-900">Mie Goreng Jawa</h4>
+                        <p class="text-[10px] text-neutral-500 line-clamp-1">Mie goreng dengan sayuran dan telur</p>
+                        <div class="flex items-center justify-between mt-1">
+                          <span class="text-sm font-bold text-orange-600">Rp 15.000</span>
+                          <button class="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex gap-3 bg-white rounded-2xl p-2.5 border border-neutral-100">
+                      <img src="https://picsum.photos/seed/es-teh-manis/100/100.jpg" class="w-16 h-16 rounded-xl object-cover" alt="Es Teh"/>
+                      <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-bold text-neutral-900">Es Teh Manis</h4>
+                        <p class="text-[10px] text-neutral-500 line-clamp-1">Teh manis dingin segar</p>
+                        <div class="flex items-center justify-between mt-1">
+                          <span class="text-sm font-bold text-orange-600">Rp 5.000</span>
+                          <button class="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="absolute bottom-3 left-3 right-3">
+                  <button class="w-full py-2.5 bg-orange-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/40 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
+                    Pesan Sekarang • 2 item
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Floating QR badge -->
+            <div class="absolute -left-8 top-1/2 -translate-y-1/2 z-30 hidden sm:block">
+              <div class="relative">
+                <div class="qr-pulse-ring absolute inset-0 rounded-2xl bg-orange-500"></div>
+                <div class="relative glass rounded-2xl p-3 shadow-2xl border border-orange-500/30">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-14 h-14 bg-white rounded-lg p-1.5">
+                      <div id="hero-qr" class="w-full h-full"></div>
+                    </div>
+                    <div>
+                      <p class="text-[10px] text-orange-300/80 font-medium">Scan untuk lihat menu</p>
+                      <p class="text-xs font-bold text-white">Warung Bu Tini</p>
+                      <div class="flex items-center gap-1 mt-0.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-400 live-dot"></div>
+                        <span class="text-[9px] text-green-400">Live Menu</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Floating stat card -->
+            <div class="absolute -right-4 top-12 z-30 hidden sm:block">
+              <div class="glass rounded-2xl p-3 shadow-xl border border-orange-500/20">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-orange-300/70">Scan hari ini</p>
+                    <p class="text-sm font-bold text-white counter" data-target="247">0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Floating rating card -->
+            <div class="absolute -right-6 bottom-16 z-30 hidden sm:block">
+              <div class="glass rounded-2xl p-3 shadow-xl border border-orange-500/20">
+                <div class="flex items-center gap-1 text-orange-400 mb-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14l-6-4.6h7.6z"/></svg>
+                </div>
+                <p class="text-[10px] text-orange-100/70">"Mudah banget dipakai!"</p>
+                <p class="text-[9px] text-orange-300/60">— Bu Tini, Semarang</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats strip -->
+  <section class="relative py-8 px-4 sm:px-6 lg:px-8 border-y border-orange-500/10">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="text-center reveal">
+          <div class="font-display text-3xl sm:text-4xl font-extrabold gradient-text"><span class="counter" data-target="100">0</span>+</div>
+          <p class="text-xs text-orange-100/60 mt-1">Warung & Kafe Terdaftar</p>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-display text-3xl sm:text-4xl font-extrabold gradient-text"><span class="counter" data-target="50">0</span>K+</div>
+          <p class="text-xs text-orange-100/60 mt-1">Scan Menu Bulanan</p>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-display text-3xl sm:text-4xl font-extrabold gradient-text"><span class="counter" data-target="2">0</span> Menit</div>
+          <p class="text-xs text-orange-100/60 mt-1">Rata-rata Setup</p>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-display text-3xl sm:text-4xl font-extrabold gradient-text"><span class="counter" data-target="49" data-decimal="1">0</span></div>
+          <p class="text-xs text-orange-100/60 mt-1">Rating Pengguna</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="fitur" class="relative py-24 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <span class="inline-block px-4 py-1.5 rounded-full glass text-xs font-medium text-orange-300 mb-4">FITUR UNGGULAN</span>
+        <h2 class="font-display text-3xl sm:text-5xl font-extrabold mb-4">
+          Kenapa UMKM Kuliner Pilih <span class="gradient-text">Pesanlagi?</span>
+        </h2>
+        <p class="text-orange-100/60 max-w-2xl mx-auto">
+          Dirancang khusus untuk warung, kafe, dan kuliner lokal. Praktis, cepat, dan ramah pelanggan.
+        </p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="feature-card group relative glass rounded-3xl p-8 hover:border-orange-500/40 transition-all reveal">
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h3 class="font-display text-xl font-bold mb-2">Bikin 2 Menit</h3>
+            <p class="text-orange-100/60 text-sm leading-relaxed">Tanpa perlu ngoding, tinggal upload foto dan harga menu. Langsung online, langsung bisa di-scan pelanggan.</p>
+            <div class="mt-6 flex items-center gap-2 text-xs text-orange-400 font-medium">
+              <span>Mulai sekarang</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-card group relative glass rounded-3xl p-8 hover:border-orange-500/40 transition-all reveal" style="transition-delay: 0.1s">
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            </div>
+            <h3 class="font-display text-xl font-bold mb-2">Cetak Kartu QR</h3>
+            <p class="text-orange-100/60 text-sm leading-relaxed">Auto-generate kartu meja QR siap print resolusi tinggi. Tinggal download PDF, cetak, taruh di meja.</p>
+            <div class="mt-6 flex items-center gap-2 text-xs text-orange-400 font-medium">
+              <span>Download PDF</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-card group relative glass rounded-3xl p-8 hover:border-orange-500/40 transition-all reveal" style="transition-delay: 0.2s">
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <h3 class="font-display text-xl font-bold mb-2">Hemat Biaya</h3>
+            <p class="text-orange-100/60 text-sm leading-relaxed">Gak perlu cetak ulang tiap ada perubahan harga atau menu baru. Update kapan saja, langsung sync ke semua pelanggan.</p>
+            <div class="mt-6 flex items-center gap-2 text-xs text-orange-400 font-medium">
+              <span>Hemat 90%/tahun</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive QR Designer -->
+  <section id="demo" class="relative py-24 px-4 sm:px-6 lg:px-8">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-orange-950/10 to-transparent"></div>
+    <div class="max-w-7xl mx-auto relative">
+      <div class="text-center mb-16 reveal">
+        <span class="inline-block px-4 py-1.5 rounded-full glass text-xs font-medium text-orange-300 mb-4">DESIGNER QR CODE</span>
+        <h2 class="font-display text-3xl sm:text-5xl font-extrabold mb-4">
+          Custom QR Code Sesuai <span class="gradient-text">Brand Warungmu</span>
+        </h2>
+        <p class="text-orange-100/60 max-w-2xl mx-auto">
+          Pilih warna, style, dan background. Lihat preview langsung sebelum download. Coba interaktif di bawah ini.
+        </p>
+      </div>
+      
+      <div class="grid lg:grid-cols-2 gap-8 items-center">
+        <div class="reveal">
+          <div class="glass rounded-3xl p-6 sm:p-8">
+            <h3 class="font-display text-xl font-bold mb-6 flex items-center gap-2">
+              <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+              Personalisasi QR
+            </h3>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-orange-100/80 mb-3">Warna QR</label>
+              <div class="flex flex-wrap gap-3" id="color-picker">
+                <button data-color="#F97316" class="color-swatch active w-10 h-10 rounded-xl shadow-lg" style="background: #F97316" title="Orange"></button>
+                <button data-color="#DC2626" class="color-swatch w-10 h-10 rounded-xl shadow-lg" style="background: #DC2626" title="Red"></button>
+                <button data-color="#16A34A" class="color-swatch w-10 h-10 rounded-xl shadow-lg" style="background: #16A34A" title="Green"></button>
+                <button data-color="#0891B2" class="color-swatch w-10 h-10 rounded-xl shadow-lg" style="background: #0891B2" title="Cyan"></button>
+                <button data-color="#7C3AED" class="color-swatch w-10 h-10 rounded-xl shadow-lg" style="background: #7C3AED" title="Purple"></button>
+                <button data-color="#0C0A09" class="color-swatch w-10 h-10 rounded-xl shadow-lg" style="background: #0C0A09" title="Black"></button>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-orange-100/80 mb-3">Style QR</label>
+              <div class="grid grid-cols-3 gap-3" id="template-picker">
+                <button data-template="square" class="template-option active p-3 rounded-xl border-2 border-orange-500/20 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-2 mx-auto w-10 h-10">
+                    <div class="bg-orange-400 rounded-sm"></div><div class="bg-orange-400 rounded-sm"></div><div></div>
+                    <div></div><div class="bg-orange-400 rounded-sm"></div><div class="bg-orange-400 rounded-sm"></div>
+                    <div class="bg-orange-400 rounded-sm"></div><div></div><div class="bg-orange-400 rounded-sm"></div>
+                  </div>
+                  <span class="text-[11px] font-medium">Classic</span>
+                </button>
+                <button data-template="rounded" class="template-option p-3 rounded-xl border-2 border-orange-500/20 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-2 mx-auto w-10 h-10">
+                    <div class="bg-orange-400 rounded-md"></div><div class="bg-orange-400 rounded-md"></div><div></div>
+                    <div></div><div class="bg-orange-400 rounded-md"></div><div class="bg-orange-400 rounded-md"></div>
+                    <div class="bg-orange-400 rounded-md"></div><div></div><div class="bg-orange-400 rounded-md"></div>
+                  </div>
+                  <span class="text-[11px] font-medium">Rounded</span>
+                </button>
+                <button data-template="dot" class="template-option p-3 rounded-xl border-2 border-orange-500/20 text-center">
+                  <div class="grid grid-cols-3 gap-0.5 mb-2 mx-auto w-10 h-10">
+                    <div class="bg-orange-400 rounded-full"></div><div class="bg-orange-400 rounded-full"></div><div></div>
+                    <div></div><div class="bg-orange-400 rounded-full"></div><div class="bg-orange-400 rounded-full"></div>
+                    <div class="bg-orange-400 rounded-full"></div><div></div><div class="bg-orange-400 rounded-full"></div>
+                  </div>
+                  <span class="text-[11px] font-medium">Dotted</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-orange-100/80 mb-3">Background Kartu</label>
+              <div class="flex flex-wrap gap-3" id="bg-picker">
+                <button data-bg="#FFF7ED" data-dark="false" class="color-swatch active w-10 h-10 rounded-xl shadow-lg border-2 border-white/20" style="background: #FFF7ED" title="Cream"></button>
+                <button data-bg="#1C1410" data-dark="true" class="color-swatch w-10 h-10 rounded-xl shadow-lg border-2 border-white/20" style="background: #1C1410" title="Dark"></button>
+                <button data-bg="#FEE2E2" data-dark="false" class="color-swatch w-10 h-10 rounded-xl shadow-lg border-2 border-white/20" style="background: #FEE2E2" title="Soft Red"></button>
+                <button data-bg="#DCFCE7" data-dark="false" class="color-swatch w-10 h-10 rounded-xl shadow-lg border-2 border-white/20" style="background: #DCFCE7" title="Soft Green"></button>
+                <button data-bg="#FEF3C7" data-dark="false" class="color-swatch w-10 h-10 rounded-xl shadow-lg border-2 border-white/20" style="background: #FEF3C7" title="Soft Yellow"></button>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-orange-100/80 mb-3">Nama Warung</label>
+              <input id="restaurant-name" type="text" value="Warung Bu Tini" class="w-full px-4 py-3 bg-black/30 border border-orange-500/20 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500/50 transition" placeholder="Nama warungmu..."/>
+            </div>
+            
+            <button onclick="showToast('Kartu QR berhasil didownload! (demo)')" class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Kartu QR (PDF)
+            </button>
+          </div>
+        </div>
+        
+        <div class="reveal flex justify-center">
+          <div class="relative">
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-500/20 blur-3xl scale-110"></div>
+            
+            <div id="preview-card" class="relative w-[300px] sm:w-[320px] rounded-3xl p-6 sm:p-8 shadow-2xl transition-all duration-500" style="background: #FFF7ED">
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                      <path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-semibold text-orange-600">PESANLAGI</p>
+                    <p class="text-[8px] text-neutral-500">QR Menu Digital</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                  <div class="w-1.5 h-1.5 rounded-full bg-green-500 live-dot"></div>
+                  <span class="text-[9px] font-semibold text-green-700">Live</span>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-2xl p-4 mb-4 shadow-inner">
+                <div id="preview-qr" class="w-full aspect-square"></div>
+              </div>
+              
+              <div class="text-center">
+                <p class="text-[10px] uppercase tracking-widest text-neutral-400 mb-1">Scan untuk lihat menu</p>
+                <h4 id="preview-name" class="font-display font-bold text-lg text-neutral-900">Warung Bu Tini</h4>
+                <div class="flex items-center justify-center gap-1 mt-2">
+                  <svg class="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+                  <span class="text-[10px] text-neutral-500">Jl. Diponegoro No. 123, Semarang</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-neutral-200 flex items-center justify-between">
+                <span class="text-[9px] text-neutral-400">Meja 05</span>
+                <div class="flex gap-1">
+                  <div class="w-1 h-1 rounded-full bg-orange-400"></div>
+                  <div class="w-1 h-1 rounded-full bg-orange-400"></div>
+                  <div class="w-1 h-1 rounded-full bg-orange-400"></div>
+                </div>
+                <span class="text-[9px] text-neutral-400">ID: WBT-2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="harga" class="relative py-24 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <span class="inline-block px-4 py-1.5 rounded-full glass text-xs font-medium text-orange-300 mb-4">HARGA</span>
+        <h2 class="font-display text-3xl sm:text-5xl font-extrabold mb-4">
+          Harga Sesuai untuk <span class="gradient-text">UMKM Kuliner</span>
+        </h2>
+        <p class="text-orange-100/60 max-w-2xl mx-auto">
+          Mulai gratis selamanya. Upgrade ke Pro kapan saja butuh fitur lebih. Tanpa kontrak, tanpa biaya tersembunyi.
+        </p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div class="feature-card glass rounded-3xl p-8 reveal">
+          <div class="mb-6">
+            <h3 class="font-display text-2xl font-bold mb-2">Gratis</h3>
+            <p class="text-orange-100/60 text-sm">Untuk warung yang baru mulai</p>
+          </div>
+          <div class="mb-6">
+            <span class="font-display text-5xl font-extrabold">Rp 0</span>
+            <span class="text-orange-100/60">/bulan</span>
+          </div>
+          <button onclick="showToast('Akun gratis berhasil dibuat! Cek emailmu ya.')" class="w-full py-3.5 mb-8 border border-orange-500/30 hover:border-orange-500/60 text-orange-100 font-semibold rounded-xl transition-all hover:bg-orange-500/5">
+            Mulai Gratis
+          </button>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-orange-100/80">Unlimited Menu</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-orange-100/80">Standard QR Template</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-orange-100/80">Small Watermark</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm opacity-40">
+              <span class="w-5 h-5 rounded-full bg-neutral-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+              <span class="line-through">Custom Warna & Template</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm opacity-40">
+              <span class="w-5 h-5 rounded-full bg-neutral-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+              <span class="line-through">Download PDF Cetak High-Res</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm opacity-40">
+              <span class="w-5 h-5 rounded-full bg-neutral-700 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+              <span class="line-through">Support Priority</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="feature-card relative rounded-3xl p-8 reveal glow-orange" style="background: linear-gradient(180deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%); border: 2px solid #F97316">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-bold rounded-full shadow-lg shadow-orange-500/40 whitespace-nowrap">
+            ⭐ PALING LARIS
+          </div>
+          
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-display text-2xl font-bold">Pro</h3>
+              <span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-[10px] font-semibold rounded-full">REKOMENDASI</span>
+            </div>
+            <p class="text-orange-100/60 text-sm">Untuk warung yang serius tumbuh</p>
+          </div>
+          <div class="mb-6">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="font-display text-4xl sm:text-5xl font-extrabold gradient-text">Rp 29.000</span>
+              <span class="text-orange-100/60">/bulan</span>
+            </div>
+            <p class="text-xs text-orange-300/70 mt-1">Hemat 30% dengan bayar tahunan</p>
+          </div>
+          <button onclick="showToast('Selamat! Kamu pilih Paket Pro 🎉')" class="w-full py-3.5 mb-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/30 hover:scale-[1.02]">
+            Pilih Paket Pro
+          </button>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Unlimited Menu</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Tanpa Watermark</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Custom Warna & Template</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Download PDF Cetak High-Res</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Support Priority via WhatsApp</span>
+            </li>
+            <li class="flex items-center gap-3 text-sm">
+              <span class="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="text-white font-medium">Analytics Scan & View Menu</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <p class="text-center text-orange-100/50 text-sm mt-8 reveal">
+        Semua paket termasuk hosting menu, SSL, dan update gratis. Bayar via transfer bank, QRIS, atau e-wallet.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="relative py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
+      <div class="relative rounded-3xl overflow-hidden p-8 sm:p-12 text-center reveal" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%)">
+        <div class="absolute inset-0 noise opacity-20"></div>
+        <div class="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-yellow-300/20 blur-3xl"></div>
+        
+        <div class="relative">
+          <h2 class="font-display text-3xl sm:text-5xl font-extrabold text-white mb-4">
+            Saatnya Warungmu Naik Kelas
+          </h2>
+          <p class="text-white/90 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
+            Gabung 100+ warung & kafe yang sudah hemat biaya cetak dan naikkan penjualan dengan Pesanlagi.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="showToast('Akun gratis sedang disiapkan untukmu!')" class="px-8 py-4 bg-white text-orange-600 font-bold rounded-2xl hover:bg-orange-50 transition-all hover:scale-105 shadow-xl">
+              Buat Menu Gratis Sekarang
+            </button>
+            <a href="https://wa.me/6281234567890" target="_blank" class="px-8 py-4 bg-black/20 backdrop-blur border border-white/30 text-white font-semibold rounded-2xl hover:bg-black/30 transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413z"/></svg>
+              Chat via WhatsApp
+            </a>
+          </div>
+          <p class="text-white/70 text-sm mt-6">Tanpa kartu kredit • Setup 2 menit • Gratis selamanya</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="relative pt-16 pb-8 px-4 sm:px-6 lg:px-8 border-t border-orange-500/10">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-12">
+        <div class="md:col-span-2">
+          <a href="#" class="flex items-center gap-2.5 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/>
+              </svg>
+            </div>
+            <div class="flex flex-col leading-none">
+              <span class="font-display font-bold text-lg">Pesanlagi</span>
+              <span class="text-[10px] text-orange-400/80 font-medium">QR Menu Digital</span>
+            </div>
+          </a>
+          <p class="text-orange-100/60 text-sm max-w-md mb-6">
+            Platform QR Menu digital untuk UMKM kuliner Indonesia. Bikin menu digital praktis, hemat biaya cetak, dan naikkan penjualan.
+          </p>
+          <div class="flex items-center gap-3">
+            <a href="#" class="w-9 h-9 rounded-lg glass flex items-center justify-center hover:bg-orange-500/20 transition" aria-label="Instagram">
+              <svg class="w-4 h-4 text-orange-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="w-9 h-9 rounded-lg glass flex items-center justify-center hover:bg-orange-500/20 transition" aria-label="Twitter">
+              <svg class="w-4 h-4 text-orange-300" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+            </a>
+            <a href="#" class="w-9 h-9 rounded-lg glass flex items-center justify-center hover:bg-orange-500/20 transition" aria-label="Facebook">
+              <svg class="w-4 h-4 text-orange-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.6.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="font-display font-semibold text-sm mb-4 text-orange-100">Produk</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#fitur" class="text-orange-100/60 hover:text-orange-300 transition">Fitur</a></li>
+            <li><a href="#harga" class="text-orange-100/60 hover:text-orange-300 transition">Harga</a></li>
+            <li><a href="#demo" class="text-orange-100/60 hover:text-orange-300 transition">Demo</a></li>
+            <li><a href="#demo" class="text-orange-100/60 hover:text-orange-300 transition">Templates</a></li>
+            <li><button onclick="openModal('modal-blog')" class="text-orange-100/60 hover:text-orange-300 transition">Blog</button></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-display font-semibold text-sm mb-4 text-orange-100">Bantuan</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><button onclick="openModal('modal-bantuan')" class="text-orange-100/60 hover:text-orange-300 transition">Pusat Bantuan</button></li>
+            <li><button onclick="openModal('modal-cara-pakai')" class="text-orange-100/60 hover:text-orange-300 transition">Cara Pakai</button></li>
+            <li><button onclick="openModal('modal-snk')" class="text-orange-100/60 hover:text-orange-300 transition">Syarat & Ketentuan</button></li>
+            <li><button onclick="openModal('modal-privasi')" class="text-orange-100/60 hover:text-orange-300 transition">Kebijakan Privasi</button></li>
+          </ul>
+          <a href="https://wa.me/6281234567890" target="_blank" class="mt-4 inline-flex items-center gap-2 px-3 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-xs font-medium transition wa-pulse">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413z"/></svg>
+            +62 812-3456-7890
+          </a>
+        </div>
+      </div>
+      
+      <div class="divider-glow"></div>
+      
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-orange-100/50 text-sm">© 2026 Pesanlagi. Dibuat dengan ❤️ untuk UMKM Kuliner Indonesia.</p>
+        <div class="flex items-center gap-4 text-xs text-orange-100/40">
+          <span>🇮🇩 Made in Semarang, Jawa Tengah</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ MODALS ============ -->
+
+  <!-- Modal: Cara Pakai -->
+  <div id="modal-cara-pakai" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-cara-pakai')">
+    <div class="modal-box p-7 sm:p-9">
+      <button class="modal-close-btn" onclick="closeModal('modal-cara-pakai')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <div class="mb-6">
+        <span class="inline-block px-3 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[11px] font-semibold mb-3">TUTORIAL</span>
+        <h3 class="font-display text-2xl font-bold mb-2">Langkah Mudah Bikin Menu Digital</h3>
+        <p class="text-orange-100/50 text-sm">Cuma 3 langkah, warungmu langsung punya menu digital siap pakai.</p>
+      </div>
+      
+      <div class="space-y-5">
+        <!-- Step 1 -->
+        <div class="relative flex gap-4">
+          <div class="step-connector"></div>
+          <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 z-10">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-bold text-orange-400">LANGKAH 01</span>
+            </div>
+            <h4 class="font-display font-bold text-base mb-1">Input Menu</h4>
+            <p class="text-orange-100/55 text-sm leading-relaxed">Masukkan foto makanan & harga dari HP. Bisa tambah kategori, deskripsi, dan stok dengan mudah.</p>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="relative flex gap-4">
+          <div class="step-connector"></div>
+          <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 z-10">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-bold text-orange-400">LANGKAH 02</span>
+            </div>
+            <h4 class="font-display font-bold text-base mb-1">Desain QR</h4>
+            <p class="text-orange-100/55 text-sm leading-relaxed">Pilih warna kartu & template sesuai warung. Custom logo, warna QR, dan background sesuai brand.</p>
+          </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="relative flex gap-4">
+          <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 z-10">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 7h12M6 11h8"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] font-bold text-orange-400">LANGKAH 03</span>
+            </div>
+            <h4 class="font-display font-bold text-base mb-1">Cetak & Tempel</h4>
+            <p class="text-orange-100/55 text-sm leading-relaxed">Download PDF, cetak, & pasang di meja. Pelanggan tinggal scan, menu langsung muncul di HP mereka.</p>
+          </div>
+        </div>
+      </div>
+      
+      <button onclick="closeModal('modal-cara-pakai'); showToast('Mengarahkan ke pendaftaran gratis...')" class="w-full mt-7 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+        Mulai Sekarang
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Pusat Bantuan (FAQ) -->
+  <div id="modal-bantuan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-bantuan')">
+    <div class="modal-box p-7 sm:p-9">
+      <button class="modal-close-btn" onclick="closeModal('modal-bantuan')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <div class="mb-6">
+        <span class="inline-block px-3 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[11px] font-semibold mb-3">FAQ</span>
+        <h3 class="font-display text-2xl font-bold mb-2">Pusat Bantuan</h3>
+        <p class="text-orange-100/50 text-sm">Pertanyaan yang sering ditanyakan sama pemilik warung.</p>
+      </div>
+      
+      <div class="space-y-3">
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Bagaimana cara pelanggan mengakses menu digital saya?</span>
+            <span class="faq-icon">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Pelanggan cukup membuka aplikasi kamera HP atau scanner QR code bawaan, lalu arahkan ke kartu QR yang tertempel di meja. Menu digital warungmu akan langsung terbuka di browser HP tanpa perlu install aplikasi tambahan. Praktis dan instan!
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Apakah saya bisa tetap pakai Pesanlagi secara gratis?</span>
+            <span class="faq-icon">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Tentu saja! Paket Gratis Pesanlagi tersedia selamanya tanpa biaya. Kamu tetap bisa buat menu unlimited, generate QR code, dan pelanggan bisa scan tanpa batas. Paket Pro opsional hanya jika kamu butuh fitur custom warna, PDF high-res, dan support priority.
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Fitur apa saja yang tersedia di paket gratis?</span>
+            <span class="faq-icon">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Paket gratis meliputi: menu tak terbatas (unlimited), standard QR template, scan tanpa batas, hosting menu online, SSL keamanan, dan update menu real-time. Ada watermark kecil "Powered by Pesanlagi" di bagian bawah menu. Untuk menghapus watermark dan buka fitur premium, upgrade ke Paket Pro kapan saja.
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-7 p-4 rounded-2xl bg-green-500/8 border border-green-500/20 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413z"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-green-300">Masih bingung?</p>
+          <p class="text-xs text-green-100/50">Tim kami siap bantu via WhatsApp</p>
+        </div>
+        <a href="https://wa.me/6281234567890" target="_blank" class="px-4 py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-semibold rounded-lg transition wa-pulse">
+          Tanya di WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Blog -->
+  <div id="modal-blog" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-blog')">
+    <div class="modal-box p-7 sm:p-9">
+      <button class="modal-close-btn" onclick="closeModal('modal-blog')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <div class="mb-6">
+        <span class="inline-block px-3 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[11px] font-semibold mb-3">BLOG</span>
+        <h3 class="font-display text-2xl font-bold mb-2">Tips & Inspirasi UMKM Kuliner</h3>
+        <p class="text-orange-100/50 text-sm">Artikel terbaru seputar dunia kuliner dan menu digital.</p>
+      </div>
+      
+      <div class="space-y-4">
+        <article class="blog-card flex gap-4 p-3 rounded-2xl hover:bg-orange-500/5 transition" onclick="closeModal('modal-blog'); showToast('Artikel segera hadir! Stay tuned ya 📝')">
+          <div class="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
+            <img src="https://picsum.photos/seed/blog-foto-menu/200/200.jpg" class="blog-img w-full h-full object-cover" alt="Foto Menu"/>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="inline-block px-2 py-0.5 bg-orange-500/15 text-orange-300 text-[9px] font-semibold rounded-full mb-1.5">TIPS & TRIK</span>
+            <h4 class="font-display font-bold text-sm leading-snug mb-1.5 line-clamp-2">3 Tips Foto Menu Makanan Biar Menggugah Selera Pakai Kamera HP</h4>
+            <div class="flex items-center gap-2 text-[10px] text-orange-100/40">
+              <span>5 menit baca</span>
+              <span>•</span>
+              <span>12 Jan 2026</span>
+            </div>
+          </div>
+        </article>
+        
+        <article class="blog-card flex gap-4 p-3 rounded-2xl hover:bg-orange-500/5 transition" onclick="closeModal('modal-blog'); showToast('Artikel segera hadir! Stay tuned ya 📝')">
+          <div class="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
+            <img src="https://picsum.photos/seed/blog-qr-awet/200/200.jpg" class="blog-img w-full h-full object-cover" alt="QR Awet"/>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="inline-block px-2 py-0.5 bg-blue-500/15 text-blue-300 text-[9px] font-semibold rounded-full mb-1.5">TUTORIAL</span>
+            <h4 class="font-display font-bold text-sm leading-snug mb-1.5 line-clamp-2">Cetak QR Code Awet & Anti Air? Ini Rahasianya!</h4>
+            <div class="flex items-center gap-2 text-[10px] text-orange-100/40">
+              <span>4 menit baca</span>
+              <span>•</span>
+              <span>8 Jan 2026</span>
+            </div>
+          </div>
+        </article>
+        
+        <article class="blog-card flex gap-4 p-3 rounded-2xl hover:bg-orange-500/5 transition" onclick="closeModal('modal-blog'); showToast('Artikel segera hadir! Stay tuned ya 📝')">
+          <div class="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
+            <img src="https://picsum.photos/seed/blog-warung-kekinian/200/200.jpg" class="blog-img w-full h-full object-cover" alt="Warung Kekinian"/>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="inline-block px-2 py-0.5 bg-green-500/15 text-green-300 text-[9px] font-semibold rounded-full mb-1.5">INSPIRASI</span>
+            <h4 class="font-display font-bold text-sm leading-snug mb-1.5 line-clamp-2">Kenapa Warung Kekinian Mulai Pindah ke Menu Digital Pesanlagi</h4>
+            <div class="flex items-center gap-2 text-[10px] text-orange-100/40">
+              <span>7 menit baca</span>
+              <span>•</span>
+              <span>3 Jan 2026</span>
+            </div>
+          </div>
+        </article>
+      </div>
+      
+      <button onclick="closeModal('modal-blog'); showToast('Blog lengkap segera hadir!')" class="w-full mt-6 py-3 border border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/5 text-orange-200 font-medium rounded-xl transition-all text-sm">
+        Lihat Semua Artikel
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Syarat & Ketentuan -->
+  <div id="modal-snk" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-snk')">
+    <div class="modal-box p-7 sm:p-9">
+      <button class="modal-close-btn" onclick="closeModal('modal-snk')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <div class="mb-6">
+        <span class="inline-block px-3 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[11px] font-semibold mb-3">LEGAL</span>
+        <h3 class="font-display text-2xl font-bold mb-2">Syarat & Ketentuan</h3>
+        <p class="text-orange-100/40 text-xs">Terakhir diperbarui: 1 Januari 2026</p>
+      </div>
+      
+      <div class="space-y-5">
+        <div class="legal-section">
+          <h4>1. Penerimaan Ketentuan</h4>
+          <p>Dengan mendaftar dan menggunakan layanan Pesanlagi, kamu setuju untuk terikat oleh syarat dan ketentuan ini. Jika tidak setuju, mohon untuk tidak menggunakan layanan kami.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>2. Penggunaan Layanan</h4>
+          <p>Layanan Pesanlagi disediakan untuk pemilik usaha kuliner Indonesia untuk membuat dan mengelola menu digital berbasis QR Code. Pengguna dilarang menggunakan layanan untuk kegiatan ilegal, penipuan, atau yang melanggar hukum Republik Indonesia.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>3. Kewajiban Pengguna</h4>
+          <p>Pengguna bertanggung jawab atas keakuratan data menu, harga, dan informasi yang ditampilkan. Pesanlagi berhak menghapus akun atau konten yang melanggar ketentuan tanpa pemberitahuan sebelumnya.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>4. Hak Kekayaan Intelektual</h4>
+          <p>Seluruh logo, desain, template, dan teknologi Pesanlagi merupakan milik PT Pesanlagi Nusantara. Pengguna tidak diperbolehkan menyalin, memodifikasi, atau mendistribusikan tanpa izin tertulis.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>5. Pembatasan Tanggung Jawab</h4>
+          <p>Pesanlagi tidak bertanggung jawab atas kerugian tidak langsung yang timbul dari penggunaan layanan, termasuk namun tidak terbatas pada kehilangan pendapatan, data, atau keuntungan bisnis.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>6. Perubahan Ketentuan</h4>
+          <p>Pesanlagi berhak mengubah syarat dan ketentuan ini sewaktu-waktu. Perubahan akan berlaku efektif sejak dipublikasikan di halaman ini. Pengguna disarankan untuk meninjau secara berkala.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>7. Hukum yang Berlaku</h4>
+          <p>Ketentuan ini diatur dan ditafsirkan berdasarkan hukum Republik Indonesia. Setiap sengketa akan diselesaikan melalui musyawarah, atau jika tidak tercapai, melalui Pengadilan Negeri Semarang.</p>
+        </div>
+      </div>
+      
+      <div class="mt-7 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/15 flex items-start gap-3">
+        <svg class="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <p class="text-xs text-orange-100/50 leading-relaxed">
+          Dokumen ini adalah contoh teks legal dan bukan pengganti nasihat hukum profesional. Untuk versi resmi, hubungi tim legal kami.
+        </p>
+      </div>
+      
+      <button onclick="closeModal('modal-snk')" class="w-full mt-5 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl transition-all text-sm">
+        Saya Mengerti
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Kebijakan Privasi -->
+  <div id="modal-privasi" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-privasi')">
+    <div class="modal-box p-7 sm:p-9">
+      <button class="modal-close-btn" onclick="closeModal('modal-privasi')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <div class="mb-6">
+        <span class="inline-block px-3 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[11px] font-semibold mb-3">LEGAL</span>
+        <h3 class="font-display text-2xl font-bold mb-2">Kebijakan Privasi</h3>
+        <p class="text-orange-100/40 text-xs">Terakhir diperbarui: 1 Januari 2026</p>
+      </div>
+      
+      <div class="space-y-5">
+        <div class="legal-section">
+          <h4>1. Informasi yang Kami Kumpulkan</h4>
+          <p>Saat mendaftar, kami mengumpulkan nama pemilik warung, nomor WhatsApp, nama warung, dan alamat. Untuk menu, kami menyimpan foto makanan, harga, dan deskripsi yang kamu input. Kami juga mencatat data scan QR secara anonim untuk analytics.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>2. Penggunaan Informasi</h4>
+          <p>Informasi digunakan untuk: (a) menyediakan dan menjaga layanan menu digital, (b) komunikasi terkait akun dan update fitur, (c) meningkatkan kualitas layanan, dan (d) mencegah penyalahgunaan dan aktivitas penipuan.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>3. Pembagian Informasi</h4>
+          <p>Kami TIDAK menjual, menyewakan, atau memperdagangkan data pribadi pengguna kepada pihak ketiga. Data hanya dibagikan jika diwajibkan oleh hukum atau kepada penyedia infrastruktur (seperti server hosting) yang terikat kontrak kerahasiaan.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>4. Keamanan Data</h4>
+          <p>Kami menerapkan enkripsi SSL/TLS untuk transmisi data, penyimpanan password dengan hashing (bcrypt), dan backup otomatis harian. Akses ke data dibatasi hanya untuk karyawan yang berwenang dengan autentikasi dua faktor.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>5. Hak Pengguna</h4>
+          <p>Pengguna berhak untuk: (a) mengakses dan mengunduh data pribadi, (b) memperbarui atau mengoreksi data, (c) menghapus akun beserta seluruh datanya secara permanen, dan (d) menolak pemasaran via WhatsApp/email kapan saja.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>6. Cookie & Pelacakan</h4>
+          <p>Pesanlagi menggunakan cookie untuk menjaga sesi login dan menganalisis pola penggunaan (seperti Google Analytics). Pengguna dapat menonaktifkan cookie melalui pengaturan browser, namun beberapa fitur mungkin tidak berfungsi optimal.</p>
+        </div>
+        
+        <div class="legal-section">
+          <h4>7. Kontak Privasi</h4>
+          <p>Untuk pertanyaan terkait privasi data atau permintaan akses/penghapusan, hubungi kami di privacy@pesanlagi.id atau via WhatsApp +62 812-3456-7890. Kami akan merespons dalam maksimal 7 hari kerja.</p>
+        </div>
+      </div>
+      
+      <div class="mt-7 p-4 rounded-2xl bg-green-500/5 border border-green-500/15 flex items-start gap-3">
+        <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <p class="text-xs text-orange-100/50 leading-relaxed">
+          Privasi kamu prioritas kami. Data pelanggan warungmu (yang scan QR) tidak kami kumpulkan secara personal — mereka anonim.
+        </p>
+      </div>
+      
+      <button onclick="closeModal('modal-privasi')" class="w-full mt-5 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl transition-all text-sm">
+        Saya Mengerti
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast glass rounded-2xl px-6 py-4 flex items-center gap-3 shadow-2xl border border-orange-500/30">
+    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+      <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <span id="toast-message" class="text-sm text-white font-medium">Berhasil!</span>
+  </div>
+
+  <script>
+    // === Toast ===
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toast-message');
+      msg.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    
+    // === Mobile menu ===
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuBtn?.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+    mobileMenu?.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+    
+    // === Reveal on scroll ===
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          const counters = entry.target.querySelectorAll('.counter');
+          counters.forEach(c => animateCounter(c));
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+    
+    // === Counter animation ===
+    function animateCounter(el) {
+      if (el.dataset.animated) return;
+      el.dataset.animated = 'true';
+      const target = parseFloat(el.dataset.target);
+      const isDecimal = el.dataset.decimal === '1';
+      const duration = 2000;
+      const start = performance.now();
+      
+      function step(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = target * eased;
+        
+        if (isDecimal) {
+          el.textContent = (value / 10).toFixed(1);
+        } else {
+          el.textContent = Math.floor(value);
+        }
+        
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = isDecimal ? (target / 10).toFixed(1) : target;
+      }
+      requestAnimationFrame(step);
+    }
+    
+    // === QR Code generation ===
+    function generateQRPattern(size = 21) {
+      const pattern = [];
+      for (let i = 0; i < size; i++) {
+        pattern[i] = new Array(size).fill(0);
+      }
+      
+      const addFinder = (sr, sc) => {
+        for (let i = 0; i < 7; i++) {
+          for (let j = 0; j < 7; j++) {
+            if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+              pattern[sr + i][sc + j] = 1;
+            }
+          }
+        }
+      };
+      addFinder(0, 0);
+      addFinder(0, size - 7);
+      addFinder(size - 7, 0);
+      
+      for (let i = 8; i < size - 8; i++) {
+        pattern[6][i] = i % 2 === 0 ? 1 : 0;
+        pattern[i][6] = i % 2 === 0 ? 1 : 0;
+      }
+      
+      let seed = 12345;
+      const rand = () => {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+      };
+      
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          if ((i < 8 && j < 8) || (i < 8 && j >= size - 8) || (i >= size - 8 && j < 8)) continue;
+          if (i === 6 || j === 6) continue;
+          if (rand() > 0.5) pattern[i][j] = 1;
+        }
+      }
+      
+      return pattern;
+    }
+    
+    function renderQR(container, color, template) {
+      if (!container) return;
+      const pattern = generateQRPattern();
+      const size = pattern.length;
+      container.innerHTML = '';
+      container.style.display = 'grid';
+      container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+      container.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+      container.style.gap = '0';
+      
+      let borderRadius = '0';
+      if (template === 'rounded') borderRadius = '30%';
+      if (template === 'dot') borderRadius = '50%';
+      
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          const cell = document.createElement('div');
+          cell.className = 'qr-cell';
+          if (pattern[i][j] === 1) {
+            cell.style.background = color;
+            cell.style.borderRadius = borderRadius;
+          }
+          frag.appendChild(cell);
+        }
+      }
+      container.appendChild(frag);
+    }
+    
+    // === QR Designer state ===
+    let qrColor = '#F97316';
+    let qrTemplate = 'square';
+    let qrBg = '#FFF7ED';
+    let qrBgDark = false;
+    let restaurantName = 'Warung Bu Tini';
+    
+    function updatePreview() {
+      renderQR(document.getElementById('preview-qr'), qrColor, qrTemplate);
+      const card = document.getElementById('preview-card');
+      card.style.background = qrBg;
+      
+      const name = document.getElementById('preview-name');
+      const subtitle = card.querySelectorAll('.text-neutral-400, .text-neutral-500');
+      
+      if (qrBgDark) {
+        name.style.color = '#FFF7ED';
+        subtitle.forEach(el => {
+          if (el.tagName !== 'BUTTON') {
+            el.classList.remove('text-neutral-400', 'text-neutral-500');
+            el.classList.add('text-orange-100/50');
+          }
+        });
+      } else {
+        name.style.color = '#1C1410';
+        subtitle.forEach(el => {
+          if (el.tagName !== 'BUTTON') {
+            el.classList.add('text-neutral-400', 'text-neutral-500');
+            el.classList.remove('text-orange-100/50');
+          }
+        });
+      }
+      
+      name.textContent = restaurantName || 'Warung Bu Tini';
+    }
+    
+    renderQR(document.getElementById('hero-qr'), '#0C0A09', 'square');
+    updatePreview();
+    
+    document.querySelectorAll('#color-picker .color-swatch').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#color-picker .color-swatch').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qrColor = btn.dataset.color;
+        updatePreview();
+      });
+    });
+    
+    document.querySelectorAll('#template-picker .template-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#template-picker .template-option').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qrTemplate = btn.dataset.template;
+        updatePreview();
+      });
+    });
+    
+    document.querySelectorAll('#bg-picker .color-swatch').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#bg-picker .color-swatch').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qrBg = btn.dataset.bg;
+        qrBgDark = btn.dataset.dark === 'true';
+        updatePreview();
+      });
+    });
+    
+    document.getElementById('restaurant-name').addEventListener('input', (e) => {
+      restaurantName = e.target.value;
+      updatePreview();
+    });
+    
+    // === Smooth scroll ===
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      });
+    });
+    
+    // === Modal System ===
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(m => {
+          m.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+    });
+    
+    // === FAQ Accordion ===
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const answer = item.querySelector('.faq-answer');
+      const isActive = item.classList.contains('active');
+      
+      // Close all other FAQs in same modal
+      const allItems = item.closest('.modal-box').querySelectorAll('.faq-item');
+      allItems.forEach(otherItem => {
+        if (otherItem !== item) {
+          otherItem.classList.remove('active');
+          otherItem.querySelector('.faq-answer').style.maxHeight = '0';
+        }
+      });
+      
+      // Toggle current
+      if (isActive) {
+        item.classList.remove('active');
+        answer.style.maxHeight = '0';
+      } else {
+        item.classList.add('active');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    }
+  </script>
+</body>
+</html>
