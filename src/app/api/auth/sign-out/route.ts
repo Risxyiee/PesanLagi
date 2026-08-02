@@ -1,14 +1,16 @@
-import { NextResponse } from 'next/server';
-import { insforge } from '@/lib/insforge-server';
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/pg';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
-    const { error } = await insforge.auth.signOut();
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    const token = req.cookies.get('session')?.value;
+    if (token) {
+      await query('DELETE FROM sessions WHERE token = $1', [token]);
     }
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    response.cookies.delete('session');
+    return response;
   } catch {
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal logout' }, { status: 500 });
   }
 }

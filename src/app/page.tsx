@@ -265,73 +265,291 @@ function initApp() {
   }
 
   // ============================================
-  // DASHBOARD LOGIC
+  // DASHBOARD LOGIC (REAL DATABASE)
   // ============================================
   function initDashboard() {
     if (dashInited.v) return;
     dashInited.v = true;
 
-    window.InsForgeDB = {
-      users: { id: 'usr_123', email: 'pakbowo@warung.com', is_pro: false },
-      stores: { id: 'store_1', user_id: 'usr_123', name: 'Warung Pak Bowo', slug: 'warung-pak-bowo', logo_url: 'https://picsum.photos/seed/warunglogo/200/200.jpg' },
-      categories: ['Makanan', 'Minuman', 'Snack'],
-      menus: [
-        { id: 'm1', name: 'Nasi Goreng Spesial', desc: 'Nasi goreng dengan telur, ayam, dan kerupuk', price: 18000, category: 'Makanan', image_url: 'https://picsum.photos/seed/nasigoreng/400/400.jpg', is_available: true },
-        { id: 'm2', name: 'Mie Goreng Jawa', desc: 'Mie goreng dengan sayuran dan telur', price: 15000, category: 'Makanan', image_url: 'https://picsum.photos/seed/miegoreng/400/400.jpg', is_available: true },
-        { id: 'm3', name: 'Es Teh Manis', desc: 'Teh manis dingin segar', price: 5000, category: 'Minuman', image_url: 'https://picsum.photos/seed/esteh/400/400.jpg', is_available: true },
-        { id: 'm4', name: 'Kopi Susu Gula Aren', desc: 'Kopi susu dengan gula aren asli', price: 12000, category: 'Minuman', image_url: 'https://picsum.photos/seed/kopisusu/400/400.jpg', is_available: false },
-      ],
-      saveStore: (d: any) => { window.InsForgeDB.stores = { ...window.InsForgeDB.stores, ...d }; return true; },
-      saveMenu: (m: any) => { if (m.id) { const i = window.InsForgeDB.menus.findIndex((x: any) => x.id === m.id); if (i > -1) window.InsForgeDB.menus[i] = m; } else { m.id = 'm' + Date.now(); window.InsForgeDB.menus.push(m); } },
-      deleteMenu: (id: string) => { window.InsForgeDB.menus = window.InsForgeDB.menus.filter((m: any) => m.id !== id); }
-    };
+    // Runtime state
+    let curUser: any = null;
+    let curStore: any = null;
+    let allCategories: any[] = [];
+    let allMenus: any[] = [];
+    let curFilter = 'all', isCustom = false, menuDel: string | null = null;
 
-    let curFilter = 'all', isCustom = false, menuDel: string | null = null, dragId: string | null = null;
+    // ---- Data loaders ----
+    async function loadStore() {
+      try {
+        const r = await fetch('/api/store'); if (!r.ok) return;
+        curStore = await r.json();
+        const sn = document.getElementById('store-name') as HTMLInputElement;
+        const ss = document.getElementById('store-slug') as HTMLInputElement;
+        const lp = document.getElementById('logo-preview') as HTMLImageElement;
+        const dn = document.getElementById('dash-store-name');
+        if (sn) sn.value = curStore.name || '';
+        if (ss) ss.value = curStore.slug || '';
+        if (lp && curStore.logo_url) lp.src = curStore.logo_url;
+        if (dn) dn.textContent = curStore.name || 'Warung Saya';
+        // Set QR designer colors from store
+        const bgI = document.getElementById('bg-color') as HTMLInputElement;
+        const qrI = document.getElementById('qr-color') as HTMLInputElement;
+        if (bgI && curStore.bg_color) bgI.value = curStore.bg_color;
+        if (qrI && curStore.qr_color) qrI.value = curStore.qr_color;
+      } catch (e: any) { console.error('loadStore:', e); }
+    }
+    async function loadCategories() {
+      try {
+        const r = await fetch('/api/categories'); if (!r.ok) return;
+        allCategories = await r.json();
+      } catch (e: any) { console.error('loadCategories:', e); }
+    }
+    async function loadMenus() {
+      try {
+        const r = await fetch('/api/menus'); if (!r.ok) return;
+        allMenus = await r.json();
+      } catch (e: any) { console.error('loadMenus:', e); }
+    }
+    async function loadAll() {
+      try {
+        const meR = await fetch('/api/auth/me');
+        if (meR.ok) { const d = await meR.json(); if (d.user) curUser = d.user; }
+      } catch {}
+      await Promise.all([loadStore(), loadCategories(), loadMenus()]);
+      const te = document.getElementById('stat-total-menus');
+      if (te) te.textContent = String(allMenus.length);
+    }
 
+    // ---- Navigation ----
     function nav(page: string) {
       document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
       const t = document.getElementById('page-' + page); if (t) { t.classList.remove('hidden'); (t as HTMLElement).style.animation = 'none'; void (t as HTMLElement).offsetHeight; (t as HTMLElement).style.animation = ''; }
       document.querySelectorAll('.nav-link, .mob-nav').forEach(l => { if ((l as HTMLElement).dataset.page === page) { l.classList.add('active', 'bg-orange-500/10', 'text-orange-500'); l.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); } else { l.classList.remove('active', 'bg-orange-500/10', 'text-orange-500'); l.classList.add('text-slate-400'); if (l.classList.contains('nav-link')) l.classList.add('hover:bg-white/5', 'hover:text-white'); } });
-      if (page === 'overview') { const e = document.getElementById('stat-total-menus'); if (e) e.textContent = String(window.InsForgeDB.menus.length); }
       if (page === 'menus') { renCats(); renMenus(); }
       if (page === 'designer') initQR();
     }
+
+    // ---- Settings ----
     function autoSlug() { const n = (document.getElementById('store-name') as HTMLInputElement)?.value; const s = document.getElementById('store-slug') as HTMLInputElement; if (!s.dataset.touched) s.value = n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
     function fmtSlug(i: HTMLInputElement) { i.dataset.touched = 'true'; i.value = i.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); }
-    function logoUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; toast('Logo diupload ke InsForge Storage...'); }; r.readAsDataURL(f); } }
-    async function saveSet() { const b = document.getElementById('settings-submit-btn'); sLoad(b, true, 'Menyimpan...'); await new Promise(r => setTimeout(r, 1000)); window.InsForgeDB.saveStore({ name: (document.getElementById('store-name') as HTMLInputElement)?.value, slug: (document.getElementById('store-slug') as HTMLInputElement)?.value, logo_url: (document.getElementById('logo-preview') as HTMLImageElement)?.src }); sLoad(b, false); toast('Profil warung berhasil disimpan!'); }
-    function renCats() { const c = document.getElementById('category-pills'); if (!c) return; let h = `<button class="cat-pill ${curFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`; window.InsForgeDB.categories.forEach((cat: string) => { h += `<button class="cat-pill ${curFilter === cat ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat}" onclick="setCategory('${cat}')">${cat}</button>`; }); h += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`; c.innerHTML = h; const s = document.getElementById('menu-cat') as HTMLSelectElement; if (s) s.innerHTML = window.InsForgeDB.categories.map((c: string) => `<option>${c}</option>`).join(''); }
+    function logoUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; toast('Logo berhasil dipilih.'); }; r.readAsDataURL(f); } }
+    async function saveSet() {
+      const b = document.getElementById('settings-submit-btn'); sLoad(b, true, 'Menyimpan...');
+      try {
+        const body: any = {
+          name: (document.getElementById('store-name') as HTMLInputElement)?.value,
+          slug: (document.getElementById('store-slug') as HTMLInputElement)?.value,
+          logo_url: (document.getElementById('logo-preview') as HTMLImageElement)?.src,
+          bg_color: (document.getElementById('bg-color') as HTMLInputElement)?.value,
+          qr_color: (document.getElementById('qr-color') as HTMLInputElement)?.value,
+        };
+        const r = await fetch('/api/store', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (r.ok) { curStore = { ...curStore, ...body }; toast('Profil warung berhasil disimpan!'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menyimpan.'); }
+      } catch { toast('Gagal menyimpan.'); }
+      sLoad(b, false);
+    }
+
+    // ---- Categories ----
+    function renCats() {
+      const c = document.getElementById('category-pills'); if (!c) return;
+      let h = `<button class="cat-pill ${curFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`;
+      allCategories.forEach((cat: any) => { h += `<button class="cat-pill ${curFilter === cat.id ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat.id}" onclick="setCategory('${cat.id}')">${cat.name}</button>`; });
+      h += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`;
+      c.innerHTML = h;
+      const s = document.getElementById('menu-cat') as HTMLSelectElement;
+      if (s) s.innerHTML = allCategories.map((c: any) => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
     function setCat(cat: string) { curFilter = cat; renCats(); renMenus(); }
-    function addCat() { const nc = (document.getElementById('new-cat-name') as HTMLInputElement)?.value.trim(); if (nc && !window.InsForgeDB.categories.includes(nc)) { window.InsForgeDB.categories.push(nc); renCats(); toast('Kategori baru ditambahkan!'); } (document.getElementById('new-cat-name') as HTMLInputElement).value = ''; cM('cat-modal'); }
-    function renMenus() { const g = document.getElementById('menu-grid'); if (!g) return; const sq = ((document.getElementById('search-menu') as HTMLInputElement)?.value || '').toLowerCase(); const ms = window.InsForgeDB.menus.filter((m: any) => (curFilter === 'all' || m.category === curFilter) && (m.name.toLowerCase().includes(sq) || m.desc.toLowerCase().includes(sq))); const te = document.getElementById('total-menus'); if (te) te.textContent = String(window.InsForgeDB.menus.length); if (!ms.length) { g.innerHTML = '<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200"><svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><h4 class="font-display font-bold text-slate-700 mb-1">Menu tidak ditemukan</h4><p class="text-sm text-slate-400">Coba kata kunci lain atau tambah menu baru.</p></div>'; return; } g.innerHTML = ms.map((m: any) => `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group cursor-move" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')"><div class="relative h-40 overflow-hidden"><img src="${m.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${m.name}">${!m.is_available ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}<div class="absolute top-2 right-2 bg-white/80 backdrop-blur p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 9l-3 3m0 0l3 3m-3-3h18m0 0l-3-3m3 3l-3 3"/></svg></div></div><div class="p-4"><div class="flex items-start justify-between gap-2 mb-1"><h4 class="font-display font-bold text-slate-800 text-sm leading-tight">${m.name}</h4><span class="text-xs font-bold text-orange-600 whitespace-nowrap">Rp ${m.price.toLocaleString('id-ID')}</span></div><p class="text-xs text-slate-500 mb-3 line-clamp-2">${m.desc}</p><div class="flex gap-2"><button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg">Edit</button><button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-500 border border-red-100 hover:bg-red-50 rounded-lg">Hapus</button></div></div></div>`).join(''); }
-    function dStart(e: DragEvent, id: string) { dragId = id; (e.target as HTMLElement).classList.add('dragging'); }
-    function dOver(e: DragEvent) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('drag-over'); }
-    function dDrop(e: DragEvent, tid: string) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over'); if (dragId && dragId !== tid) { const di = window.InsForgeDB.menus.findIndex((m: any) => m.id === dragId); const ti = window.InsForgeDB.menus.findIndex((m: any) => m.id === tid); const [it] = window.InsForgeDB.menus.splice(di, 1); window.InsForgeDB.menus.splice(ti, 0, it); renMenus(); toast('Urutan menu berhasil diubah!'); } }
-    function openMM() { const t = document.getElementById('modal-title'); const f = document.getElementById('menu-form') as HTMLFormElement; const img = document.getElementById('menu-img-preview') as HTMLImageElement; const av = document.getElementById('menu-available') as HTMLInputElement; const mid = document.getElementById('menu-id') as HTMLInputElement; if (t) t.innerText = 'Tambah Menu Baru'; if (f) f.reset(); if (mid) mid.value = ''; if (img) img.src = 'https://picsum.photos/seed/foodplaceholder/200/200.jpg'; if (av) av.checked = true; renCats(); document.getElementById('menu-modal')?.classList.remove('hidden'); }
-    function editMenu(id: string) { const m = window.InsForgeDB.menus.find((x: any) => x.id === id); if (!m) return; const t = document.getElementById('modal-title'); const mid = document.getElementById('menu-id') as HTMLInputElement; if (t) t.innerText = 'Edit Menu'; if (mid) mid.value = m.id; const els: Record<string, string> = { 'menu-name': m.name, 'menu-desc': m.desc, 'menu-price': String(m.price) }; Object.entries(els).forEach(([k, v]) => { const el = document.getElementById(k) as HTMLInputElement; if (el) el.value = v; }); const cat = document.getElementById('menu-cat') as HTMLSelectElement; if (cat) cat.value = m.category; const img = document.getElementById('menu-img-preview') as HTMLImageElement; if (img) img.src = m.image_url; const av = document.getElementById('menu-available') as HTMLInputElement; if (av) av.checked = m.is_available; document.getElementById('menu-modal')?.classList.remove('hidden'); }
+    async function addCat() {
+      const nc = (document.getElementById('new-cat-name') as HTMLInputElement)?.value.trim();
+      if (!nc) return;
+      try {
+        const r = await fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nc }) });
+        if (r.ok) { await loadCategories(); renCats(); toast('Kategori baru ditambahkan!'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menambah kategori.'); }
+      } catch { toast('Gagal menambah kategori.'); }
+      (document.getElementById('new-cat-name') as HTMLInputElement).value = '';
+      cM('cat-modal');
+    }
+
+    // ---- Menus ----
+    function renMenus() {
+      const g = document.getElementById('menu-grid'); if (!g) return;
+      const sq = ((document.getElementById('search-menu') as HTMLInputElement)?.value || '').toLowerCase();
+      const ms = allMenus.filter((m: any) => {
+        const catMatch = curFilter === 'all' || m.category_id === curFilter;
+        const catNameMatch = curFilter === 'all' || allCategories.some(c => c.id === curFilter && c.id === m.category_id);
+        const searchMatch = !sq || m.name.toLowerCase().includes(sq) || (m.description || '').toLowerCase().includes(sq);
+        return catMatch && searchMatch;
+      });
+      const te = document.getElementById('total-menus');
+      if (te) te.textContent = String(allMenus.length);
+      const statEl = document.getElementById('stat-total-menus');
+      if (statEl) statEl.textContent = String(allMenus.length);
+      if (!ms.length) {
+        g.innerHTML = '<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200"><svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><h4 class="font-display font-bold text-slate-700 mb-1">Menu tidak ditemukan</h4><p class="text-sm text-slate-400">Coba kata kunci lain atau tambah menu baru.</p></div>';
+        return;
+      }
+      g.innerHTML = ms.map((m: any) => {
+        const catName = allCategories.find((c: any) => c.id === m.category_id)?.name || '';
+        const imgUrl = m.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(m.name) + '/400/400.jpg';
+        return `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')"><div class="relative h-40 overflow-hidden"><img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${m.name}">${!m.is_available ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}</div><div class="p-4"><div class="flex items-start justify-between gap-2 mb-1"><h4 class="font-display font-bold text-slate-800 text-sm leading-tight">${m.name}</h4><span class="text-xs font-bold text-orange-600 whitespace-nowrap">Rp ${Number(m.price).toLocaleString('id-ID')}</span></div>${catName ? `<p class="text-xs text-orange-400 mb-1">${catName}</p>` : ''}<p class="text-xs text-slate-500 mb-3 line-clamp-2">${m.description || ''}</p><div class="flex gap-2"><button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg">Edit</button><button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-500 border border-red-100 hover:bg-red-50 rounded-lg">Hapus</button></div></div></div>`;
+      }).join('');
+    }
+
+    function openMM() {
+      const t = document.getElementById('modal-title'); const f = document.getElementById('menu-form') as HTMLFormElement;
+      const img = document.getElementById('menu-img-preview') as HTMLImageElement;
+      const av = document.getElementById('menu-available') as HTMLInputElement;
+      const mid = document.getElementById('menu-id') as HTMLInputElement;
+      if (t) t.innerText = 'Tambah Menu Baru'; if (f) f.reset(); if (mid) mid.value = '';
+      if (img) img.src = 'https://picsum.photos/seed/foodplaceholder/200/200.jpg';
+      if (av) av.checked = true; renCats();
+      document.getElementById('menu-modal')?.classList.remove('hidden');
+    }
+    function editMenu(id: string) {
+      const m = allMenus.find((x: any) => x.id === id); if (!m) return;
+      const t = document.getElementById('modal-title'); const mid = document.getElementById('menu-id') as HTMLInputElement;
+      if (t) t.innerText = 'Edit Menu'; if (mid) mid.value = m.id;
+      const fields: Record<string, string> = { 'menu-name': m.name, 'menu-desc': m.description || '', 'menu-price': String(m.price) };
+      Object.entries(fields).forEach(([k, v]) => { const el = document.getElementById(k) as HTMLInputElement; if (el) el.value = v; });
+      const cat = document.getElementById('menu-cat') as HTMLSelectElement; if (cat) cat.value = m.category_id || '';
+      const img = document.getElementById('menu-img-preview') as HTMLImageElement; if (img) img.src = m.image_url || 'https://picsum.photos/seed/foodplaceholder/200/200.jpg';
+      const av = document.getElementById('menu-available') as HTMLInputElement; if (av) av.checked = m.is_available;
+      document.getElementById('menu-modal')?.classList.remove('hidden');
+    }
     function delMenu(id: string) { menuDel = id; document.getElementById('delete-modal')?.classList.remove('hidden'); }
-    document.getElementById('confirm-delete-btn')?.addEventListener('click', () => { if (menuDel) { window.InsForgeDB.deleteMenu(menuDel); renMenus(); toast('Menu berhasil dihapus.'); menuDel = null; } cM('delete-modal'); });
-    function menuImgUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; toast('Foto diupload ke InsForge Storage...'); }; r.readAsDataURL(f); } }
-    function saveMenu(e: Event) { e.preventDefault(); const id = (document.getElementById('menu-id') as HTMLInputElement)?.value; const md: any = { id: id || null, name: (document.getElementById('menu-name') as HTMLInputElement)?.value, desc: (document.getElementById('menu-desc') as HTMLInputElement)?.value, price: parseInt((document.getElementById('menu-price') as HTMLInputElement)?.value || '0'), category: (document.getElementById('menu-cat') as HTMLSelectElement)?.value, image_url: (document.getElementById('menu-img-preview') as HTMLImageElement)?.src, is_available: (document.getElementById('menu-available') as HTMLInputElement)?.checked }; window.InsForgeDB.saveMenu(md); cM('menu-modal'); renMenus(); toast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!'); }
-    function closeMM() { document.getElementById('menu-modal')?.classList.add('hidden'); }
+    async function confirmDel() {
+      if (!menuDel) return;
+      try {
+        const r = await fetch('/api/menus', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: menuDel }) });
+        if (r.ok) { allMenus = allMenus.filter(m => m.id !== menuDel); renMenus(); toast('Menu berhasil dihapus.'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menghapus.'); }
+      } catch { toast('Gagal menghapus menu.'); }
+      menuDel = null; cM('delete-modal');
+    }
+    async function saveMenu(e: Event) {
+      e.preventDefault();
+      const b = document.getElementById('menu-form-submit-btn'); sLoad(b, true, 'Menyimpan...');
+      const id = (document.getElementById('menu-id') as HTMLInputElement)?.value;
+      const body: any = {
+        id: id || undefined,
+        name: (document.getElementById('menu-name') as HTMLInputElement)?.value,
+        description: (document.getElementById('menu-desc') as HTMLInputElement)?.value,
+        price: parseInt((document.getElementById('menu-price') as HTMLInputElement)?.value || '0'),
+        category_id: (document.getElementById('menu-cat') as HTMLSelectElement)?.value || null,
+        image_url: (document.getElementById('menu-img-preview') as HTMLImageElement)?.src,
+        is_available: (document.getElementById('menu-available') as HTMLInputElement)?.checked,
+      };
+      try {
+        const r = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (r.ok) { await loadMenus(); renMenus(); cM('menu-modal'); toast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menyimpan menu.'); }
+      } catch { toast('Gagal menyimpan menu.'); }
+      sLoad(b, false);
+    }
+    function menuImgUp(e: Event) {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; }; r.readAsDataURL(f); }
+    }
+
+    // Drag & drop (visual only, no reorder API)
+    function dStart(e: DragEvent, id: string) { (e.target as HTMLElement).classList.add('dragging'); }
+    function dOver(e: DragEvent) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('drag-over'); }
+    function dDrop(e: DragEvent, tid: string) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over'); }
+
+    // ---- QR Designer ----
     function initQR() { genQR(); updCard(); }
-    function genQR() { const qc = document.getElementById('qrcode'); if (!qc) return; qc.innerHTML = ''; const url = `https://pesanlagi.web.id/menu/${window.InsForgeDB.stores.slug}`; if (typeof (window as any).QRCode !== 'undefined') new (window as any).QRCode(qc, { text: url, width: 120, height: 120, colorDark: (document.getElementById('qr-color') as HTMLInputElement)?.value || '#000', colorLight: '#fff', correctLevel: (window as any).QRCode.CorrectLevel.H }); }
-    function applyPre(pn: string) { let bg = '', qr = ''; if (pn === 'kopi-susu') { bg = '#E8D0B3'; qr = '#4E342E'; isCustom = false; } else if (pn === 'sage-segar') { bg = '#B2AC88'; qr = '#1A1A1A'; isCustom = false; } else if (pn === 'midnight-orange') { bg = '#1A1A1A'; qr = '#FF6D00'; isCustom = false; } else if (pn === 'neon-cyber') { bg = '#0F0F0F'; qr = '#00F0FF'; isCustom = true; } else if (pn === 'warm-pastel') { bg = '#FFE4E6'; qr = '#DB2777'; isCustom = true; } else if (pn === 'minimalist-black') { bg = '#FFF'; qr = '#000'; isCustom = true; } const bI = document.getElementById('bg-color') as HTMLInputElement; const qI = document.getElementById('qr-color') as HTMLInputElement; if (bI) bI.value = bg; if (qI) qI.value = qr; updCard(); chkFree(); }
+    function genQR() {
+      const qc = document.getElementById('qrcode'); if (!qc) return;
+      qc.innerHTML = '';
+      const url = `https://pesanlagi.web.id/menu/${curStore?.slug || 'warung'}`;
+      if (typeof (window as any).QRCode !== 'undefined') {
+        new (window as any).QRCode(qc, { text: url, width: 120, height: 120, colorDark: (document.getElementById('qr-color') as HTMLInputElement)?.value || '#000', colorLight: '#fff', correctLevel: (window as any).QRCode.CorrectLevel.H });
+      }
+    }
+    function applyPre(pn: string) {
+      let bg = '', qr = '';
+      if (pn === 'kopi-susu') { bg = '#E8D0B3'; qr = '#4E342E'; isCustom = false; }
+      else if (pn === 'sage-segar') { bg = '#B2AC88'; qr = '#1A1A1A'; isCustom = false; }
+      else if (pn === 'midnight-orange') { bg = '#1A1A1A'; qr = '#FF6D00'; isCustom = false; }
+      else if (pn === 'neon-cyber') { bg = '#0F0F0F'; qr = '#00F0FF'; isCustom = true; }
+      else if (pn === 'warm-pastel') { bg = '#FFE4E6'; qr = '#DB2777'; isCustom = true; }
+      else if (pn === 'minimalist-black') { bg = '#FFF'; qr = '#000'; isCustom = true; }
+      const bI = document.getElementById('bg-color') as HTMLInputElement; const qI = document.getElementById('qr-color') as HTMLInputElement;
+      if (bI) bI.value = bg; if (qI) qI.value = qr; updCard(); chkFree();
+    }
     function setBg(c: string) { isCustom = true; (document.getElementById('bg-color') as HTMLInputElement).value = c; updCard(); chkFree(); }
     function setQr(c: string) { isCustom = true; (document.getElementById('qr-color') as HTMLInputElement).value = c; updCard(); chkFree(); }
     function applyCC() { isCustom = true; updCard(); chkFree(); }
-    function updCard() { const bg = (document.getElementById('bg-color') as HTMLInputElement)?.value; const qr = (document.getElementById('qr-color') as HTMLInputElement)?.value; const tn = (document.getElementById('table-number') as HTMLInputElement)?.value || ''; const card = document.getElementById('qr-card'); if (card && bg) card.style.backgroundColor = bg; if (card) card.querySelectorAll('h4, p').forEach(t => { (t as HTMLElement).style.color = qr || '#000'; }); const tne = document.getElementById('qr-table-number'); if (tne) { if (tn.trim()) { tne.textContent = tn; tne.classList.remove('hidden'); (tne as HTMLElement).style.color = qr || '#000'; (tne as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.2)'; } else tne.classList.add('hidden'); } genQR(); }
-    function chkFree() { const w = document.getElementById('watermark'); const pb = document.getElementById('pro-badge-custom'); if (!window.InsForgeDB.users.is_pro && isCustom) { w?.classList.remove('hidden'); pb?.classList.remove('hidden'); } else { w?.classList.add('hidden'); if (!isCustom) pb?.classList.add('hidden'); } }
-    function saveDes() { if (!window.InsForgeDB.users.is_pro && isCustom) document.getElementById('upgrade-modal')?.classList.remove('hidden'); else { window.InsForgeDB.saveStore({ bg_color: (document.getElementById('bg-color') as HTMLInputElement)?.value, qr_color: (document.getElementById('qr-color') as HTMLInputElement)?.value }); toast('Desain kartu berhasil disimpan!'); } }
-    function handleDl() { if (!window.InsForgeDB.users.is_pro && isCustom) document.getElementById('upgrade-modal')?.classList.remove('hidden'); else toast('Mengunduh PDF High-Res tanpa watermark...'); }
-    function sLoad(b: HTMLElement | null, on: boolean, t?: string) { if (!b) return; if (on) { b.disabled = true; b.dataset.orig = b.innerHTML; b.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${t || 'Loading...'}`; } else { b.disabled = false; b.innerHTML = b.dataset.orig || ''; } }
+    function updCard() {
+      const bg = (document.getElementById('bg-color') as HTMLInputElement)?.value;
+      const qr = (document.getElementById('qr-color') as HTMLInputElement)?.value;
+      const tn = (document.getElementById('table-number') as HTMLInputElement)?.value || '';
+      const card = document.getElementById('qr-card');
+      if (card && bg) card.style.backgroundColor = bg;
+      if (card) card.querySelectorAll('h4, p').forEach(t => { (t as HTMLElement).style.color = qr || '#000'; });
+      const tne = document.getElementById('qr-table-number');
+      if (tne) { if (tn.trim()) { tne.textContent = tn; tne.classList.remove('hidden'); (tne as HTMLElement).style.color = qr || '#000'; } else tne.classList.add('hidden'); }
+      genQR();
+    }
+    function chkFree() {
+      const w = document.getElementById('watermark'); const pb = document.getElementById('pro-badge-custom');
+      if (curUser && !curUser.is_pro && isCustom) { w?.classList.remove('hidden'); pb?.classList.remove('hidden'); }
+      else { w?.classList.add('hidden'); if (!isCustom) pb?.classList.add('hidden'); }
+    }
+    async function saveDes() {
+      if (curUser && !curUser.is_pro && isCustom) { document.getElementById('upgrade-modal')?.classList.remove('hidden'); return; }
+      try {
+        await fetch('/api/store', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bg_color: (document.getElementById('bg-color') as HTMLInputElement)?.value, qr_color: (document.getElementById('qr-color') as HTMLInputElement)?.value }) });
+        toast('Desain kartu berhasil disimpan!');
+      } catch { toast('Gagal menyimpan desain.'); }
+    }
+    function handleDl() { if (curUser && !curUser.is_pro && isCustom) document.getElementById('upgrade-modal')?.classList.remove('hidden'); else toast('Mengunduh PDF High-Res tanpa watermark...'); }
+
+    // ---- Helpers ----
+    function sLoad(b: HTMLElement | null, on: boolean, t?: string) {
+      if (!b) return;
+      if (on) { b.disabled = true; b.dataset.orig = b.innerHTML; b.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${t || 'Loading...'}`; }
+      else { b.disabled = false; b.innerHTML = b.dataset.orig || ''; }
+    }
     function toast(msg: string) { const t = document.getElementById('toast'); const m = document.getElementById('toast-message'); if (t && m) { (m as HTMLElement).textContent = msg; (t as HTMLElement).style.opacity = '1'; setTimeout(() => { (t as HTMLElement).style.opacity = '0'; }, 3000); } }
     function cM(id: string) { document.getElementById(id)?.classList.add('hidden'); }
-    function logout() { fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {}); toast('Berhasil logout. Mengarahkan...'); setTimeout(() => goTo('#landing'), 1500); }
+    function logout() { fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {}); toast('Berhasil logout. Mengarahkan...'); setTimeout(() => goTo(''), 1500); }
 
-    window.navigateTo = nav; window.autoGenerateSlug = autoSlug; window.formatSlug = fmtSlug; window.handleLogoUpload = logoUp; window.saveSettings = saveSet; window.renderCategories = renCats; window.setCategory = setCat; window.addCategory = addCat; window.renderMenus = renMenus; window.dragStart = dStart; window.dragOver = dOver; window.drop = dDrop; window.openMenuModal = openMM; window.editMenu = editMenu; window.deleteMenu = delMenu; window.handleMenuImageUpload = menuImgUp; window.saveMenu = saveMenu; window.closeMenuModal = closeMM; window.initQRDesigner = initQR; window.generateQRCode = genQR; window.applyPreset = applyPre; window.setBgColor = setBg; window.setQrColor = setQr; window.applyCustomColor = applyCC; window.updateCardUI = updCard; window.checkFreemiumLogic = chkFree; window.handleSaveDesign = saveDes; window.handleDownload = handleDl; window.setLoading = sLoad; window.showToast = toast; window.closeModal = cM; window.handleLogout = logout;
+    // ---- Expose to window ----
+    window.navigateTo = nav; window.autoGenerateSlug = autoSlug; window.formatSlug = fmtSlug; window.handleLogoUpload = logoUp;
+    window.saveSettings = saveSet; window.renderCategories = renCats; window.setCategory = setCat; window.addCategory = addCat;
+    window.renderMenus = renMenus; window.dragStart = dStart; window.dragOver = dOver; window.drop = dDrop;
+    window.openMenuModal = openMM; window.editMenu = editMenu; window.deleteMenu = delMenu;
+    window.handleMenuImageUpload = menuImgUp; window.saveMenu = saveMenu; window.closeMenuModal = () => cM('menu-modal');
+    window.initQRDesigner = initQR; window.generateQRCode = genQR; window.applyPreset = applyPre;
+    window.setBgColor = setBg; window.setQrColor = setQr; window.applyCustomColor = applyCC;
+    window.updateCardUI = updCard; window.checkFreemiumLogic = chkFree; window.handleSaveDesign = saveDes;
+    window.handleDownload = handleDl; window.setLoading = sLoad; window.showToast = toast;
+    window.closeModal = cM; window.handleLogout = logout;
 
-    document.getElementById('store-name')?.addEventListener('input', autoSlug); document.getElementById('store-slug')?.addEventListener('input', (e) => fmtSlug(e.target as HTMLInputElement)); document.getElementById('logo-upload')?.addEventListener('change', logoUp); document.getElementById('settings-form')?.addEventListener('submit', (e) => { e.preventDefault(); saveSet(); }); document.getElementById('add-cat-btn')?.addEventListener('click', addCat); document.getElementById('menu-form')?.addEventListener('submit', saveMenu); document.getElementById('menu-img-upload')?.addEventListener('change', menuImgUp); document.getElementById('save-design-btn')?.addEventListener('click', saveDes); document.getElementById('download-btn')?.addEventListener('click', handleDl); document.getElementById('table-number')?.addEventListener('input', updCard); document.getElementById('bg-color')?.addEventListener('input', () => { isCustom = true; updCard(); chkFree(); }); document.getElementById('qr-color')?.addEventListener('input', () => { isCustom = true; updCard(); chkFree(); }); document.getElementById('logout-btn')?.addEventListener('click', logout); document.getElementById('mob-logout-btn')?.addEventListener('click', logout); document.getElementById('add-menu-fab')?.addEventListener('click', openMM); document.getElementById('search-menu')?.addEventListener('input', renMenus);
-    nav('overview');
+    // ---- Bind events ----
+    document.getElementById('store-name')?.addEventListener('input', autoSlug);
+    document.getElementById('store-slug')?.addEventListener('input', (e) => fmtSlug(e.target as HTMLInputElement));
+    document.getElementById('logo-upload')?.addEventListener('change', logoUp);
+    document.getElementById('settings-form')?.addEventListener('submit', (e) => { e.preventDefault(); saveSet(); });
+    document.getElementById('add-cat-btn')?.addEventListener('click', addCat);
+    document.getElementById('menu-form')?.addEventListener('submit', saveMenu);
+    document.getElementById('menu-img-upload')?.addEventListener('change', menuImgUp);
+    document.getElementById('save-design-btn')?.addEventListener('click', saveDes);
+    document.getElementById('download-btn')?.addEventListener('click', handleDl);
+    document.getElementById('table-number')?.addEventListener('input', updCard);
+    document.getElementById('bg-color')?.addEventListener('input', () => { isCustom = true; updCard(); chkFree(); });
+    document.getElementById('qr-color')?.addEventListener('input', () => { isCustom = true; updCard(); chkFree(); });
+    document.getElementById('logout-btn')?.addEventListener('click', logout);
+    document.getElementById('mob-logout-btn')?.addEventListener('click', logout);
+    document.getElementById('add-menu-fab')?.addEventListener('click', openMM);
+    document.getElementById('search-menu')?.addEventListener('input', renMenus);
+    document.getElementById('confirm-delete-btn')?.addEventListener('click', confirmDel);
+
+    // Load real data then navigate
+    loadAll().then(() => nav('overview'));
   }
 }

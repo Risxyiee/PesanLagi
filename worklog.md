@@ -135,3 +135,28 @@ Stage Summary:
 - login-styles.ts: Updated styles for new design
 - page.tsx: Google auth now shows toast instead of broken redirect
 - All issues resolved: no more \ud83d text, clean colors, Google button shows friendly message
+---
+Task ID: 2
+Agent: main
+Task: Connect app to real InsForge PostgreSQL database, replace all demo/mock data
+
+Work Log:
+- Connected to InsForge PostgreSQL: 4 tables (users, stores, categories, menus), 5 users, 5 stores, 17 categories, 46 menus
+- Added password_hash column to users table and seeded bcrypt passwords for all 5 users
+- Created src/lib/pg.ts with connection pool (hardcoded fallback URL to avoid shell env override)
+- Rewrote /api/auth/sign-in: bcrypt compare + session token in cookie (7-day expiry)
+- Rewrote /api/auth/sign-up: bcrypt hash + auto-create store + session cookie
+- Rewrote /api/auth/me: session token lookup via cookie
+- Rewrote /api/auth/sign-out: delete session + clear cookie
+- Created /api/store: GET and PUT for store profile
+- Created /api/categories: GET, POST, DELETE for categories
+- Created /api/menus: GET (with search/filter), POST (create/update), DELETE
+- Replaced entire initDashboard() in page.tsx: removed window.InsForgeDB mock, now uses fetch() to real API endpoints
+- Added serverExternalPackages: ['pg', 'bcryptjs'] to next.config.ts
+- Created start.sh to unset shell DATABASE_URL override
+
+Stage Summary:
+- All auth flows work with real database (verified via curl)
+- Dashboard loads real store data, categories, and menus from InsForge PostgreSQL
+- Demo accounts: demo@warung.com/demo123, pakahmad@warung.com/ahmad123, kaslam@warung.com/kaslam123, rumahmakan@warung.com/rm123, kopijos@warung.com/kopi123
+- Note: Shell has DATABASE_URL=file:... env var that overrides .env files; pg.ts has hardcoded fallback to handle this
