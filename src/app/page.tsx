@@ -648,7 +648,13 @@ export default function Home() {
   }, [view, isClient, initLanding, initLogin, initDashboard]);
 
   if (!isClient) {
-    return null;
+    // Always render landing as default during SSR/hydration to avoid blank page
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
+        <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      </>
+    );
   }
 
   return (
