@@ -1,0 +1,683 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useRef, useState, useCallback } from "react";
+     4→import bodyHtml from "./body-html.json";
+     5→import { styles } from "./styles";
+     6→import loginBodyHtml from "./login/login-html.json";
+     7→import { loginStyles } from "./login/login-styles";
+     8→import dashboardBodyHtml from "./dashboard/dashboard-html.json";
+     9→import { dashboardStyles } from "./dashboard/dashboard-styles";
+    10→import { useAuth } from "@/context/auth-context";
+    11→
+    12→export default function Home() {
+    13→  const [view, setView] = useState<'landing' | 'login' | 'dashboard'>('landing');
+    14→  const [isClient, setIsClient] = useState(false);
+    15→  const landingInitRef = useRef(false);
+    16→  const loginInitRef = useRef(false);
+    17→  const dashboardInitRef = useRef(false);
+    18→  const { user, signUp, signIn, signInWithGoogle } = useAuth();
+    19→
+    20→  // Hash routing
+    21→  useEffect(() => {
+    22→    setIsClient(true);
+    23→
+    24→    function handleHash() {
+    25→      const hash = window.location.hash.replace('#', '');
+    26→      if (hash === 'dashboard') {
+    27→        setView('dashboard');
+    28→      } else if (hash === 'login' || hash === 'register') {
+    29→        setView('login');
+    30→      } else if (hash === 'landing' || hash === '' || hash === 'fitur' || hash === 'harga' || hash === 'demo') {
+    31→        setView('landing');
+    32→      }
+    33→    }
+    34→
+    35→    handleHash();
+    36→    window.addEventListener('hashchange', handleHash);
+    37→    return () => window.removeEventListener('hashchange', handleHash);
+    38→  }, []);
+    39→
+    40→  // Global navigation helper
+    41→  const goTo = useCallback((hash: string) => {
+    42→    window.location.hash = hash;
+    43→  }, []);
+    44→
+    45→  // ==========================================
+    46→  // LANDING PAGE INIT
+    47→  // ==========================================
+    48→  const initLanding = useCallback(() => {
+    49→    if (landingInitRef.current) return;
+    50→    landingInitRef.current = true;
+    51→
+    52→    function showToast(message: string) {
+    53→      const toast = document.getElementById('toast');
+    54→      const msg = document.getElementById('toast-message');
+    55→      if (toast && msg) {
+    56→        (msg as HTMLElement).textContent = message;
+    57→        toast.classList.add('show');
+    58→        clearTimeout((window as any)._toastTimer);
+    59→        (window as any)._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    60→      }
+    61→    }
+    62→
+    63→    function openModal(id: string) {
+    64→      const modal = document.getElementById(id);
+    65→      if (modal) {
+    66→        modal.classList.add('active');
+    67→        document.body.style.overflow = 'hidden';
+    68→      }
+    69→    }
+    70→
+    71→    function closeModal(id: string) {
+    72→      const modal = document.getElementById(id);
+    73→      if (modal) {
+    74→        modal.classList.remove('active');
+    75→        document.body.style.overflow = '';
+    76→      }
+    77→    }
+    78→
+    79→    function toggleFaq(btn: HTMLElement) {
+    80→      const item = (btn as HTMLElement).closest('.faq-item');
+    81→      if (!item) return;
+    82→      const answer = item.querySelector('.faq-answer') as HTMLElement;
+    83→      if (!answer) return;
+    84→      const isActive = item.classList.contains('active');
+    85→      const allItems = item.closest('.modal-box')?.querySelectorAll('.faq-item') || [];
+    86→      allItems.forEach((otherItem: Element) => {
+    87→        if (otherItem !== item) {
+    88→          otherItem.classList.remove('active');
+    89→          const otherAnswer = otherItem.querySelector('.faq-answer') as HTMLElement;
+    90→          if (otherAnswer) otherAnswer.style.maxHeight = '0';
+    91→        }
+    92→      });
+    93→      if (isActive) {
+    94→        item.classList.remove('active');
+    95→        answer.style.maxHeight = '0';
+    96→      } else {
+    97→        item.classList.add('active');
+    98→        answer.style.maxHeight = answer.scrollHeight + 'px';
+    99→      }
+   100→    }
+   101→
+   102→    // Override showToast to also handle navigation for CTA buttons
+   103→    (window as any).showToast = (message: string) => {
+   104→      if (message.includes('login') || message.includes('Login') || message.includes('Masuk')) {
+   105→        goTo('#login');
+   106→        return;
+   107→      }
+   108→      if (message.includes('gratis') || message.includes('Gratis') || message.includes('daftar') || message.includes('Daftar') || message.includes('disiapkan') || message.includes('dibuat')) {
+   109→        goTo('#login');
+   110→        return;
+   111→      }
+   112→      // Normal toast
+   113→      const toast = document.getElementById('toast');
+   114→      const msg = document.getElementById('toast-message');
+   115→      if (toast && msg) {
+   116→        (msg as HTMLElement).textContent = message;
+   117→        toast.classList.add('show');
+   118→        clearTimeout((window as any)._toastTimer);
+   119→        (window as any)._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+   120→      }
+   121→    };
+   122→    (window as any).openModal = openModal;
+   123→    (window as any).closeModal = closeModal;
+   124→    (window as any).toggleFaq = toggleFaq;
+   125→
+   126→    // Mobile menu
+   127→    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+   128→    const mobileMenu = document.getElementById('mobile-menu');
+   129→    mobileMenuBtn?.addEventListener('click', () => mobileMenu?.classList.toggle('open'));
+   130→    mobileMenu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu?.classList.remove('open')));
+   131→
+   132→    // Reveal on scroll
+   133→    const reveals = document.querySelectorAll('.reveal');
+   134→    const observer = new IntersectionObserver((entries) => {
+   135→      entries.forEach(entry => {
+   136→        if (entry.isIntersecting) {
+   137→          entry.target.classList.add('active');
+   138→          entry.target.querySelectorAll('.counter').forEach((c: Element) => animateCounter(c as HTMLElement));
+   139→        }
+   140→      });
+   141→    }, { threshold: 0.1 });
+   142→    reveals.forEach(el => observer.observe(el));
+   143→
+   144→    function animateCounter(el: HTMLElement) {
+   145→      if (el.dataset.animated) return;
+   146→      el.dataset.animated = 'true';
+   147→      const target = parseFloat(el.dataset.target || '0');
+   148→      const isDecimal = el.dataset.decimal === '1';
+   149→      const duration = 2000;
+   150→      const start = performance.now();
+   151→      function step(now: number) {
+   152→        const elapsed = now - start;
+   153→        const progress = Math.min(elapsed / duration, 1);
+   154→        const eased = 1 - Math.pow(1 - progress, 3);
+   155→        const value = target * eased;
+   156→        if (isDecimal) el.textContent = (value / 10).toFixed(1);
+   157→        else el.textContent = String(Math.floor(value));
+   158→        if (progress < 1) requestAnimationFrame(step);
+   159→        else el.textContent = isDecimal ? (target / 10).toFixed(1) : String(target);
+   160→      }
+   161→      requestAnimationFrame(step);
+   162→    }
+   163→
+   164→    // QR Code generation
+   165→    function generateQRPattern(size = 21) {
+   166→      const pattern: number[][] = [];
+   167→      for (let i = 0; i < size; i++) pattern[i] = new Array(size).fill(0);
+   168→      const addFinder = (sr: number, sc: number) => {
+   169→        for (let i = 0; i < 7; i++) for (let j = 0; j < 7; j++) {
+   170→          if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) pattern[sr + i][sc + j] = 1;
+   171→        }
+   172→      };
+   173→      addFinder(0, 0); addFinder(0, size - 7); addFinder(size - 7, 0);
+   174→      for (let i = 8; i < size - 8; i++) { pattern[6][i] = i % 2 === 0 ? 1 : 0; pattern[i][6] = i % 2 === 0 ? 1 : 0; }
+   175→      let seed = 12345;
+   176→      const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+   177→      for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) {
+   178→        if ((i < 8 && j < 8) || (i < 8 && j >= size - 8) || (i >= size - 8 && j < 8)) continue;
+   179→        if (i === 6 || j === 6) continue;
+   180→        if (rand() > 0.5) pattern[i][j] = 1;
+   181→      }
+   182→      return pattern;
+   183→    }
+   184→
+   185→    function renderQR(container: HTMLElement | null, color: string, template: string) {
+   186→      if (!container) return;
+   187→      const pattern = generateQRPattern();
+   188→      const size = pattern.length;
+   189→      container.innerHTML = '';
+   190→      container.style.display = 'grid';
+   191→      container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+   192→      container.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+   193→      container.style.gap = '0';
+   194→      let borderRadius = '0';
+   195→      if (template === 'rounded') borderRadius = '30%';
+   196→      if (template === 'dot') borderRadius = '50%';
+   197→      const frag = document.createDocumentFragment();
+   198→      for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) {
+   199→        const cell = document.createElement('div');
+   200→        cell.className = 'qr-cell';
+   201→        if (pattern[i][j] === 1) { cell.style.background = color; cell.style.borderRadius = borderRadius; }
+   202→        frag.appendChild(cell);
+   203→      }
+   204→      container.appendChild(frag);
+   205→    }
+   206→
+   207→    let qrColor = '#F97316';
+   208→    let qrTemplate = 'square';
+   209→    let qrBg = '#FFF7ED';
+   210→    let qrBgDark = false;
+   211→    let restaurantName = 'Warung Bu Tini';
+   212→
+   213→    function updatePreview() {
+   214→      renderQR(document.getElementById('preview-qr'), qrColor, qrTemplate);
+   215→      const card = document.getElementById('preview-card');
+   216→      if (card) card.style.background = qrBg;
+   217→      const name = document.getElementById('preview-name');
+   218→      if (name && card) {
+   219→        const subtitle = card.querySelectorAll('.text-neutral-400, .text-neutral-500');
+   220→        if (qrBgDark) {
+   221→          name.style.color = '#FFF7ED';
+   222→          subtitle.forEach(el => { if (el.tagName !== 'BUTTON') { el.classList.remove('text-neutral-400', 'text-neutral-500'); el.classList.add('text-orange-100/50'); } });
+   223→        } else {
+   224→          name.style.color = '#1C1410';
+   225→          subtitle.forEach(el => { if (el.tagName !== 'BUTTON') { el.classList.add('text-neutral-400', 'text-neutral-500'); el.classList.remove('text-orange-100/50'); } });
+   226→        }
+   227→        name.textContent = restaurantName || 'Warung Bu Tini';
+   228→      }
+   229→    }
+   230→
+   231→    renderQR(document.getElementById('hero-qr'), '#0C0A09', 'square');
+   232→    updatePreview();
+   233→
+   234→    document.querySelectorAll('#color-picker .color-swatch').forEach(btn => {
+   235→      btn.addEventListener('click', () => {
+   236→        document.querySelectorAll('#color-picker .color-swatch').forEach(b => b.classList.remove('active'));
+   237→        btn.classList.add('active');
+   238→        qrColor = (btn as HTMLElement).dataset.color || '#F97316';
+   239→        updatePreview();
+   240→      });
+   241→    });
+   242→    document.querySelectorAll('#template-picker .template-option').forEach(btn => {
+   243→      btn.addEventListener('click', () => {
+   244→        document.querySelectorAll('#template-picker .template-option').forEach(b => b.classList.remove('active'));
+   245→        btn.classList.add('active');
+   246→        qrTemplate = (btn as HTMLElement).dataset.template || 'square';
+   247→        updatePreview();
+   248→      });
+   249→    });
+   250→    document.querySelectorAll('#bg-picker .color-swatch').forEach(btn => {
+   251→      btn.addEventListener('click', () => {
+   252→        document.querySelectorAll('#bg-picker .color-swatch').forEach(b => b.classList.remove('active'));
+   253→        btn.classList.add('active');
+   254→        qrBg = (btn as HTMLElement).dataset.bg || '#FFF7ED';
+   255→        qrBgDark = (btn as HTMLElement).dataset.dark === 'true';
+   256→        updatePreview();
+   257→      });
+   258→    });
+   259→    const restaurantInput = document.getElementById('restaurant-name');
+   260→    restaurantInput?.addEventListener('input', (e) => { restaurantName = (e.target as HTMLInputElement).value; updatePreview(); });
+   261→
+   262→    // Smooth scroll
+   263→    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+   264→      anchor.addEventListener('click', function(e: Event) {
+   265→        const href = (anchor as HTMLAnchorElement).getAttribute('href');
+   266→        if (href && href !== '#') {
+   267→          const target = document.querySelector(href);
+   268→          if (target) {
+   269→            e.preventDefault();
+   270→            const top = target.getBoundingClientRect().top + window.pageYOffset - 80;
+   271→            window.scrollTo({ top, behavior: 'smooth' });
+   272→          }
+   273→        }
+   274→      });
+   275→    });
+   276→
+   277→    // Close modal on Escape
+   278→    document.addEventListener('keydown', (e) => {
+   279→      if (e.key === 'Escape') {
+   280→        document.querySelectorAll('.modal-overlay.active').forEach(m => { m.classList.remove('active'); document.body.style.overflow = ''; });
+   281→      }
+   282→    });
+   283→  }, [goTo]);
+   284→
+   285→  // ==========================================
+   286→  // LOGIN PAGE INIT
+   287→  // ==========================================
+   288→  const initLogin = useCallback(() => {
+   289→    if (loginInitRef.current) return;
+   290→    loginInitRef.current = true;
+   291→
+   292→    function showToast(message: string) {
+   293→      const toast = document.getElementById('toast');
+   294→      const msg = document.getElementById('toast-message');
+   295→      if (toast && msg) {
+   296→        (msg as HTMLElement).textContent = message;
+   297→        (toast as HTMLElement).style.opacity = '1';
+   298→        setTimeout(() => { (toast as HTMLElement).style.opacity = '0'; }, 3000);
+   299→      }
+   300→    }
+   301→
+   302→    function togglePassword(id: string, btn: HTMLElement) {
+   303→      const input = document.getElementById(id) as HTMLInputElement;
+   304→      const icon = btn.querySelector('.eye-icon') as SVGElement;
+   305→      if (input.type === 'password') {
+   306→        input.type = 'text';
+   307→        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+   308→      } else {
+   309→        input.type = 'password';
+   310→        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+   311→      }
+   312→    }
+   313→
+   314→    function setLoading(btnId: string, isLoading: boolean, loadingText: string) {
+   315→      const btn = document.getElementById(btnId);
+   316→      if (!btn) return;
+   317→      const textSpan = btn.querySelector('.btn-text') as HTMLElement;
+   318→      if (isLoading) {
+   319→        btn.disabled = true;
+   320→        btn.dataset.originalText = textSpan.textContent || '';
+   321→        btn.classList.add('opacity-90', 'cursor-not-allowed');
+   322→        btn.classList.remove('hover:-translate-y-0.5');
+   323→        textSpan.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2 -mt-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${loadingText}`;
+   324→      } else {
+   325→        btn.disabled = false;
+   326→        btn.classList.remove('opacity-90', 'cursor-not-allowed');
+   327→        btn.classList.add('hover:-translate-y-0.5');
+   328→        textSpan.textContent = btn.dataset.originalText || '';
+   329→      }
+   330→    }
+   331→
+   332→    function showError(viewId: string, message: string) {
+   333→      const errDiv = document.getElementById(viewId + '-error');
+   334→      const errMsg = document.getElementById(viewId + '-error-text');
+   335→      const view = document.getElementById(viewId + '-view');
+   336→      if (!errDiv || !errMsg || !view) return;
+   337→      errMsg.textContent = message;
+   338→      errDiv.classList.remove('hidden');
+   339→      view.classList.add('shake');
+   340→      setTimeout(() => view.classList.remove('shake'), 300);
+   341→      setTimeout(() => errDiv.classList.add('hidden'), 4000);
+   342→    }
+   343→
+   344→    function switchView(view: string) {
+   345→      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+   346→      const target = document.getElementById(view + '-view');
+   347→      if (target) {
+   348→        target.classList.remove('hidden');
+   349→        (target as HTMLElement).style.animation = 'none';
+   350→        void (target as HTMLElement).offsetHeight;
+   351→        (target as HTMLElement).style.animation = '';
+   352→      }
+   353→    }
+   354→
+   355→    function showSuccess(title: string, message: string) {
+   356→      switchView('success');
+   357→      const titleEl = document.getElementById('success-title');
+   358→      const msgEl = document.getElementById('success-msg');
+   359→      const bar = document.getElementById('success-bar');
+   360→      if (titleEl) titleEl.textContent = title;
+   361→      if (msgEl) msgEl.textContent = message;
+   362→      if (bar) { bar.style.width = '0%'; setTimeout(() => { bar.style.width = '100%'; }, 100); }
+   363→    }
+   364→
+   365→    function checkPasswordStrength() {
+   366→      const pwd = (document.getElementById('register-password') as HTMLInputElement)?.value || '';
+   367→      const bars = [document.getElementById('strength-1'), document.getElementById('strength-2'), document.getElementById('strength-3'), document.getElementById('strength-4')];
+   368→      const text = document.getElementById('strength-text');
+   369→      let strength = 0;
+   370→      if (pwd.length >= 6) strength++;
+   371→      if (pwd.length >= 10) strength++;
+   372→      if (/[A-Z]/.test(pwd)) strength++;
+   373→      if (/[0-9]/.test(pwd)) strength++;
+   374→      bars.forEach(bar => { if (bar) bar.style.backgroundColor = '#E2E8F0'; });
+   375→      if (!text) return;
+   376→      if (pwd.length === 0) { text.textContent = 'Gunakan minimal 6 karakter'; text.className = 'text-xs text-slate-400 mt-1.5'; }
+   377→      else if (strength <= 1) { if (bars[0]) bars[0].style.backgroundColor = '#EF4444'; text.textContent = 'Lemah'; text.className = 'text-xs text-red-500 mt-1.5'; }
+   378→      else if (strength <= 2) { if (bars[0]) bars[0].style.backgroundColor = '#F59E0B'; if (bars[1]) bars[1].style.backgroundColor = '#F59E0B'; text.textContent = 'Cukup'; text.className = 'text-xs text-yellow-500 mt-1.5'; }
+   379→      else if (strength === 3) { if (bars[0]) bars[0].style.backgroundColor = '#10B981'; if (bars[1]) bars[1].style.backgroundColor = '#10B981'; if (bars[2]) bars[2].style.backgroundColor = '#10B981'; text.textContent = 'Kuat'; text.className = 'text-xs text-green-500 mt-1.5'; }
+   380→      else { bars.forEach(b => { if (b) b.style.backgroundColor = '#10B981'; }); text.textContent = 'Sangat Kuat'; text.className = 'text-xs text-green-500 mt-1.5'; }
+   381→    }
+   382→
+   383→    function googleAuth() { signInWithGoogle(); }
+   384→
+   385→    (window as any).showToast = showToast;
+   386→    (window as any).togglePassword = togglePassword;
+   387→    (window as any).switchView = switchView;
+   388→    (window as any).checkPasswordStrength = checkPasswordStrength;
+   389→    (window as any).googleAuth = googleAuth;
+   390→
+   391→    // Handle hash for login/register switch
+   392→    const hash = window.location.hash.replace('#', '');
+   393→    if (hash === 'register') switchView('register');
+   394→    else switchView('login');
+   395→
+   396→    // Login Form
+   397→    document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+   398→      e.preventDefault();
+   399→      const email = (document.getElementById('login-email') as HTMLInputElement)?.value;
+   400→      const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
+   401→      if (!email || !password) { showError('login', 'Email dan password tidak boleh kosong.'); return; }
+   402→      setLoading('login-btn', true, 'Memproses...');
+   403→      const result = await signIn(email, password);
+   404→      setLoading('login-btn', false);
+   405→      if (result.error) { showError('login', result.error); }
+   406→      else { showSuccess('Login Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); }
+   407→    });
+   408→
+   409→    // Register Form
+   410→    document.getElementById('register-form')?.addEventListener('submit', async (e) => {
+   411→      e.preventDefault();
+   412→      const email = (document.getElementById('register-email') as HTMLInputElement)?.value;
+   413→      const password = (document.getElementById('register-password') as HTMLInputElement)?.value;
+   414→      const confirm = (document.getElementById('register-confirm') as HTMLInputElement)?.value;
+   415→      const terms = (document.getElementById('register-terms') as HTMLInputElement)?.checked;
+   416→      if (!email || !password || !confirm) { showError('register', 'Semua field wajib diisi.'); return; }
+   417→      if (password.length < 6) { showError('register', 'Password minimal harus 6 karakter.'); return; }
+   418→      if (password !== confirm) { showError('register', 'Password dan konfirmasi password tidak cocok.'); return; }
+   419→      if (!terms) { showError('register', 'Anda harus menyetujui Syarat & Ketentuan.'); return; }
+   420→      setLoading('register-btn', true, 'Mendaftarkan Warungmu...');
+   421→      const result = await signUp(email, password);
+   422→      setLoading('register-btn', false);
+   423→      if (result.error) { showError('register', result.error); }
+   424→      else if (result.requireEmailVerification) { showSuccess('Cek Email Kamu!', 'Kode verifikasi telah dikirim ke email kamu.'); }
+   425→      else { showSuccess('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => goTo('#dashboard'), 2000); }
+   426→    });
+   427→
+   428→    window.addEventListener('hashchange', () => {
+   429→      const h = window.location.hash.replace('#', '');
+   430→      if (h === 'register') switchView('register');
+   431→      else if (h === 'login') switchView('login');
+   432→    });
+   433→  }, [signUp, signIn, signInWithGoogle, goTo]);
+   434→
+   435→  // ==========================================
+   436→  // DASHBOARD INIT
+   437→  // ==========================================
+   438→  const initDashboard = useCallback(() => {
+   439→    if (dashboardInitRef.current) return;
+   440→    dashboardInitRef.current = true;
+   441→
+   442→    // Mock DB
+   443→    window.InsForgeDB = {
+   444→      users: { id: 'usr_123', email: 'pakbowo@warung.com', is_pro: false },
+   445→      stores: { id: 'store_1', user_id: 'usr_123', name: 'Warung Pak Bowo', slug: 'warung-pak-bowo', logo_url: 'https://picsum.photos/seed/warunglogo/200/200.jpg' },
+   446→      categories: ['Makanan', 'Minuman', 'Snack'],
+   447→      menus: [
+   448→        { id: 'm1', name: 'Nasi Goreng Spesial', desc: 'Nasi goreng dengan telur, ayam, dan kerupuk', price: 18000, category: 'Makanan', image_url: 'https://picsum.photos/seed/nasigoreng/400/400.jpg', is_available: true },
+   449→        { id: 'm2', name: 'Mie Goreng Jawa', desc: 'Mie goreng dengan sayuran dan telur', price: 15000, category: 'Makanan', image_url: 'https://picsum.photos/seed/miegoreng/400/400.jpg', is_available: true },
+   450→        { id: 'm3', name: 'Es Teh Manis', desc: 'Teh manis dingin segar', price: 5000, category: 'Minuman', image_url: 'https://picsum.photos/seed/esteh/400/400.jpg', is_available: true },
+   451→        { id: 'm4', name: 'Kopi Susu Gula Aren', desc: 'Kopi susu dengan gula aren asli', price: 12000, category: 'Minuman', image_url: 'https://picsum.photos/seed/kopisusu/400/400.jpg', is_available: false },
+   452→      ],
+   453→      saveStore: (data: any) => { window.InsForgeDB.stores = {...window.InsForgeDB.stores, ...data}; return true; },
+   454→      saveMenu: (menu: any) => {
+   455→        if (menu.id) { const idx = window.InsForgeDB.menus.findIndex((m: any) => m.id === menu.id); if(idx > -1) window.InsForgeDB.menus[idx] = menu; }
+   456→        else { menu.id = 'm' + Date.now(); window.InsForgeDB.menus.push(menu); }
+   457→      },
+   458→      deleteMenu: (id: string) => { window.InsForgeDB.menus = window.InsForgeDB.menus.filter((m: any) => m.id !== id); }
+   459→    };
+   460→
+   461→    let currentMenuFilter = 'all';
+   462→    let isCustomColor = false;
+   463→    let menuToDelete: string | null = null;
+   464→    let draggedId: string | null = null;
+   465→
+   466→    function navigateTo(page: string) {
+   467→      document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+   468→      const target = document.getElementById('page-' + page);
+   469→      if (target) { target.classList.remove('hidden'); (target as HTMLElement).style.animation = 'none'; void (target as HTMLElement).offsetHeight; (target as HTMLElement).style.animation = ''; }
+   470→      document.querySelectorAll('.nav-link, .mob-nav').forEach(link => {
+   471→        if ((link as HTMLElement).dataset.page === page) { link.classList.add('active', 'bg-orange-500/10', 'text-orange-500'); link.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); }
+   472→        else { link.classList.remove('active', 'bg-orange-500/10', 'text-orange-500'); link.classList.add('text-slate-400'); if (link.classList.contains('nav-link')) link.classList.add('hover:bg-white/5', 'hover:text-white'); }
+   473→      });
+   474→      if (page === 'overview') { const el = document.getElementById('stat-total-menus'); if (el) el.textContent = String(window.InsForgeDB.menus.length); }
+   475→      if (page === 'menus') { renderCategories(); renderMenus(); }
+   476→      if (page === 'designer') initQRDesigner();
+   477→    }
+   478→
+   479→    function autoGenerateSlug() {
+   480→      const name = (document.getElementById('store-name') as HTMLInputElement)?.value;
+   481→      const slugInput = document.getElementById('store-slug') as HTMLInputElement;
+   482→      if (!slugInput.dataset.touched) slugInput.value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+   483→    }
+   484→    function formatSlug(input: HTMLInputElement) { input.dataset.touched = 'true'; input.value = input.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); }
+   485→    function handleLogoUpload(e: Event) {
+   486→      const file = (e.target as HTMLInputElement).files?.[0];
+   487→      if (file) { const reader = new FileReader(); reader.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if(p) p.src = (ev.target as FileReader).result as string; showToast('Logo diupload ke InsForge Storage...'); }; reader.readAsDataURL(file); }
+   488→    }
+   489→    async function saveSettings() {
+   490→      const btn = document.getElementById('settings-submit-btn');
+   491→      setLoadingGlobal(btn, true, 'Menyimpan...');
+   492→      await new Promise(r => setTimeout(r, 1000));
+   493→      window.InsForgeDB.saveStore({ name: (document.getElementById('store-name') as HTMLInputElement)?.value, slug: (document.getElementById('store-slug') as HTMLInputElement)?.value, logo_url: (document.getElementById('logo-preview') as HTMLImageElement)?.src });
+   494→      setLoadingGlobal(btn, false);
+   495→      showToast('Profil warung berhasil disimpan!');
+   496→    }
+   497→
+   498→    function renderCategories() {
+   499→      const container = document.getElementById('category-pills');
+   500→      if (!container) return;
+   501→      let html = `<button class="cat-pill ${currentMenuFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`;
+   502→      window.InsForgeDB.categories.forEach((cat: string) => { html += `<button class="cat-pill ${currentMenuFilter === cat ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat}" onclick="setCategory('${cat}')">${cat}</button>`; });
+   503→      html += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`;
+   504→      container.innerHTML = html;
+   505→      const select = document.getElementById('menu-cat') as HTMLSelectElement;
+   506→      if (select) select.innerHTML = window.InsForgeDB.categories.map((c: string) => `<option>${c}</option>`).join('');
+   507→    }
+   508→    function setCategory(cat: string) { currentMenuFilter = cat; renderCategories(); renderMenus(); }
+   509→    function addCategory() {
+   510→      const nc = (document.getElementById('new-cat-name') as HTMLInputElement)?.value.trim();
+   511→      if (nc && !window.InsForgeDB.categories.includes(nc)) { window.InsForgeDB.categories.push(nc); renderCategories(); showToast('Kategori baru ditambahkan!'); }
+   512→      (document.getElementById('new-cat-name') as HTMLInputElement).value = '';
+   513→      closeModalGlobal('cat-modal');
+   514→    }
+   515→    function renderMenus() {
+   516→      const grid = document.getElementById('menu-grid'); if (!grid) return;
+   517→      const sq = ((document.getElementById('search-menu') as HTMLInputElement)?.value || '').toLowerCase();
+   518→      const menus = window.InsForgeDB.menus.filter((m: any) => (currentMenuFilter === 'all' || m.category === currentMenuFilter) && (m.name.toLowerCase().includes(sq) || m.desc.toLowerCase().includes(sq)));
+   519→      const te = document.getElementById('total-menus'); if (te) te.textContent = String(window.InsForgeDB.menus.length);
+   520→      if (menus.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200"><svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><h4 class="font-display font-bold text-slate-700 mb-1">Menu tidak ditemukan</h4><p class="text-sm text-slate-400">Coba kata kunci lain atau tambah menu baru.</p></div>'; return; }
+   521→      grid.innerHTML = menus.map((m: any) => `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group cursor-move" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')"><div class="relative h-40 overflow-hidden"><img src="${m.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${m.name}">${!m.is_available ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}<div class="absolute top-2 right-2 bg-white/80 backdrop-blur p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 9l-3 3m0 0l3 3m-3-3h18m0 0l-3-3m3 3l-3 3"/></svg></div></div><div class="p-4"><div class="flex items-start justify-between gap-2 mb-1"><h4 class="font-display font-bold text-slate-800 text-sm leading-tight">${m.name}</h4><span class="text-xs font-bold text-orange-600 whitespace-nowrap">Rp ${m.price.toLocaleString('id-ID')}</span></div><p class="text-xs text-slate-500 mb-3 line-clamp-2">${m.desc}</p><div class="flex gap-2"><button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg">Edit</button><button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-500 border border-red-100 hover:bg-red-50 rounded-lg">Hapus</button></div></div></div>`).join('');
+   522→    }
+   523→    function dragStart(e: DragEvent, id: string) { draggedId = id; (e.target as HTMLElement).classList.add('dragging'); }
+   524→    function dragOver(e: DragEvent) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('drag-over'); }
+   525→    function drop(e: DragEvent, targetId: string) {
+   526→      e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over');
+   527→      if (draggedId && draggedId !== targetId) { const di = window.InsForgeDB.menus.findIndex((m: any) => m.id === draggedId); const ti = window.InsForgeDB.menus.findIndex((m: any) => m.id === targetId); const [item] = window.InsForgeDB.menus.splice(di, 1); window.InsForgeDB.menus.splice(ti, 0, item); renderMenus(); showToast('Urutan menu berhasil diubah!'); }
+   528→    }
+   529→    function openMenuModal() {
+   530→      const t = document.getElementById('modal-title'); const f = document.getElementById('menu-form') as HTMLFormElement; const img = document.getElementById('menu-img-preview') as HTMLImageElement; const av = document.getElementById('menu-available') as HTMLInputElement; const mid = document.getElementById('menu-id') as HTMLInputElement;
+   531→      if (t) t.innerText = 'Tambah Menu Baru'; if (f) f.reset(); if (mid) mid.value = ''; if (img) img.src = 'https://picsum.photos/seed/foodplaceholder/200/200.jpg'; if (av) av.checked = true;
+   532→      renderCategories(); document.getElementById('menu-modal')?.classList.remove('hidden');
+   533→    }
+   534→    function editMenu(id: string) {
+   535→      const m = window.InsForgeDB.menus.find((x: any) => x.id === id); if (!m) return;
+   536→      const t = document.getElementById('modal-title'); const mid = document.getElementById('menu-id') as HTMLInputElement;
+   537→      if (t) t.innerText = 'Edit Menu'; if (mid) mid.value = m.id;
+   538→      const els: Record<string, string> = { 'menu-name': m.name, 'menu-desc': m.desc, 'menu-price': String(m.price) };
+   539→      Object.entries(els).forEach(([k, v]) => { const el = document.getElementById(k) as HTMLInputElement; if (el) el.value = v; });
+   540→      const cat = document.getElementById('menu-cat') as HTMLSelectElement; if (cat) cat.value = m.category;
+   541→      const img = document.getElementById('menu-img-preview') as HTMLImageElement; if (img) img.src = m.image_url;
+   542→      const av = document.getElementById('menu-available') as HTMLInputElement; if (av) av.checked = m.is_available;
+   543→      document.getElementById('menu-modal')?.classList.remove('hidden');
+   544→    }
+   545→    function deleteMenu(id: string) { menuToDelete = id; document.getElementById('delete-modal')?.classList.remove('hidden'); }
+   546→    document.getElementById('confirm-delete-btn')?.addEventListener('click', () => { if (menuToDelete) { window.InsForgeDB.deleteMenu(menuToDelete); renderMenus(); showToast('Menu berhasil dihapus.'); menuToDelete = null; } closeModalGlobal('delete-modal'); });
+   547→    function handleMenuImageUpload(e: Event) {
+   548→      const file = (e.target as HTMLInputElement).files?.[0];
+   549→      if (file) { const reader = new FileReader(); reader.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; showToast('Foto diupload ke InsForge Storage...'); }; reader.readAsDataURL(file); }
+   550→    }
+   551→    function saveMenu(e: Event) {
+   552→      e.preventDefault();
+   553→      const id = (document.getElementById('menu-id') as HTMLInputElement)?.value;
+   554→      const menuData: any = { id: id || null, name: (document.getElementById('menu-name') as HTMLInputElement)?.value, desc: (document.getElementById('menu-desc') as HTMLInputElement)?.value, price: parseInt((document.getElementById('menu-price') as HTMLInputElement)?.value || '0'), category: (document.getElementById('menu-cat') as HTMLSelectElement)?.value, image_url: (document.getElementById('menu-img-preview') as HTMLImageElement)?.src, is_available: (document.getElementById('menu-available') as HTMLInputElement)?.checked };
+   555→      window.InsForgeDB.saveMenu(menuData); closeMenuModalGlobal(); renderMenus(); showToast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!');
+   556→    }
+   557→    function closeMenuModalGlobal() { document.getElementById('menu-modal')?.classList.add('hidden'); }
+   558→
+   559→    function initQRDesigner() { generateQRCode(); updateCardUI(); }
+   560→    function generateQRCode() {
+   561→      const qrContainer = document.getElementById('qrcode'); if (!qrContainer) return; qrContainer.innerHTML = '';
+   562→      const slug = window.InsForgeDB.stores.slug; const url = `https://pesanlagi.web.id/menu/${slug}`;
+   563→      if (typeof (window as any).QRCode !== 'undefined') { new (window as any).QRCode(qrContainer, { text: url, width: 120, height: 120, colorDark: (document.getElementById('qr-color') as HTMLInputElement)?.value || '#000000', colorLight: '#ffffff', correctLevel: (window as any).QRCode.CorrectLevel.H }); }
+   564→    }
+   565→    function applyPreset(pn: string) {
+   566→      let bg = '', qr = ''; if (pn === 'kopi-susu') { bg = '#E8D0B3'; qr = '#4E342E'; isCustomColor = false; } else if (pn === 'sage-segar') { bg = '#B2AC88'; qr = '#1A1A1A'; isCustomColor = false; } else if (pn === 'midnight-orange') { bg = '#1A1A1A'; qr = '#FF6D00'; isCustomColor = false; } else if (pn === 'neon-cyber') { bg = '#0F0F0F'; qr = '#00F0FF'; isCustomColor = true; } else if (pn === 'warm-pastel') { bg = '#FFE4E6'; qr = '#DB2777'; isCustomColor = true; } else if (pn === 'minimalist-black') { bg = '#FFFFFF'; qr = '#000000'; isCustomColor = true; }
+   567→      const bgI = document.getElementById('bg-color') as HTMLInputElement; const qrI = document.getElementById('qr-color') as HTMLInputElement; if (bgI) bgI.value = bg; if (qrI) qrI.value = qr;
+   568→      updateCardUI(); checkFreemiumLogic();
+   569→    }
+   570→    function setBgColor(c: string) { isCustomColor = true; (document.getElementById('bg-color') as HTMLInputElement).value = c; updateCardUI(); checkFreemiumLogic(); }
+   571→    function setQrColor(c: string) { isCustomColor = true; (document.getElementById('qr-color') as HTMLInputElement).value = c; updateCardUI(); checkFreemiumLogic(); }
+   572→    function applyCustomColor() { isCustomColor = true; updateCardUI(); checkFreemiumLogic(); }
+   573→    function updateCardUI() {
+   574→      const bg = (document.getElementById('bg-color') as HTMLInputElement)?.value; const qr = (document.getElementById('qr-color') as HTMLInputElement)?.value; const tn = (document.getElementById('table-number') as HTMLInputElement)?.value || '';
+   575→      const card = document.getElementById('qr-card'); if (card && bg) card.style.backgroundColor = bg;
+   576→      if (card) card.querySelectorAll('h4, p').forEach(t => { (t as HTMLElement).style.color = qr || '#000'; });
+   577→      const tne = document.getElementById('qr-table-number'); if (tne) { if (tn.trim()) { tne.textContent = tn; tne.classList.remove('hidden'); (tne as HTMLElement).style.color = qr || '#000'; (tne as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.2)'; } else tne.classList.add('hidden'); }
+   578→      generateQRCode();
+   579→    }
+   580→    function checkFreemiumLogic() {
+   581→      const isPro = window.InsForgeDB.users.is_pro; const w = document.getElementById('watermark'); const pb = document.getElementById('pro-badge-custom');
+   582→      if (!isPro && isCustomColor) { w?.classList.remove('hidden'); pb?.classList.remove('hidden'); } else { w?.classList.add('hidden'); if (!isCustomColor) pb?.classList.add('hidden'); }
+   583→    }
+   584→    function handleSaveDesign() {
+   585→      const isPro = window.InsForgeDB.users.is_pro; const bg = (document.getElementById('bg-color') as HTMLInputElement)?.value; const qr = (document.getElementById('qr-color') as HTMLInputElement)?.value;
+   586→      if (!isPro && isCustomColor) document.getElementById('upgrade-modal')?.classList.remove('hidden');
+   587→      else { window.InsForgeDB.saveStore({ bg_color: bg, qr_color: qr }); showToast('Desain kartu berhasil disimpan!'); }
+   588→    }
+   589→    function handleDownload() {
+   590→      if (!window.InsForgeDB.users.is_pro && isCustomColor) document.getElementById('upgrade-modal')?.classList.remove('hidden');
+   591→      else showToast('Mengunduh PDF High-Res tanpa watermark...');
+   592→    }
+   593→
+   594→    function setLoadingGlobal(btn: HTMLElement | null, isLoading: boolean, text?: string) {
+   595→      if (!btn) return;
+   596→      if (isLoading) { btn.disabled = true; btn.dataset.originalText = btn.innerHTML; btn.innerHTML = `<svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${text || 'Loading...'}`; }
+   597→      else { btn.disabled = false; btn.innerHTML = btn.dataset.originalText || ''; }
+   598→    }
+   599→    function showToast(message: string) {
+   600→      const toast = document.getElementById('toast'); const msg = document.getElementById('toast-message');
+   601→      if (toast && msg) { (msg as HTMLElement).textContent = message; (toast as HTMLElement).style.opacity = '1'; setTimeout(() => { (toast as HTMLElement).style.opacity = '0'; }, 3000); }
+   602→    }
+   603→    function closeModalGlobal(id: string) { document.getElementById(id)?.classList.add('hidden'); }
+   604→    function handleLogout() { showToast('Berhasil logout. Mengarahkan...'); setTimeout(() => goTo('#landing'), 1500); }
+   605→
+   606→    // Bind to window
+   607→    window.navigateTo = navigateTo; window.autoGenerateSlug = autoGenerateSlug; window.formatSlug = formatSlug;
+   608→    window.handleLogoUpload = handleLogoUpload; window.saveSettings = saveSettings;
+   609→    window.renderCategories = renderCategories; window.setCategory = setCategory; window.addCategory = addCategory;
+   610→    window.renderMenus = renderMenus; window.dragStart = dragStart; window.dragOver = dragOver; window.drop = drop;
+   611→    window.openMenuModal = openMenuModal; window.editMenu = editMenu; window.deleteMenu = deleteMenu;
+   612→    window.handleMenuImageUpload = handleMenuImageUpload; window.saveMenu = saveMenu; window.closeMenuModal = closeMenuModalGlobal;
+   613→    window.initQRDesigner = initQRDesigner; window.generateQRCode = generateQRCode;
+   614→    window.applyPreset = applyPreset; window.setBgColor = setBgColor; window.setQrColor = setQrColor;
+   615→    window.applyCustomColor = applyCustomColor; window.updateCardUI = updateCardUI; window.checkFreemiumLogic = checkFreemiumLogic;
+   616→    window.handleSaveDesign = handleSaveDesign; window.handleDownload = handleDownload;
+   617→    window.setLoading = setLoadingGlobal; window.showToast = showToast; window.closeModal = closeModalGlobal; window.handleLogout = handleLogout;
+   618→
+   619→    // Event listeners
+   620→    document.getElementById('store-name')?.addEventListener('input', autoGenerateSlug);
+   621→    document.getElementById('store-slug')?.addEventListener('input', (e) => formatSlug(e.target as HTMLInputElement));
+   622→    document.getElementById('logo-upload')?.addEventListener('change', handleLogoUpload);
+   623→    document.getElementById('settings-form')?.addEventListener('submit', (e) => { e.preventDefault(); saveSettings(); });
+   624→    document.getElementById('add-cat-btn')?.addEventListener('click', addCategory);
+   625→    document.getElementById('menu-form')?.addEventListener('submit', saveMenu);
+   626→    document.getElementById('menu-img-upload')?.addEventListener('change', handleMenuImageUpload);
+   627→    document.getElementById('save-design-btn')?.addEventListener('click', handleSaveDesign);
+   628→    document.getElementById('download-btn')?.addEventListener('click', handleDownload);
+   629→    document.getElementById('table-number')?.addEventListener('input', updateCardUI);
+   630→    document.getElementById('bg-color')?.addEventListener('input', () => { isCustomColor = true; updateCardUI(); checkFreemiumLogic(); });
+   631→    document.getElementById('qr-color')?.addEventListener('input', () => { isCustomColor = true; updateCardUI(); checkFreemiumLogic(); });
+   632→    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+   633→    document.getElementById('mob-logout-btn')?.addEventListener('click', handleLogout);
+   634→    document.getElementById('add-menu-fab')?.addEventListener('click', openMenuModal);
+   635→    document.getElementById('search-menu')?.addEventListener('input', renderMenus);
+   636→
+   637→    navigateTo('overview');
+   638→  }, [goTo]);
+   639→
+   640→  // ==========================================
+   641→  // RUN INIT ON VIEW CHANGE
+   642→  // ==========================================
+   643→  useEffect(() => {
+   644→    if (!isClient) return;
+   645→    if (view === 'landing') initLanding();
+   646→    else if (view === 'login') initLogin();
+   647→    else if (view === 'dashboard') initDashboard();
+   648→  }, [view, isClient, initLanding, initLogin, initDashboard]);
+   649→
+   650→  if (!isClient) {
+   651→    // Always render landing as default during SSR/hydration to avoid blank page
+   652→    return (
+   653→      <>
+   654→        <style dangerouslySetInnerHTML={{ __html: styles }} />
+   655→        <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+   656→      </>
+   657→    );
+   658→  }
+   659→
+   660→  return (
+   661→    <>
+   662→      {view === 'landing' && (
+   663→        <>
+   664→          <style dangerouslySetInnerHTML={{ __html: styles }} />
+   665→          <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+   666→        </>
+   667→      )}
+   668→      {view === 'login' && (
+   669→        <>
+   670→          <style dangerouslySetInnerHTML={{ __html: loginStyles }} />
+   671→          <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: loginBodyHtml }} />
+   672→        </>
+   673→      )}
+   674→      {view === 'dashboard' && (
+   675→        <>
+   676→          <style dangerouslySetInnerHTML={{ __html: dashboardStyles }} />
+   677→          <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: dashboardBodyHtml }} />
+   678→        </>
+   679→      )}
+   680→    </>
+   681→  );
+   682→}
+   683→
