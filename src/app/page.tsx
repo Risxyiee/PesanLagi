@@ -218,7 +218,7 @@ function initApp() {
       }
     }
 
-    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
+    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { showToastL('Login via Google segera hadir! Gunakan email & password untuk sekarang.'); }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
 
     // Check if user is already authenticated — redirect to dashboard
     fetch('/api/auth/me').then(r => { if (r.ok) goTo('#dashboard'); }).catch(() => {});
