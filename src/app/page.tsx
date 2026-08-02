@@ -290,7 +290,7 @@ export default function Home() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div ref={containerRef} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      <div ref={containerRef} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: bodyHtml }} />
     </>
   );
 }
