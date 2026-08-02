@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Pesanlagi — QR Menu Digital untuk UMKM Kuliner Indonesia",
@@ -23,7 +24,7 @@ export default function RootLayout({
         <script src="https://cdn.tailwindcss.com" />
       </head>
       <body>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

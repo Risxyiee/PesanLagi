@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/context/auth-context";
 import loginBodyHtml from "./login-html.json";
 import { loginStyles } from "./login-styles";
 
 export default function LoginPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { signUp, signIn, signInWithGoogle } = useAuth();
 
   useEffect(() => {
     // === Toast ===
@@ -77,7 +79,7 @@ export default function LoginPage() {
       if (target) {
         target.classList.remove('hidden');
         (target as HTMLElement).style.animation = 'none';
-        (target as HTMLElement).offsetHeight;
+        void (target as HTMLElement).offsetHeight;
         (target as HTMLElement).style.animation = '';
       }
     }
@@ -106,7 +108,7 @@ export default function LoginPage() {
         document.getElementById('strength-4')
       ];
       const text = document.getElementById('strength-text');
-      
+
       let strength = 0;
       if (pwd.length >= 6) strength++;
       if (pwd.length >= 10) strength++;
@@ -144,49 +146,37 @@ export default function LoginPage() {
       }
     }
 
-    // === Mock Auth SDK ===
-    const InsForgeAuth = {
-      signIn: async (email: string, password: string) => {
-        await new Promise(r => setTimeout(r, 1500));
-        if (email === 'demo@warung.com' && password === 'password123') {
-          return { success: true, user: { id: 'usr_123', email }, route: '/dashboard/menus' };
-        }
-        throw new Error('Email atau password salah. Coba demo@warung.com / password123');
-      },
-      signUp: async (email: string, password: string) => {
-        await new Promise(r => setTimeout(r, 2000));
-        return { success: true, user: { id: 'usr_new', email }, route: '/dashboard/settings' };
-      }
-    };
+    // === Google Auth (real) ===
+    function googleAuth() {
+      signInWithGoogle();
+    }
 
     // Make functions global for inline onclick handlers
     (window as any).showToast = showToast;
     (window as any).togglePassword = togglePassword;
     (window as any).switchView = switchView;
     (window as any).checkPasswordStrength = checkPasswordStrength;
+    (window as any).googleAuth = googleAuth;
 
     // === Login Form ===
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = (document.getElementById('login-email') as HTMLInputElement)?.value;
       const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
-      
+
       if (!email || !password) {
         showError('login', 'Email dan password tidak boleh kosong.');
         return;
       }
-      
+
       setLoading('login-btn', true, 'Memproses...');
-      try {
-        const result = await InsForgeAuth.signIn(email, password);
-        if (result.success) {
-          setLoading('login-btn', false);
-          showSuccess('Login Berhasil!', `Mengarahkan ke ${result.route}...`);
-          setTimeout(() => switchView('login'), 3000);
-        }
-      } catch (error: any) {
-        setLoading('login-btn', false);
-        showError('login', error.message);
+      const result = await signIn(email, password);
+      setLoading('login-btn', false);
+
+      if (result.error) {
+        showError('login', result.error);
+      } else {
+        showSuccess('Login Berhasil!', 'Mengarahkan ke dashboard...');
       }
     });
 
@@ -197,7 +187,7 @@ export default function LoginPage() {
       const password = (document.getElementById('register-password') as HTMLInputElement)?.value;
       const confirm = (document.getElementById('register-confirm') as HTMLInputElement)?.value;
       const terms = (document.getElementById('register-terms') as HTMLInputElement)?.checked;
-      
+
       if (!email || !password || !confirm) {
         showError('register', 'Semua field wajib diisi.');
         return;
@@ -214,18 +204,17 @@ export default function LoginPage() {
         showError('register', 'Anda harus menyetujui Syarat & Ketentuan.');
         return;
       }
-      
+
       setLoading('register-btn', true, 'Mendaftarkan Warungmu...');
-      try {
-        const result = await InsForgeAuth.signUp(email, password);
-        if (result.success) {
-          setLoading('register-btn', false);
-          showSuccess('Pendaftaran Berhasil!', `Mengarahkan ke ${result.route}...`);
-          setTimeout(() => switchView('login'), 3000);
-        }
-      } catch (error: any) {
-        setLoading('register-btn', false);
-        showError('register', error.message);
+      const result = await signUp(email, password);
+      setLoading('register-btn', false);
+
+      if (result.error) {
+        showError('register', result.error);
+      } else if (result.requireEmailVerification) {
+        showSuccess('Cek Email Kamu!', 'Kode verifikasi telah dikirim ke email kamu.');
+      } else {
+        showSuccess('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...');
       }
     });
 
@@ -236,9 +225,20 @@ export default function LoginPage() {
       else if (hash === 'login' || hash === '') switchView('login');
     }
 
+    // Check for auth callback params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'success') {
+      showToast('Login berhasil! Selamat datang.');
+      window.history.replaceState({}, '', '/login');
+    }
+    if (params.get('error')) {
+      showError('login', params.get('error') || 'Autentikasi gagal');
+      window.history.replaceState({}, '', '/login');
+    }
+
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange();
-  }, []);
+  }, [signUp, signIn, signInWithGoogle]);
 
   return (
     <>

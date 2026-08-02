@@ -22,3 +22,32 @@ Stage Summary:
 - Page size: 110,624 bytes HTML output
 - All interactive features preserved (modals, QR designer, FAQ accordion, toast notifications, scroll reveals, counter animations)
 - Server running on port 3000 with 200 OK responses
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Add InsForge Auth (Email + Google OAuth), RLS policies, and wire up login page
+
+Work Log:
+- Read InsForge auth-sdk and db-sdk documentation via CLI
+- Updated RLS policies: categories_select and menus_select now check store ownership via auth.uid()
+- stores_select now enforces auth.uid() = user_id (was open before)
+- Installed @insforge/sdk@1.5.2
+- Created .env.local with NEXT_PUBLIC_INSFORGE_BASE_URL, ANON_KEY, APP_URL
+- Created src/lib/insforge.ts (client-side SDK) and src/lib/insforge-server.ts (server-side)
+- Created 6 API routes: /api/auth/sign-up, sign-in, sign-out, google, callback, me
+- Created src/context/auth-context.tsx with AuthProvider + useAuth hook
+- Created src/components/providers.tsx to wrap app with AuthProvider
+- Updated layout.tsx to include Providers wrapper
+- Updated login/page.tsx: replaced mock auth with real InsForge auth (signUp, signIn, signInWithGoogle)
+- Updated Google button in login-html.json from mock toast to googleAuth()
+- Fixed TypeScript lint issues
+- Verified: sign-in returns proper errors, sign-up triggers email verification, /api/auth/me returns 401 when unauthenticated
+
+Stage Summary:
+- Email sign-up/sign-in: Working (with email verification code flow)
+- Google OAuth: Configured on InsForge (google provider enabled), button wired to /api/auth/google
+- Sign out: Working via /api/auth/sign-out
+- RLS: All 4 tables have full ownership-based policies (SELECT, INSERT, UPDATE, DELETE)
+- API endpoints: 6 routes created and verified
+- Auth state: Context provider wraps entire app, useAuth() hook available
