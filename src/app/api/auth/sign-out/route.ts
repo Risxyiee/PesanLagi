@@ -1,16 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/pg';
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get('session')?.value;
-    if (token) {
-      await query('DELETE FROM sessions WHERE token = $1', [token]);
-    }
-    const response = NextResponse.json({ success: true });
-    response.cookies.delete('session');
-    return response;
+    const res = NextResponse.json({ success: true });
+    const supabase = await createSupabaseServerClient(res);
+    await supabase.auth.signOut();
+    return res;
   } catch {
-    return NextResponse.json({ error: 'Gagal logout' }, { status: 500 });
+    return NextResponse.json({ error: "Gagal logout" }, { status: 500 });
   }
 }

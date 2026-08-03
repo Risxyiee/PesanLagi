@@ -1,61 +1,100 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/pg';
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
-async function getUserId(req: NextRequest) {
-  const token = req.cookies.get('session')?.value;
-  if (!token) return null;
-  const r = await query(
-    'SELECT u.id FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = $1 AND s.expires_at > now()',
-    [token]
-  );
-  return r.rows[0]?.id || null;
+async function getAuthUser(req: NextRequest) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
 }
 
 async function getStoreId(userId: string) {
-  const r = await query('SELECT id FROM stores WHERE user_id = $1', [userId]);
-  return r.rows[0]?.id || null;
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin
+    .from("stores")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
+  return data?.id || null;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getAuthUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const storeId = await getStoreId(userId);
-    if (!storeId) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+    const storeId = await getStoreId(user.id);
+    if (!storeId)
+      return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
     const { source_id, target_id } = await req.json();
     if (!source_id || !target_id) {
-      return NextResponse.json({ error: 'source_id and target_id required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "source_id and target_id required" },
+        { status: 400 }
+      );
     }
+
+    const admin = createSupabaseAdminClient();
 
     // Get sort_order of target menu
-    const targetResult = await query(
-      'SELECT sort_order FROM menus WHERE id = $1 AND store_id = $2',
-      [target_id, storeId]
-    );
-    if (targetResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Target menu not found' }, { status: 404 });
+    const { data: targetMenu } = await admin
+      .from("menus")
+      .select("sort_order")
+      .eq("id", target_id)
+      .eq("store_id", storeId)
+      .single();
+
+    if (!targetMenu) {
+      return NextResponse.json(
+        { error: "Target menu not found" },
+        { status: 404 }
+      );
     }
-    const targetOrder = targetResult.rows[0].sort_order || 0;
 
-    // Get max sort_order and increment for the source
-    const maxResult = await query(
-      'SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM menus WHERE store_id = $1',
-      [storeId]
-    );
-    const nextOrder = maxResult.rows[0].next_order;
+    const targetOrder = targetMenu.sort_order || 0;
 
-    // Move source to just before target (shift everything >= target up by 1)
-    await query(
-      'UPDATE menus SET sort_order = sort_order + 1 WHERE store_id = $1 AND sort_order >= $2 AND id != $3',
-      [storeId, targetOrder, source_id]
-    );
+    // Get max sort_order
+    const { data: maxRow } = await admin
+      .from("menus")
+      .select("sort_order")
+      .eq("store_id", storeId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .single();
+
+    const nextOrder = (maxRow?.sort_order || 0) + 1;
+
+    // Move source to a temp high position
+    await admin
+      .from("menus")
+      .update({ sort_order: nextOrder })
+      .eq("id", source_id)
+      .eq("store_id", storeId);
+
+    // Shift everything >= target up by 1 (except the source)
+    const { data: menusAboveTarget } = await admin
+      .from("menus")
+      .select("id, sort_order")
+      .eq("store_id", storeId)
+      .gte("sort_order", targetOrder)
+      .neq("id", source_id)
+      .order("sort_order", { ascending: true });
+
+    for (const menu of menusAboveTarget || []) {
+      await admin
+        .from("menus")
+        .update({ sort_order: menu.sort_order + 1 })
+        .eq("id", menu.id);
+    }
+
     // Place source at target's position
-    await query(
-      'UPDATE menus SET sort_order = $1 WHERE id = $2 AND store_id = $3',
-      [targetOrder, source_id, storeId]
-    );
+    await admin
+      .from("menus")
+      .update({ sort_order: targetOrder })
+      .eq("id", source_id)
+      .eq("store_id", storeId);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

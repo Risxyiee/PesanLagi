@@ -1,20 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-
-type User = {
-  id: string;
-  email: string;
-  emailVerified: boolean;
-  providers: string[];
-  profile?: { name?: string; avatar_url?: string };
-  createdAt: string;
-};
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error?: string; requireEmailVerification?: boolean }>;
+  signUp: (email: string, password: string) => Promise<{ error?: string; requireEmailVerification?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithGoogle: () => void;
   signOut: () => Promise<void>;
@@ -24,52 +18,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createSupabaseBrowserClient();
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      if (res.ok) {
-        const { user } = await res.json();
-        setUser(user);
-      } else {
-        setUser(null);
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
     } catch {
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
 
-  const signUp = async (email: string, password: string, name?: string) => {
-    const res = await fetch('/api/auth/sign-up', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
     });
-    const data = await res.json();
-    if (!res.ok) return { error: data.error };
-    if (data.requireEmailVerification) {
-      return { requireEmailVerification: true };
-    }
-    if (data.user) setUser(data.user);
+
+    return () => subscription.unsubscribe();
+  }, [supabase, fetchUser]);
+
+  const signUp = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message };
+    if (data.user && !data.session) return { requireEmailVerification: true };
     return {};
   };
 
   const signIn = async (email: string, password: string) => {
-    const res = await fetch('/api/auth/sign-in', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { error: data.error };
-    if (data.user) setUser(data.user);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
     return {};
   };
 
@@ -78,12 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await fetch('/api/auth/sign-out', { method: 'POST' });
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

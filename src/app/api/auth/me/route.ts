@@ -1,39 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/pg';
+import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const token = req.cookies.get('session')?.value;
-    if (!token) {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json({ user: null }, { status: 401 });
     }
 
-    await query(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        token text PRIMARY KEY,
-        user_id uuid NOT NULL REFERENCES users(id),
-        expires_at timestamptz NOT NULL,
-        created_at timestamptz DEFAULT now()
-      )
-    `);
+    // Get profile data (is_pro, etc.)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, is_pro, pro_expiry_date")
+      .eq("id", user.id)
+      .single();
 
-    // Clean expired sessions
-    await query('DELETE FROM sessions WHERE expires_at < now()');
-
-    const result = await query(`
-      SELECT u.id, u.email, u.is_pro, u.pro_expiry_date
-      FROM sessions s
-      JOIN users u ON s.user_id = u.id
-      WHERE s.token = $1 AND s.expires_at > now()
-    `, [token]);
-
-    if (result.rows.length === 0) {
-      const res = NextResponse.json({ user: null }, { status: 401 });
-      res.cookies.delete('session');
-      return res;
-    }
-
-    return NextResponse.json({ user: result.rows[0] });
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        is_pro: profile?.is_pro ?? false,
+        pro_expiry_date: profile?.pro_expiry_date ?? null,
+      },
+    });
   } catch {
     return NextResponse.json({ user: null }, { status: 401 });
   }

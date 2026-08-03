@@ -324,7 +324,7 @@ function initApp() {
     // ---- Settings ----
     function autoSlug() { const n = (document.getElementById('store-name') as HTMLInputElement)?.value; const s = document.getElementById('store-slug') as HTMLInputElement; if (!s.dataset.touched) s.value = n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
     function fmtSlug(i: HTMLInputElement) { i.dataset.touched = 'true'; i.value = i.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); }
-    function logoUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; toast('Logo berhasil dipilih.'); }; r.readAsDataURL(f); } }
+    function logoUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; }; r.readAsDataURL(f); (async () => { try { const fd = new FormData(); fd.append('file', f); fd.append('bucket', 'logos'); const res = await fetch('/api/upload', { method: 'POST', body: fd }); if (res.ok) { const { url } = await res.json(); const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = url; toast('Logo berhasil diunggah!'); } else { const d = await res.json(); toast(d.error || 'Gagal mengunggah logo.'); } } catch { toast('Gagal mengunggah logo.'); } })(); } }
     function collectHours() {
       const days = ['mon','tue','wed','thu','fri','sat','sun'];
       const hours: any = {};
@@ -471,7 +471,7 @@ function initApp() {
     }
     function menuImgUp(e: Event) {
       const f = (e.target as HTMLInputElement).files?.[0];
-      if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; }; r.readAsDataURL(f); }
+      if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; }; r.readAsDataURL(f); (async () => { try { const fd = new FormData(); fd.append('file', f); fd.append('bucket', 'menu-images'); const res = await fetch('/api/upload', { method: 'POST', body: fd }); if (res.ok) { const { url } = await res.json(); const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = url; toast('Foto berhasil diunggah!'); } else { const d = await res.json(); toast(d.error || 'Gagal mengunggah foto.'); } } catch { toast('Gagal mengunggah foto.'); } })(); }
     }
 
     // Drag & drop with reorder API
@@ -499,7 +499,8 @@ function initApp() {
     function genQR() {
       const qc = document.getElementById('qrcode'); if (!qc) return;
       qc.innerHTML = '';
-      const url = `https://3kgi95g9.insforge.site/menu/${curStore?.slug || 'warung'}`;
+      const appUrl = window.location.origin;
+      const url = `${appUrl}/menu/${curStore?.slug || 'warung'}`;
       if (typeof (window as any).QRCode !== 'undefined') {
         new (window as any).QRCode(qc, { text: url, width: 120, height: 120, colorDark: (document.getElementById('qr-color') as HTMLInputElement)?.value || '#000', colorLight: '#fff', correctLevel: (window as any).QRCode.CorrectLevel.H });
       }

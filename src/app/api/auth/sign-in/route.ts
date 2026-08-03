@@ -1,66 +1,93 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/pg';
-import bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email dan password wajib diisi' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email dan password wajib diisi" },
+        { status: 400 }
+      );
     }
 
-    const result = await query('SELECT * FROM users WHERE email = $1', [email.trim().toLowerCase()]);
-    if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Email atau password salah' }, { status: 401 });
-    }
+    const res = NextResponse.json({ success: true });
+    const supabase = await createSupabaseServerClient(res);
 
-    const user = result.rows[0];
-    if (!user.password_hash) {
-      return NextResponse.json({ error: 'Akun ini belum punya password. Gunakan login Google.' }, { status: 401 });
-    }
-
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return NextResponse.json({ error: 'Email atau password salah' }, { status: 401 });
-    }
-
-    // Create session token
-    const token = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-    // Store session in a simple way using a sessions table (create if not exists)
-    await query(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        token text PRIMARY KEY,
-        user_id uuid NOT NULL REFERENCES users(id),
-        expires_at timestamptz NOT NULL,
-        created_at timestamptz DEFAULT now()
-      )
-    `);
-    await query(
-      'INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, $3) ON CONFLICT (token) DO UPDATE SET expires_at = $3',
-      [token, user.id, expiresAt]
-    );
-
-    // Clean old sessions
-    await query('DELETE FROM sessions WHERE expires_at < now()');
-
-    const response = NextResponse.json({
-      user: { id: user.id, email: user.email, is_pro: user.is_pro },
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
     });
 
-    response.cookies.set('session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: expiresAt,
-    });
+    if (error) {
+      return NextResponse.json({ error: "Email atau password salah" }, { status: 401 });
+    }
 
-    return response;
+    // Get profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro, pro_expiry_date")
+      .eq("id", data.user.id)
+      .single();
+
+    // Ensure the user has a store (create one if not)
+    await ensureStore(supabase, data.user.id, data.user.email!);
+
+    return NextResponse.json({
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        is_pro: profile?.is_pro ?? false,
+      },
+    });
   } catch (err) {
-    console.error('Sign-in error:', String(err));
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    console.error("Sign-in error:", String(err));
+    return NextResponse.json(
+      { error: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
+  }
+}
+
+async function ensureStore(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+  email: string
+) {
+  const { data: existing } = await supabase
+    .from("stores")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!existing) {
+    const storeName = email.split("@")[0];
+    let slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    // Ensure slug is unique
+    const { data: dup } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (dup) {
+      let suffix = 2;
+      while (true) {
+        const candidate = `${slug}-${suffix}`;
+        const { data: d } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("slug", candidate)
+          .maybeSingle();
+        if (!d) {
+          slug = candidate;
+          break;
+        }
+        suffix++;
+      }
+    }
+
+    await supabase.from("stores").insert({ user_id: userId, name: storeName, slug });
   }
 }

@@ -305,3 +305,33 @@ Changes made to `/home/z/my-project/src/app/menu/[slug]/page.tsx`:
 - WhatsApp link generation with pre-filled message
 - Scroll active pill into view behavior
 - Zero lint errors
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Migrate entire InsForge SDK integration to Supabase (@supabase/ssr + @supabase/supabase-js)
+
+Work Log:
+- Analyzed full project structure: SPA architecture with hash-based routing, raw pg Pool for data, InsForge SDK only for Google OAuth
+- Created .env.local with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY (server-only, no NEXT_PUBLIC_ prefix)
+- Created supabase-schema.sql with profiles, stores, categories, menus tables, RLS policies, and auto-profile-creation trigger
+- Created src/lib/supabase/client.ts (browser client), server.ts (server client + admin client), middleware.ts (middleware helper)
+- Updated src/middleware.ts to use Supabase session-based auth with getUser() check for /dashboard/* protection
+- Migrated all auth API routes: sign-in (supabase.auth.signInWithPassword), sign-up (supabase.auth.signUp), sign-out (supabase.auth.signOut), me (supabase.auth.getUser), google (supabase.auth.signInWithOAuth), callback (supabase.auth.exchangeCodeForSession), forgot-password (supabase.auth.resetPasswordForEmail)
+- Migrated all data API routes to use Supabase JS client (admin/service_role for CRUD): store, check-slug, categories, menus, reorder, public/menu
+- Created src/app/api/upload/route.ts for Supabase Storage uploads (logos + menu-images buckets, 2MB limit, type validation)
+- Updated page.tsx image upload functions (logoUp, menuImgUp) to upload to Supabase Storage via /api/upload
+- Updated auth-context.tsx to use Supabase browser client for auth state management
+- Replaced hardcoded InsForge URL in QR code generation with window.location.origin
+- Removed old InsForge SDK files (insforge.ts, insforge-server.ts, insforge-client.ts), pg.ts, db.ts, old utils/supabase/
+- Uninstalled packages: @insforge/sdk, @supabase/server, pg, prisma, @prisma/client, next-auth
+- Updated next.config.ts: removed pg from serverExternalPackages, added Supabase storage remote patterns
+- Verified: lint passes, API routes return correct responses, Supabase auth endpoints are reachable
+
+Stage Summary:
+- All InsForge SDK references completely removed from source code
+- All database operations migrated from raw pg queries to Supabase JS client
+- Auth fully migrated to Supabase Auth (email/password + Google OAuth)
+- File uploads migrated to Supabase Storage
+- Middleware protects /dashboard/* using Supabase session
+- User needs to: (1) Run supabase-schema.sql in Supabase Dashboard SQL Editor, (2) Create 'logos' and 'menu-images' storage buckets, (3) Configure Google OAuth provider in Supabase Dashboard
