@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       [token, userId, expiresAt]
     );
 
-    const response = NextResponse.redirect(`${appUrl}/dashboard`);
+    const response = NextResponse.redirect(`${appUrl}/?auth=success`);
     response.cookies.set('session', token, {
       httpOnly: true,
       secure: true,

@@ -145,3 +145,27 @@ Stage Summary:
 - Root cause of amber→black: double Tailwind loading (CDN v3 conflicting with compiled v4) + conflicting body base styles
 - Auth callback fix also included (getSession→getCurrentUser)
 - User needs to `git push origin main` from their device to trigger InsForge deploy
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix Google OAuth login error and dashboard missing pages
+
+Work Log:
+- **Root cause analysis**: Google OAuth used fragile client-side InsForge SDK (`createClient` + `signInWithOAuth`) which failed due to missing/unavailable env vars. Dashboard pages were "missing" because login/register success redirected to `/dashboard` (Next.js file route) instead of `/#dashboard` (hash-based SPA).
+- **Google OAuth fix**: Changed `googleAuth()` from client-side SDK call to simple server redirect: `window.location.href = '/api/auth/google'`. Server-side `/api/auth/google` route handles OAuth via InsForge server SDK (no client env vars needed).
+- **OAuth callback fix**: Changed `/api/auth/callback` redirect from `/dashboard` to `/?auth=success`. Added `?auth=success` detection in `initApp()` before hash routing to auto-switch to dashboard view.
+- **Dashboard navigation fix**: Changed all `window.location.href = '/dashboard'` to `goTo('#dashboard')` in:
+  - Login success handler
+  - Register success handler
+  - Auto-redirect when already authenticated
+- **Fallback redirects**: Made `/dashboard/page.tsx` and `/dashboard/menus/page.tsx` redirect to `/#dashboard`. Updated middleware to redirect unauthenticated `/dashboard` to `/#login`.
+- **Logout fix**: Changed logout to reset `dashInited.v = false` and use `goTo('#login')` instead of `window.location.href = '/'`.
+- **Cleanup**: Simplified `/auth/callback/page.tsx` (client page) to redirect to `/#login` since server-side flow is now used.
+
+Stage Summary:
+- Google OAuth now uses 100% server-side flow: `/api/auth/google` → InsForge OAuth → `/api/auth/callback` → `/?auth=success` → `/#dashboard`
+- All dashboard navigation uses hash-based routing (no full page reloads)
+- `/dashboard` Next.js route redirects to `/#dashboard` as fallback
+- All 5 dashboard pages verified working: Overview, Settings, Menus, QR Designer, Billing
+- Full auth flow verified: Register → Dashboard, Login → Dashboard, Logout → Login, `/dashboard` redirect

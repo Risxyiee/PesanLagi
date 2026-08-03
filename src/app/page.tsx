@@ -88,6 +88,15 @@ function initApp() {
     else switchView('landing');
   }
 
+  // Check for OAuth success redirect (from server-side Google OAuth callback)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('auth') === 'success') {
+    window.history.replaceState({}, '', window.location.pathname);
+    initLanding();
+    switchView('dashboard');
+    return;
+  }
+
   window.addEventListener('hashchange', handleHash);
   // Check initial hash - landing is rendered by SSR, but user might have navigated directly to #login or #dashboard
   const initHash = window.location.hash.replace('#', '');
@@ -218,21 +227,16 @@ function initApp() {
       }
     }
 
-    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = async () => { try { const { createClient } = await import('@insforge/sdk'); const client = createClient({ baseUrl: process.env.NEXT_PUBLIC_INSFORGE_BASE_URL || 'https://3kgi95g9.ap-southeast.insforge.app', anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY || 'anon_741c122373dcd0989258c905645b024ad75afcb7f815a93515b7f2b0daf30400' }); await client.auth.signInWithOAuth('google', { redirectTo: window.location.origin + '/auth/callback' }); } catch (e: any) { console.error('Google auth error:', e); showToastL('Gagal memulai login Google. Coba lagi.'); } }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
+    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
 
     // Check if user is already authenticated — redirect to dashboard
-    fetch('/api/auth/me').then(r => { if (r.ok) window.location.href = '/dashboard'; }).catch(() => {});
+    fetch('/api/auth/me').then(r => { if (r.ok) goTo('#dashboard'); }).catch(() => {});
 
-    // Check for OAuth callback params (from redirect after Google OAuth)
+    // OAuth error params (from failed server-side Google OAuth)
     const params = new URLSearchParams(window.location.search);
-    if (params.get('auth') === 'success') {
-      window.location.href = '/dashboard';
-      return;
-    }
     if (params.get('error')) {
       const errorMsg = params.get('error') || 'Autentikasi gagal';
       window.history.replaceState({}, '', window.location.pathname + window.location.hash);
-      // Show error after view is set
       setTimeout(() => showErr('login', decodeURIComponent(errorMsg)), 100);
     }
 
@@ -245,7 +249,7 @@ function initApp() {
         const res = await fetch('/api/auth/sign-in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) });
         const data = await res.json();
         if (!res.ok) showErr('login', data.error || 'Login gagal');
-        else { showOk('Login Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => { window.location.href = '/dashboard'; }, 1500); }
+        else { showOk('Login Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => { goTo('#dashboard'); }, 1500); }
       } catch { showErr('login', 'Terjadi kesalahan jaringan.'); } setLoad('login-btn', false);
     });
     document.getElementById('register-form')?.addEventListener('submit', async (e) => {
@@ -256,7 +260,7 @@ function initApp() {
         const data = await res.json();
         if (!res.ok) showErr('register', data.error || 'Daftar gagal');
         else if (data.requireEmailVerification) showOk('Cek Email Kamu!', 'Kode verifikasi dikirim ke email kamu.');
-        else { showOk('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => { window.location.href = '/dashboard'; }, 1500); }
+        else { showOk('Pendaftaran Berhasil!', 'Mengarahkan ke dashboard...'); setTimeout(() => { goTo('#dashboard'); }, 1500); }
       } catch { showErr('register', 'Terjadi kesalahan jaringan.'); } setLoad('register-btn', false);
     });
     window.addEventListener('hashchange', () => { const h = window.location.hash.replace('#', ''); if (h === 'register') swView('register'); else if (h === 'login') swView('login'); });
@@ -516,7 +520,7 @@ function initApp() {
     }
     function toast(msg: string) { const t = document.getElementById('toast'); const m = document.getElementById('toast-message'); if (t && m) { (m as HTMLElement).textContent = msg; (t as HTMLElement).style.opacity = '1'; setTimeout(() => { (t as HTMLElement).style.opacity = '0'; }, 3000); } }
     function cM(id: string) { document.getElementById(id)?.classList.add('hidden'); }
-    function logout() { fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {}); window.location.href = '/'; }
+    function logout() { fetch('/api/auth/sign-out', { method: 'POST' }).catch(() => {}); dashInited.v = false; goTo('#login'); }
 
     // ---- Expose to window ----
     window.navigateTo = nav; window.autoGenerateSlug = autoSlug; window.formatSlug = fmtSlug; window.handleLogoUpload = logoUp;
