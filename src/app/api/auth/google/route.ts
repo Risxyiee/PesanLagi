@@ -6,6 +6,9 @@ export async function GET(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
     const res = NextResponse.redirect(`${appUrl}/?auth=success`);
     const supabase = await createSupabaseServerClient(res);
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",

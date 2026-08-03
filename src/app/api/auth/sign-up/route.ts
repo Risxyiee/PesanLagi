@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase();
     const res = NextResponse.json({ success: true });
     const supabase = await createSupabaseServerClient(res);
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     // Sign up via Supabase Auth
     const { data, error } = await supabase.auth.signUp({
@@ -49,6 +52,9 @@ export async function POST(req: NextRequest) {
     // Auto-create store using admin client (bypasses RLS)
     if (data.user) {
       const admin = createSupabaseAdminClient();
+      if (!admin) {
+        return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+      }
       const storeName = normalizedEmail.split("@")[0];
       let slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 

@@ -4,6 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function GET() {
   try {
     const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
     const {
       data: { user },
     } = await supabase.auth.getUser();

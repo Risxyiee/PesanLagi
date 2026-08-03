@@ -3,6 +3,7 @@ import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/sup
 
 async function getAuthUser(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -11,6 +12,7 @@ async function getAuthUser(req: NextRequest) {
 
 async function getStoreId(userId: string) {
   const admin = createSupabaseAdminClient();
+  if (!admin) return null;
   const { data } = await admin
     .from("stores")
     .select("id")
@@ -21,6 +23,11 @@ async function getStoreId(userId: string) {
 
 export async function GET(req: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
+
     const user = await getAuthUser(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -31,7 +38,12 @@ export async function GET(req: NextRequest) {
     const categoryId = searchParams.get("category");
     const search = searchParams.get("search");
 
-    let query = createSupabaseAdminClient()
+    const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
+
+    let query = admin
       .from("menus")
       .select("*, categories(name)")
       .eq("store_id", storeId);
@@ -64,6 +76,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
+
     const user = await getAuthUser(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -87,6 +104,9 @@ export async function POST(req: NextRequest) {
       );
 
     const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     let result;
     if (id) {
@@ -136,6 +156,11 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
+
     const user = await getAuthUser(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -143,6 +168,9 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
 
     const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
     const { error } = await admin
       .from("menus")
       .delete()

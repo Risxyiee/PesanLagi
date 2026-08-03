@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
     });
 
     const supabase = await createSupabaseServerClient(res);
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
     await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/?auth=reset`,
     });

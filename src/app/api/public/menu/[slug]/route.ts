@@ -8,6 +8,9 @@ export async function GET(
   try {
     const { slug } = await params;
     const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     // 1. Find store by slug
     const { data: store, error: storeErr } = await admin

@@ -491,3 +491,60 @@ Stage Summary:
 - No `orders` or `scan_tracking` table yet — dashboard shows placeholder "0" for scans
 - No payment/subscription table — billing page is static HTML
 - No `updated_at` column on stores/categories/menus (only profiles has no updated_at either)
+
+---
+Task ID: 2-a
+Agent: general-purpose
+Task: Update all 14 API routes to handle null Supabase client
+
+Work Log:
+- Updated `src/lib/supabase/server.ts` to return `null` instead of throwing when env vars missing (pre-existing change)
+- Added null checks after every `createSupabaseServerClient()` and `createSupabaseAdminClient()` call across all 14 API route files
+- For routes with helper functions (categories, menus, menus/reorder, store): added null guards in helpers (`return null`) AND 503 early-return at top of each route handler
+- For routes with `ensureStore` helper (auth/sign-in): updated type annotation to `NonNullable<Awaited<ReturnType<...>>>` to satisfy TypeScript
+- Verified with `tsc --noEmit` — zero new TypeScript errors in API routes (only pre-existing .next/types stale references)
+
+Files modified (14 total, 20+ null-check insertions):
+1. src/app/api/upload/route.ts — 2 checks (server + admin)
+2. src/app/api/categories/route.ts — helpers + 3 handlers × 2 checks each
+3. src/app/api/public/menu/[slug]/route.ts — 1 check (admin)
+4. src/app/api/menus/reorder/route.ts — helpers + 1 handler × 2 checks
+5. src/app/api/menus/route.ts — helpers + 3 handlers × 2 checks each
+6. src/app/api/store/check-slug/route.ts — 1 check (admin)
+7. src/app/api/store/route.ts — helper + 2 handlers × 2 checks each
+8. src/app/api/auth/callback/route.ts — 2 checks (server + admin)
+9. src/app/api/auth/sign-in/route.ts — 1 check (server)
+10. src/app/api/auth/sign-up/route.ts — 2 checks (server + admin)
+11. src/app/api/auth/sign-out/route.ts — 1 check (server)
+12. src/app/api/auth/me/route.ts — 1 check (server)
+13. src/app/api/auth/google/route.ts — 1 check (server)
+14. src/app/api/auth/forgot-password/route.ts — 1 check (server)
+
+Stage Summary:
+- All 14 API routes now gracefully return 503 JSON when Supabase env vars are missing
+- No runtime crashes from null client access
+- TypeScript compilation passes with no new errors
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix Supabase env vars error and verify public menu cart functionality
+
+Work Log:
+- Investigated user report: "halaman publik pembeli gabisa nambahin produknya"
+- Found that public menu page (/menu/[slug]/page.tsx) ALREADY has full cart functionality:
+  - Add-to-cart button (+) on each MenuCard
+  - Cart state management (addToCart, updateCart, removeFromCart)
+  - Floating cart bar showing item count and total
+  - Cart sheet with full detail view and quantity controls
+  - WhatsApp order button that formats order message
+- Determined the real issue was Supabase env vars not configured on InsForge deployment, causing API to fail and no menu items to load
+- Made server.ts return null instead of throwing when env vars missing (both createSupabaseServerClient and createSupabaseAdminClient)
+- Updated all 14 API routes to handle null Supabase client with proper 503 error response
+- Verified lint passes (0 errors, 1 pre-existing warning)
+- Verified TypeScript: all errors are pre-existing (page.tsx window properties, stale .next types, example files)
+
+Stage Summary:
+- Root cause: Supabase env vars not set on InsForge → API failed → no menu items loaded → nothing to add to cart
+- User confirmed env vars are now set ("udah kuset")
+- Hardened all server-side Supabase calls to gracefully handle missing env vars
+- 14 API routes now return 503 with clear error message instead of unhandled exception

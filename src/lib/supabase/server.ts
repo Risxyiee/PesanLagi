@@ -12,7 +12,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
  */
 export async function createSupabaseServerClient(response?: NextResponse) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error("Supabase environment variables are not configured");
+    return null;
   }
 
   const cookieStore = await cookies();
@@ -46,7 +46,7 @@ export async function createSupabaseServerClient(response?: NextResponse) {
  */
 export function createSupabaseAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    throw new Error("Supabase environment variables are not configured");
+    return null;
   }
 
   return createServerClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {

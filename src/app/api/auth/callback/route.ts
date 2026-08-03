@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
   try {
     const res = NextResponse.redirect(`${appUrl}/?auth=success`);
     const supabase = await createSupabaseServerClient(res);
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -37,6 +40,9 @@ export async function GET(req: NextRequest) {
     // Ensure the user has a store (create one if not)
     if (email) {
       const admin = createSupabaseAdminClient();
+      if (!admin) {
+        return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+      }
       const { data: existingStore } = await admin
         .from("stores")
         .select("id")

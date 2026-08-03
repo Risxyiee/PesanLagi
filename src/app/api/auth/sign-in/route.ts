@@ -13,6 +13,9 @@ export async function POST(req: NextRequest) {
 
     const res = NextResponse.json({ success: true });
     const supabase = await createSupabaseServerClient(res);
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function ensureStore(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
   userId: string,
   email: string
 ) {

@@ -7,6 +7,9 @@ export async function GET(req: NextRequest) {
     if (!slug) return NextResponse.json({ exists: false });
 
     const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    }
     const { data } = await admin
       .from("stores")
       .select("id, slug")
