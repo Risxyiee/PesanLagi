@@ -335,3 +335,125 @@ Stage Summary:
 - File uploads migrated to Supabase Storage
 - Middleware protects /dashboard/* using Supabase session
 - User needs to: (1) Run supabase-schema.sql in Supabase Dashboard SQL Editor, (2) Create 'logos' and 'menu-images' storage buckets, (3) Configure Google OAuth provider in Supabase Dashboard
+
+---
+Task ID: 0
+Agent: Explore
+Task: Explore project for SQL needs — read all API routes, schema files, and dashboard code to document the full database schema
+
+Work Log:
+- Read all 9 specified files plus supabase-schema.sql and auth/me route
+- Found prisma/schema.prisma exists but contains ONLY the default Next.js boilerplate (User + Post with SQLite) — completely unrelated to PesanLagi, can be ignored
+- The actual schema lives in supabase-schema.sql (already created during migration Task ID 2)
+- Cross-referenced every column used in API routes against the SQL schema
+- Verified TypeScript interfaces in menu/[slug]/page.tsx match schema
+- Verified dashboard page.tsx field usage matches schema
+- Checked RLS policies and foreign key relationships
+
+Stage Summary:
+
+## prisma/schema.prisma Status
+EXISTS but is BOILERPLATE ONLY — default Next.js User/Post models with SQLite. Completely irrelevant to PesanLagi. Can be deleted or left as-is.
+
+## Full Database Schema (from supabase-schema.sql)
+
+### Table 1: `auth.users` (Supabase built-in, not custom)
+- Managed by Supabase Auth — stores email, password hash, etc.
+- Referenced by `profiles.id` via FK
+
+### Table 2: `public.profiles`
+Extends `auth.users` with app-specific data.
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| id | UUID | PK, FK → auth.users(id) ON DELETE CASCADE | Same as auth.users id |
+| is_pro | BOOLEAN | NOT NULL DEFAULT false | Freemium flag used in dashboard for feature gating |
+| pro_expiry_date | TIMESTAMPTZ | nullable | When pro plan expires |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+
+**Auto-creation trigger**: `on_auth_user_created` trigger on `auth.users` (AFTER INSERT) calls `handle_new_user()` which inserts a profile row.
+
+### Table 3: `public.stores`
+One store per user (1:1 relationship via user_id).
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| id | UUID | PK, DEFAULT gen_random_uuid() | |
+| user_id | UUID | NOT NULL, FK → profiles(id) ON DELETE CASCADE | Unique per user (enforced by 1:1 lookup in API) |
+| name | TEXT | NOT NULL DEFAULT '' | Store/warung name |
+| slug | TEXT | NOT NULL, UNIQUE | URL-friendly identifier, used in /menu/[slug] |
+| logo_url | TEXT | DEFAULT '' | Supabase Storage URL (logos bucket) |
+| bg_color | TEXT | DEFAULT '#FFF9F5' | QR card background color |
+| qr_color | TEXT | DEFAULT '#000000' | QR code foreground color |
+| description | TEXT | DEFAULT '' | Store description |
+| whatsapp | TEXT | DEFAULT '' | WhatsApp number for orders |
+| address | TEXT | DEFAULT '' | Physical address |
+| maps_url | TEXT | DEFAULT '' | Google Maps link |
+| hours | JSONB | DEFAULT '{}'::jsonb | Operating hours: {mon_open, mon_close, tue_open, tue_close, ...} |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+
+**Indexes**: `idx_stores_user_id` (user_id), `idx_stores_slug` (slug, also UNIQUE constraint)
+
+### Table 4: `public.categories`
+Categories belong to a store (many per store).
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| id | UUID | PK, DEFAULT gen_random_uuid() | |
+| store_id | UUID | NOT NULL, FK → stores(id) ON DELETE CASCADE | |
+| name | TEXT | NOT NULL | Category display name |
+| sort_order | INTEGER | NOT NULL DEFAULT 0 | Ordering for display |
+
+**Indexes**: `idx_categories_store_id` (store_id)
+
+### Table 5: `public.menus`
+Menu items belong to a store, optionally linked to a category.
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| id | UUID | PK, DEFAULT gen_random_uuid() | |
+| store_id | UUID | NOT NULL, FK → stores(id) ON DELETE CASCADE | |
+| name | TEXT | NOT NULL | Menu item name |
+| description | TEXT | DEFAULT '' | Description text |
+| price | NUMERIC(12,2) | NOT NULL DEFAULT 0 | Price in IDR |
+| category_id | UUID | FK → categories(id) ON DELETE SET NULL | Nullable — items can be uncategorized |
+| image_url | TEXT | DEFAULT '' | Supabase Storage URL (menu-images bucket) |
+| is_available | BOOLEAN | NOT NULL DEFAULT true | Toggle availability ("HABIS" badge when false) |
+| sort_order | INTEGER | NOT NULL DEFAULT 0 | Manual ordering via drag-drop reorder API |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+
+**Indexes**: `idx_menus_store_id` (store_id), `idx_menus_category_id` (category_id)
+
+## Relationships
+``nauth.users (1) ─── (1) profiles
+  profiles (1) ─── (1) stores     [via user_id, enforced in app code as 1:1]
+  stores   (1) ─── (N) categories [via store_id, CASCADE delete]
+  stores   (1) ─── (N) menus      [via store_id, CASCADE delete]
+  categories (1) ── (N) menus     [via category_id, SET NULL on delete]
+```
+
+## Supabase Storage Buckets (not tables, but needed)
+- `logos` — store logo images (2MB limit, image types only)
+- `menu-images` — menu item photos (2MB limit, image types only)
+
+## RLS Policies Summary
+- **profiles**: Users can SELECT/UPDATE/INSERT own profile (auth.uid() = id)
+- **stores**: Users can ALL on own store (user_id = auth.uid()); Public can SELECT all stores
+- **categories**: Users can ALL on own store's categories (subquery: store in user's stores)
+- **menus**: Users can ALL on own store's menus (subquery: store in user's stores); Public can SELECT where is_available = true
+
+## Field Usage Cross-Reference (code → schema)
+- **Store GET**: Selects id, user_id, name, slug, logo_url, bg_color, qr_color, description, whatsapp, address, maps_url, hours, created_at ✓
+- **Store PUT**: Updates name, slug, logo_url, bg_color, qr_color, description, whatsapp, address, maps_url, hours ✓
+- **Menus GET**: Selects *, categories(name) — joins categories for category_name ✓
+- **Menus POST**: Inserts/updates store_id, name, description, price, category_id, image_url, is_available ✓
+- **Menus reorder**: Uses sort_order column ✓
+- **Categories GET**: Selects *, ordered by sort_order then name ✓
+- **Categories POST**: Inserts store_id, name ✓
+- **Categories DELETE**: Nullifies menu.category_id first, then deletes category ✓
+- **Auth sign-up**: Creates store with user_id, name, slug ✓
+- **Auth me**: Reads profiles.id, is_pro, pro_expiry_date ✓
+- **Public menu/[slug]**: Joins stores → categories + menus ✓
+- **Dashboard page.tsx**: Uses all store fields including hours (mon_open/close etc.) ✓
+- **menu/[slug]/page.tsx TypeScript interfaces**: Store (id, name, slug, description, logo_url, whatsapp, address, bg_color, qr_color), Category (id, name), MenuItem (id, name, description, price, image_url, category_id, category_name, is_available) ✓
+
+## Gaps / Future Tables (not yet implemented)
+- No `orders` or `scan_tracking` table yet — dashboard shows placeholder "0" for scans
+- No payment/subscription table — billing page is static HTML
+- No `updated_at` column on stores/categories/menus (only profiles has no updated_at either)
