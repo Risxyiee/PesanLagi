@@ -199,3 +199,109 @@ Stage Summary:
 - Operating hours save/load working
 - Menu drag-drop reorder API created
 - Slug uniqueness enforced on signup and settings save
+---
+Task ID: 1
+Agent: Main
+Task: Redesign PesanLagi dashboard with dark glassmorphism theme
+
+Work Log:
+- Rewrote `/src/app/dashboard/dashboard-styles.ts` with complete dark glassmorphism CSS
+  - Root background #050505, glass panels with `bg-white/[0.04] backdrop-blur-2xl ring-1 ring-white/[0.06]`
+  - Double-bezel `.glass-card` architecture (outer bg-white/[0.03] p-1.5 rounded-3xl, inner bg-white/[0.04])
+  - Page view fadeIn animation: translateY(12px) + blur(4px) → 0, 600ms cubic-bezier(0.32,0.72,0,1)
+  - Nav link active state: orange glow left accent bar via `::before` pseudo-element
+  - Mobile bottom nav: glass bg with blur-24px
+  - All inputs: dark bg-white/[0.06], focus border orange-500/50
+  - Modal overlays: bg-black/60 backdrop-blur-xl with glass modal boxes
+  - Toggle switches: orange active with glow
+  - CSS overrides for dynamically generated content (page.tsx injects light-themed HTML)
+  - Custom scrollbar: thin, subtle white/10 track, white/20 thumb
+  - All transitions use 500ms cubic-bezier(0.32,0.72,0,1)
+- Rewrote `/src/app/dashboard/dashboard-html.json` with complete dark-themed HTML (53K chars)
+  - All 60+ required element IDs preserved and verified
+  - Sidebar (desktop): dark #080608, minimal, 5 nav buttons with orange active accent bar
+  - Mobile: minimal header with logout, glass bottom tab bar (5 buttons)
+  - Overview: bento grid with greeting card, 4 stat cards (double-bezel), quick actions, popular menus, chart
+  - Settings: glass form cards for Basic Info, Contact & Location, Operating Hours (14 time inputs with IDs), QR Colors, Save button
+  - Menus: search bar, category pills container, menu grid, FAB button
+  - QR Designer: preset templates, custom color pickers, table number, preview card, download/save buttons
+  - Billing: current plan card, free/pro plan comparison
+  - All modals: glass backdrop, dark glass content boxes
+  - Toast: glass style with orange icon
+- Fixed missing element IDs from original: `stat-scans`, `menu-form-submit-btn`, `mob-logout-btn`, `add-menu-fab`, `hours-container`, all 14 `hour-*-open/close` inputs
+- Verified: all required IDs present, JSON valid, page compiles 200 OK, lint passes (0 errors)
+
+Stage Summary:
+- Complete dark glassmorphism dashboard redesign
+- $150k agency-quality SaaS dashboard look
+- OLED-black (#050505) background with glass panels
+- Double-bezel card architecture throughout
+- Orange (#F97316) accent with glow effects
+- Mobile-first: bottom tab bar on mobile, sidebar on desktop
+- All existing functionality preserved (all IDs, onclick handlers, window functions)
+- Landing, login, register pages untouched
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Redesign public-facing QR menu page with premium warm food-focused aesthetic
+
+Changes made to `/home/z/my-project/src/app/menu/[slug]/page.tsx`:
+
+**Design System:**
+- Warm cream background (#FFF9F5) replacing the previous #FFF7ED
+- Plus Jakarta Sans font family applied via Tailwind class on root container
+- Stone color palette (stone-300 through stone-900) for text hierarchy
+- Orange-500 (#F97316) accent for active states, prices, and interactive elements
+
+**Header:**
+- Larger logo (72px) with rounded-2xl, white border, shadow-md
+- Store name upgraded to text-2xl font-extrabold with tracking-tight
+- Address/phone rendered as pill badges (rounded-full bg-white/70) with orange icons
+- Menu count with Sparkles icon for visual warmth
+- Search toggle button: white when inactive, orange-500 when active, with X icon to dismiss
+- Animated search bar (max-h transition, opacity) with ring-1 ring-stone-100
+
+**Category Pills:**
+- Increased padding (px-5 py-2.5), font-semibold text-[13px]
+- Active: orange-500 bg with shadow-lg shadow-orange-500/25
+- Inactive: white bg with ring-1 ring-stone-100, hover:bg-stone-50
+- Sticky with backdrop-blur(16px) and DD opacity background
+- Max-w-2xl container for better desktop readability
+
+**Menu Cards:**
+- Premium shadow: shadow-[0_2px_12px_rgba(0,0,0,0.04)] with orange-tinted hover shadow
+- Image: rounded-t-2xl with hover:scale-105, subtle bottom gradient overlay
+- Category name badge on each card (rounded-full bg-orange-50)
+- Price: text-orange-500 font-bold tracking-tight
+- Staggered IntersectionObserver animation (translate-y-8, 80ms delay)
+
+**WhatsApp FAB:**
+- Green-to-emerald gradient (from-green-500 to-emerald-500)
+- shadow-xl shadow-green-500/25 with hover:shadow-2xl
+- Rounded-2xl pill shape preserved
+
+**Skeleton:**
+- Matches redesigned card structure (rounded-t-2xl image, p-4 content, orange-100 price placeholder)
+- Header skeleton with badge placeholders
+
+**Error/Empty States:**
+- Warm background (#FFF9F5)
+- Improved typography with stone palette
+- UtensilsCrossed icon with gradient background (orange-100 to amber-50)
+
+**Footer:**
+- Uppercase tracking-widest for premium feel
+- PesanLagi in font-extrabold
+
+**Preserved:**
+- All TypeScript interfaces (Store, Category, MenuItem, MenuData)
+- Data fetching from /api/public/menu/${slug}
+- Category filtering and search logic with useCallback
+- Dynamic page title behavior
+- All component names (SkeletonPage, EmptyState, ErrorState, MenuCard)
+- Mobile-first responsive layout (grid-cols-1 sm:grid-cols-2)
+- IntersectionObserver stagger animation pattern
+- WhatsApp link generation with pre-filled message
+- Scroll active pill into view behavior
+- Zero lint errors

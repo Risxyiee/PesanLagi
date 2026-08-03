@@ -373,9 +373,9 @@ function initApp() {
     // ---- Categories ----
     function renCats() {
       const c = document.getElementById('category-pills'); if (!c) return;
-      let h = `<button class="cat-pill ${curFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`;
-      allCategories.forEach((cat: any) => { h += `<div class="flex items-center gap-1 shrink-0"><button class="cat-pill ${curFilter === cat.id ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat.id}" onclick="setCategory('${cat.id}')">${cat.name}</button><button onclick="deleteCategory('${cat.id}')" class="p-1.5 text-slate-300 hover:text-red-500 transition-colors" title="Hapus kategori"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`; });
-      h += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`;
+      let h = `<button class="cat-pill ${curFilter === 'all' ? 'active bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white/[0.06] text-white/60 hover:bg-white/10 hover:text-white/90'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-300" data-cat="all" onclick="setCategory('all')">Semua</button>`;
+      allCategories.forEach((cat: any) => { h += `<div class="flex items-center gap-1 shrink-0"><button class="cat-pill ${curFilter === cat.id ? 'active bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white/[0.06] text-white/60 hover:bg-white/10 hover:text-white/90'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-300" data-cat="${cat.id}" onclick="setCategory('${cat.id}')">${cat.name}</button><button onclick="deleteCategory('${cat.id}')" class="p-1.5 text-white/30 hover:text-red-400 transition-all duration-300" title="Hapus kategori"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`; });
+      h += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-white/10 text-white/40 hover:border-orange-500/50 hover:text-orange-400 transition-all duration-300">+ Kategori</button>`;
       c.innerHTML = h;
       const s = document.getElementById('menu-cat') as HTMLSelectElement;
       if (s) s.innerHTML = allCategories.map((c: any) => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -408,13 +408,13 @@ function initApp() {
       const statEl = document.getElementById('stat-total-menus');
       if (statEl) statEl.textContent = String(allMenus.length);
       if (!ms.length) {
-        g.innerHTML = '<div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200"><svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><h4 class="font-display font-bold text-slate-700 mb-1">Menu tidak ditemukan</h4><p class="text-sm text-slate-400">Coba kata kunci lain atau tambah menu baru.</p></div>';
+        g.innerHTML = '<div class="col-span-full text-center py-16 glass-panel rounded-2xl border border-dashed border-white/10"><svg class="w-16 h-16 mx-auto text-white/20 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><h4 class="font-display font-bold text-white/80 mb-1">Menu tidak ditemukan</h4><p class="text-sm text-white/40">Coba kata kunci lain atau tambah menu baru.</p></div>';
         return;
       }
       g.innerHTML = ms.map((m: any) => {
         const catName = allCategories.find((c: any) => c.id === m.category_id)?.name || '';
         const imgUrl = m.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(m.name) + '/400/400.jpg';
-        return `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')"><div class="relative h-40 overflow-hidden"><img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${m.name}">${!m.is_available ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}</div><div class="p-4"><div class="flex items-start justify-between gap-2 mb-1"><h4 class="font-display font-bold text-slate-800 text-sm leading-tight">${m.name}</h4><span class="text-xs font-bold text-orange-600 whitespace-nowrap">Rp ${Number(m.price).toLocaleString('id-ID')}</span></div>${catName ? `<p class="text-xs text-orange-400 mb-1">${catName}</p>` : ''}<p class="text-xs text-slate-500 mb-3 line-clamp-2">${m.description || ''}</p><div class="flex gap-2"><button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg">Edit</button><button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-500 border border-red-100 hover:bg-red-50 rounded-lg">Hapus</button></div></div></div>`;
+        return `<div class="bg-white/[0.04] rounded-2xl ring-1 ring-white/[0.06] overflow-hidden group" draggable="true" ondragstart="dragStart(event, '${m.id}')" ondragover="dragOver(event)" ondrop="drop(event, '${m.id}')"><div class="relative h-40 overflow-hidden"><img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${m.name}">${!m.is_available ? '<div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center text-white font-bold text-sm">HABIS</div>' : ''}</div><div class="p-4"><div class="flex items-start justify-between gap-2 mb-1"><h4 class="font-display font-bold text-white text-sm leading-tight">${m.name}</h4><span class="text-xs font-bold text-orange-400 whitespace-nowrap">Rp ${Number(m.price).toLocaleString('id-ID')}</span></div>${catName ? `<p class="text-xs text-orange-500/70 mb-1">${catName}</p>` : ''}<p class="text-xs text-white/40 mb-3 line-clamp-2">${m.description || ''}</p><div class="flex gap-2"><button onclick="editMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-white/60 bg-white/[0.06] hover:bg-white/10 rounded-lg transition-all duration-300">Edit</button><button onclick="deleteMenu('${m.id}')" class="flex-1 py-1.5 text-xs font-medium text-red-400/80 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all duration-300">Hapus</button></div></div></div>`;
       }).join('');
     }
 
@@ -596,12 +596,12 @@ function initApp() {
       const popularEl = document.getElementById('popular-menus-list');
       if (popularEl) {
         if (allMenus.length === 0) {
-          popularEl.innerHTML = '<p class="text-sm text-slate-400">Belum ada menu. Tambahkan menu pertama di halaman Menus.</p>';
+          popularEl.innerHTML = '<p class="text-sm text-white/40">Belum ada menu. Tambahkan menu pertama di halaman Menus.</p>';
         } else {
           const top3 = allMenus.slice(0, 3);
           popularEl.innerHTML = top3.map((m: any, i: number) => {
             const img = m.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(m.name) + '/100/100.jpg';
-            return `<div class="flex items-center gap-3"><img src="${img}" class="w-10 h-10 rounded-lg object-cover" alt="${m.name}"><div class="flex-1"><p class="text-sm font-medium text-slate-800">${m.name}</p><p class="text-xs text-slate-400">Rp ${Number(m.price).toLocaleString('id-ID')}</p></div><span class="text-xs font-bold ${i === 0 ? 'text-orange-500' : 'text-slate-400'}">#${i + 1}</span></div>`;
+            return `<div class="flex items-center gap-3"><img src="${img}" class="w-10 h-10 rounded-xl object-cover ring-1 ring-white/10" alt="${m.name}"><div class="flex-1"><p class="text-sm font-medium text-white">${m.name}</p><p class="text-xs text-white/40">Rp ${Number(m.price).toLocaleString('id-ID')}</p></div><span class="text-xs font-bold ${i === 0 ? 'text-orange-400' : 'text-white/30'}">#${i + 1}</span></div>`;
           }).join('');
         }
       }
@@ -609,7 +609,7 @@ function initApp() {
       const chartEl = document.getElementById('scan-chart-container');
       if (chartEl) {
         const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-        chartEl.innerHTML = days.map(d => `<div class="flex flex-col items-center gap-2 flex-1 group"><div class="w-full bg-orange-100 rounded-t-lg group-hover:bg-orange-200 transition-colors" style="height: 4px"></div><span class="text-xs text-slate-400">${d}</span></div>`).join('');
+        chartEl.innerHTML = days.map(d => `<div class="flex flex-col items-center gap-2 flex-1 group"><div class="w-full bg-orange-500/20 rounded-t-lg group-hover:bg-orange-500/30 transition-all duration-500" style="height: 4px"></div><span class="text-xs text-white/30">${d}</span></div>`).join('');
       }
     }
 

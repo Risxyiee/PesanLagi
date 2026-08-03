@@ -9,6 +9,8 @@ import {
   Search,
   ChevronRight,
   AlertCircle,
+  X,
+  Sparkles,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -54,20 +56,22 @@ interface MenuData {
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('id-ID').format(price);
 
-const FALLBACK_BG = '#FFF7ED';
+const WARM_BG = '#FFF9F5';
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton loader                                                    */
 /* ------------------------------------------------------------------ */
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-2xl bg-white p-2 shadow-sm">
-      <div className="aspect-[4/3] rounded-xl bg-neutral-200" />
-      <div className="mt-3 space-y-2 px-1 pb-1">
-        <div className="h-4 w-3/4 rounded bg-neutral-200" />
-        <div className="h-3 w-full rounded bg-neutral-100" />
-        <div className="h-3 w-1/2 rounded bg-neutral-100" />
-        <div className="mt-2 h-5 w-1/3 rounded bg-neutral-200" />
+    <div className="animate-pulse rounded-2xl bg-white shadow-sm">
+      <div className="aspect-[4/3] rounded-t-2xl bg-stone-200" />
+      <div className="space-y-3 p-4">
+        <div className="h-4 w-3/4 rounded-lg bg-stone-200" />
+        <div className="space-y-1.5">
+          <div className="h-3 w-full rounded bg-stone-100" />
+          <div className="h-3 w-2/3 rounded bg-stone-100" />
+        </div>
+        <div className="h-5 w-1/4 rounded-lg bg-orange-100" />
       </div>
     </div>
   );
@@ -75,33 +79,60 @@ function SkeletonCard() {
 
 function SkeletonPage() {
   return (
-    <div style={{ backgroundColor: FALLBACK_BG }} className="min-h-screen">
-      {/* Header skeleton */}
-      <div className="px-5 pb-6 pt-8">
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 animate-pulse rounded-2xl bg-neutral-300" />
-          <div className="flex-1 space-y-2">
-            <div className="h-6 w-48 animate-pulse rounded bg-neutral-300" />
-            <div className="h-4 w-64 animate-pulse rounded bg-neutral-200" />
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: WARM_BG,
+        ['--menu-bg' as string]: WARM_BG,
+      }}
+    >
+      <div className="mx-auto max-w-2xl">
+        {/* Header skeleton */}
+        <header className="px-5 pb-6 pt-10 sm:px-6 sm:pt-12">
+          <div className="flex items-start gap-4">
+            <div className="h-[72px] w-[72px] animate-pulse rounded-2xl bg-stone-300 shadow-sm" />
+            <div className="min-w-0 flex-1 space-y-3 pt-1">
+              <div className="h-7 w-56 animate-pulse rounded-lg bg-stone-300" />
+              <div className="h-4 w-72 animate-pulse rounded bg-stone-200" />
+              <div className="flex gap-2">
+                <div className="h-7 w-36 animate-pulse rounded-full bg-stone-200" />
+                <div className="h-7 w-32 animate-pulse rounded-full bg-stone-200" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center justify-between">
+            <div className="h-5 w-28 animate-pulse rounded bg-stone-200" />
+            <div className="h-10 w-10 animate-pulse rounded-full bg-stone-200" />
+          </div>
+        </header>
+
+        {/* Category skeleton */}
+        <div
+          className="sticky top-0 z-20 px-5 pb-4 pt-3 sm:px-6"
+          style={{
+            backgroundColor: `${WARM_BG}DD`,
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
+        >
+          <div className="scrollbar-hide -mx-5 flex gap-2.5 overflow-x-auto px-5 sm:-mx-6 sm:px-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-10 w-24 animate-pulse rounded-full bg-stone-200"
+              />
+            ))}
           </div>
         </div>
-      </div>
-      {/* Category skeleton */}
-      <div className="sticky top-0 z-20 bg-[var(--menu-bg,#FFF7ED)]/80 px-5 pb-3 pt-2 backdrop-blur-md">
-        <div className="flex gap-2 overflow-hidden">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-9 w-24 animate-pulse rounded-full bg-neutral-300"
-            />
-          ))}
-        </div>
-      </div>
-      {/* Grid skeleton */}
-      <div className="grid grid-cols-1 gap-4 px-5 pb-24 pt-4 sm:grid-cols-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
+
+        {/* Grid skeleton */}
+        <main className="px-5 pb-28 pt-5 sm:px-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </main>
       </div>
     </div>
   );
@@ -124,7 +155,7 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
           observer.unobserve(el);
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -138,44 +169,53 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
       className={`transition-all duration-500 ease-out ${
         visible
           ? 'translate-y-0 opacity-100'
-          : 'translate-y-6 opacity-0'
+          : 'translate-y-8 opacity-0'
       }`}
       style={{ transitionDelay: `${(index % 6) * 80}ms` }}
     >
-      <div className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.03] transition-shadow duration-200 hover:shadow-md">
+      <div className="group overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(249,115,22,0.10)]">
         {/* Image */}
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
           {hasImage ? (
             <img
               src={item.image_url}
               alt={item.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
               <UtensilsCrossed
-                className="text-orange-300/60"
-                size={40}
-                strokeWidth={1.5}
+                className="text-orange-200"
+                size={44}
+                strokeWidth={1.2}
               />
             </div>
           )}
+          {/* Subtle bottom gradient overlay on image */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/[0.04] to-transparent" />
         </div>
 
         {/* Info */}
-        <div className="p-3.5">
-          <h3 className="text-[15px] font-semibold leading-snug text-neutral-800">
+        <div className="p-4">
+          <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-stone-800">
             {item.name}
           </h3>
           {item.description && (
-            <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-neutral-400">
+            <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-stone-400">
               {item.description}
             </p>
           )}
-          <p className="mt-2.5 text-[15px] font-bold text-orange-600">
-            Rp {formatPrice(item.price)}
-          </p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-base font-bold tracking-tight text-orange-500">
+              Rp {formatPrice(item.price)}
+            </p>
+            {item.category_name && (
+              <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-[11px] font-medium text-orange-500">
+                {item.category_name}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -187,16 +227,20 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
 /* ------------------------------------------------------------------ */
 function EmptyState({ categoryName }: { categoryName?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-orange-50">
-        <UtensilsCrossed className="text-orange-300" size={32} strokeWidth={1.5} />
+    <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
+      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-50">
+        <UtensilsCrossed
+          className="text-orange-400"
+          size={34}
+          strokeWidth={1.3}
+        />
       </div>
-      <p className="text-base font-medium text-neutral-500">
+      <p className="text-base font-semibold text-stone-600">
         {categoryName
           ? `Belum ada menu di kategori "${categoryName}"`
           : 'Belum ada menu tersedia'}
       </p>
-      <p className="mt-1 text-sm text-neutral-400">
+      <p className="mt-1.5 max-w-[260px] text-sm leading-relaxed text-stone-400">
         Menu akan muncul di sini setelah ditambahkan oleh restoran
       </p>
     </div>
@@ -208,14 +252,21 @@ function EmptyState({ categoryName }: { categoryName?: string }) {
 /* ------------------------------------------------------------------ */
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-6">
-      <div className="text-center">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-          <AlertCircle className="text-red-400" size={36} strokeWidth={1.5} />
+    <div
+      className="flex min-h-screen items-center justify-center px-6"
+      style={{ backgroundColor: WARM_BG }}
+    >
+      <div className="max-w-sm text-center">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 shadow-sm">
+          <AlertCircle className="text-red-400" size={38} strokeWidth={1.5} />
         </div>
-        <h1 className="text-xl font-bold text-neutral-800">Oops!</h1>
-        <p className="mt-2 text-sm text-neutral-500">{message}</p>
-        <p className="mt-1 text-sm text-neutral-400">
+        <h1 className="text-xl font-extrabold text-stone-800">
+          Oops!
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-stone-500">
+          {message}
+        </p>
+        <p className="mt-1 text-sm text-stone-400">
           Pastikan link QR code yang Anda scan sudah benar.
         </p>
       </div>
@@ -320,7 +371,7 @@ export default function PublicMenuPage({
   if (!data) return <ErrorState message="Data tidak tersedia" />;
 
   const { store, categories, menus } = data;
-  const bgColor = store.bg_color || FALLBACK_BG;
+  const bgColor = store.bg_color || WARM_BG;
   const hasWhatsapp = store.whatsapp && store.whatsapp.trim() !== '';
   const whatsappLink = hasWhatsapp
     ? `https://wa.me/${store.whatsapp.replace(/^\+/, '')}?text=${encodeURIComponent(
@@ -340,46 +391,47 @@ export default function PublicMenuPage({
         ['--menu-bg' as string]: bgColor,
       }}
     >
-      <div className="mx-auto flex min-h-screen max-w-lg flex-col">
-        {/* STORE HEADER */}
-        <header className="px-5 pb-5 pt-8 sm:pt-10">
+      <div className="mx-auto flex min-h-screen max-w-2xl flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+        {/* ===================== STORE HEADER ===================== */}
+        <header className="px-5 pb-4 pt-10 sm:px-6 sm:pt-12">
           <div className="flex items-start gap-4">
             {/* Logo */}
             {store.logo_url && store.logo_url.trim() !== '' ? (
               <img
                 src={store.logo_url}
                 alt={store.name}
-                className="h-16 w-16 shrink-0 rounded-2xl border-2 border-white object-cover shadow-sm"
+                className="h-[72px] w-[72px] shrink-0 rounded-2xl border-2 border-white/80 object-cover shadow-md"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-gradient-to-br from-orange-400 to-orange-600 text-2xl font-bold text-white shadow-sm">
+              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border-2 border-white/80 bg-gradient-to-br from-orange-400 to-orange-600 text-[28px] font-extrabold text-white shadow-md">
                 {store.name?.charAt(0)?.toUpperCase() || 'W'}
               </div>
             )}
 
             {/* Info */}
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-extrabold leading-tight text-neutral-900 sm:text-2xl">
+            <div className="min-w-0 flex-1 pt-0.5">
+              <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-stone-900">
                 {store.name}
               </h1>
               {store.description && (
-                <p className="mt-1 text-sm leading-relaxed text-neutral-500">
+                <p className="mt-1 text-sm leading-relaxed text-stone-500">
                   {store.description}
                 </p>
               )}
-              <div className="mt-2.5 flex flex-wrap items-center gap-3">
+              {/* Info badges */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 {store.address && (
-                  <span className="flex items-center gap-1 text-xs text-neutral-400">
-                    <MapPin size={13} className="shrink-0" />
-                    <span className="line-clamp-1">{store.address}</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-[12px] font-medium text-stone-500 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+                    <MapPin size={12} className="shrink-0 text-orange-400" />
+                    <span className="line-clamp-1 max-w-[180px]">{store.address}</span>
                   </span>
                 )}
                 {store.whatsapp && (
                   <a
                     href={`tel:+${store.whatsapp.replace(/^\+/, '')}`}
-                    className="flex items-center gap-1 text-xs text-neutral-400 transition-colors hover:text-orange-500"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-[12px] font-medium text-stone-500 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-colors hover:bg-orange-50 hover:text-orange-600"
                   >
-                    <Phone size={13} className="shrink-0" />
+                    <Phone size={12} className="shrink-0 text-orange-400" />
                     <span>{store.whatsapp}</span>
                   </a>
                 )}
@@ -388,66 +440,80 @@ export default function PublicMenuPage({
           </div>
 
           {/* Menu count & search toggle */}
-          <div className="mt-5 flex items-center justify-between">
-            <p className="text-sm font-medium text-neutral-400">
-              <span className="text-neutral-700">{menus.length}</span> menu
-              tersedia
-            </p>
+          <div className="mt-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-orange-400" />
+              <p className="text-sm font-medium text-stone-500">
+                <span className="font-bold text-stone-700">{menus.length}</span>{' '}
+                menu tersedia
+              </p>
+            </div>
             <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-neutral-500 shadow-sm ring-1 ring-black/[0.04] transition-colors hover:bg-white hover:text-orange-500"
+              onClick={() => {
+                setShowSearch(!showSearch);
+                if (showSearch) setSearchQuery('');
+              }}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
+                showSearch
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
+                  : 'bg-white text-stone-500 shadow-sm hover:text-orange-500'
+              }`}
               aria-label="Cari menu"
             >
-              <Search size={18} />
+              {showSearch ? <X size={18} /> : <Search size={18} />}
             </button>
           </div>
 
           {/* Search bar */}
-          {showSearch && (
-            <div className="mt-3">
-              <div className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-black/[0.04]">
-                <Search size={16} className="text-neutral-400" />
-                <input
-                  type="text"
-                  placeholder="Cari menu favorit..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-300"
-                  autoFocus
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="text-xs font-medium text-orange-500"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              showSearch
+                ? 'mt-4 max-h-16 opacity-100'
+                : 'mt-0 max-h-0 opacity-0'
+            }`}
+          >
+            <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-stone-100">
+              <Search size={17} className="shrink-0 text-stone-300" />
+              <input
+                type="text"
+                placeholder="Cari menu favorit..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent text-sm font-medium text-stone-700 outline-none placeholder:font-normal placeholder:text-stone-300"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="shrink-0 text-xs font-semibold text-orange-500 transition-colors hover:text-orange-600"
+                >
+                  Reset
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </header>
 
-        {/* CATEGORY FILTER (sticky) */}
+        {/* ===================== CATEGORY FILTER (sticky) ===================== */}
         {categories.length > 0 && (
           <div
-            className="sticky top-0 z-20 px-5 pb-3 pt-2"
+            className="sticky top-0 z-20 px-5 pb-3.5 pt-3 sm:px-6"
             style={{
-              backgroundColor: `${bgColor}CC`,
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              backgroundColor: `${bgColor}DD`,
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
             }}
           >
             <div
               ref={categoryScrollRef}
-              className="scrollbar-hide -mx-5 flex gap-2 overflow-x-auto px-5"
+              className="scrollbar-hide -mx-5 flex gap-2.5 overflow-x-auto px-5 sm:-mx-6 sm:px-6"
             >
               <button
                 onClick={() => setActiveCategory(null)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                className={`shrink-0 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
                   activeCategory === null
-                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                    : 'bg-white text-neutral-600 shadow-sm ring-1 ring-black/[0.04] hover:bg-neutral-50'
+                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25'
+                    : 'bg-white text-stone-500 shadow-sm ring-1 ring-stone-100 hover:bg-stone-50 hover:text-stone-700'
                 }`}
                 ref={activeCategory === null ? activePillRef : undefined}
               >
@@ -461,10 +527,10 @@ export default function PublicMenuPage({
                       activeCategory === cat.id ? null : cat.id
                     )
                   }
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                  className={`shrink-0 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
                     activeCategory === cat.id
-                      ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                      : 'bg-white text-neutral-600 shadow-sm ring-1 ring-black/[0.04] hover:bg-neutral-50'
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25'
+                      : 'bg-white text-stone-500 shadow-sm ring-1 ring-stone-100 hover:bg-stone-50 hover:text-stone-700'
                   }`}
                   ref={
                     activeCategory === cat.id ? activePillRef : undefined
@@ -477,8 +543,8 @@ export default function PublicMenuPage({
           </div>
         )}
 
-        {/* MENU GRID */}
-        <main className="flex-1 px-5 pb-28 pt-4">
+        {/* ===================== MENU GRID ===================== */}
+        <main className="flex-1 px-5 pb-28 pt-4 sm:px-6">
           {visibleMenus.length === 0 ? (
             <EmptyState categoryName={activeCategoryName} />
           ) : (
@@ -490,31 +556,33 @@ export default function PublicMenuPage({
           )}
         </main>
 
-        {/* FOOTER */}
-        <footer className="pb-6 pt-4 text-center">
-          <p className="text-[11px] font-medium tracking-wide text-neutral-300">
+        {/* ===================== FOOTER ===================== */}
+        <footer className="pb-8 pt-4 text-center">
+          <p className="text-[11px] font-semibold tracking-widest text-stone-300 uppercase">
             Powered by{' '}
-            <span className="font-bold text-neutral-400">PesanLagi</span>
+            <span className="font-extrabold text-stone-400 tracking-wide">
+              PesanLagi
+            </span>
           </p>
         </footer>
 
-        {/* FLOATING WHATSAPP BUTTON */}
+        {/* ===================== FLOATING WHATSAPP BUTTON ===================== */}
         {whatsappLink && (
           <a
             href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed right-4 bottom-5 z-30 flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-5 py-3.5 text-white shadow-lg shadow-green-500/30 transition-all duration-200 hover:from-green-600 hover:to-green-700 hover:shadow-xl hover:shadow-green-500/40 active:scale-[0.97]"
+            className="fixed right-4 bottom-5 z-30 flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3.5 text-white shadow-xl shadow-green-500/25 transition-all duration-200 hover:from-green-600 hover:to-emerald-600 hover:shadow-2xl hover:shadow-green-500/30 active:scale-[0.97]"
           >
             <MessageCircle size={20} className="shrink-0" fill="white" />
-            <span className="text-sm font-semibold leading-tight">
+            <span className="text-[13px] font-bold leading-tight">
               Pesan via
               <br />
               WhatsApp
             </span>
             <ChevronRight
               size={16}
-              className="ml-0.5 shrink-0 opacity-70"
+              className="ml-0.5 shrink-0 opacity-60"
             />
           </a>
         )}
