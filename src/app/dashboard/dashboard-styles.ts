@@ -1,12 +1,12 @@
 export const dashboardStyles = `
 /* ============================================
-   PesanLagi Dashboard — Dark Glassmorphism
+   PesanLagi Dashboard — Clean Light Theme
    ============================================ */
 
 /* ---- Root & Base ---- */
 #view-dashboard {
-  background: #050505;
-  color: #fff;
+  background: #F8F9FA;
+  color: #111827;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -18,17 +18,17 @@ export const dashboardStyles = `
 
 /* ---- Scrollbar ---- */
 #view-dashboard ::-webkit-scrollbar { width: 5px; height: 5px; }
-#view-dashboard ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 99px; }
-#view-dashboard ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
-#view-dashboard ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+#view-dashboard ::-webkit-scrollbar-track { background: #F3F4F6; border-radius: 99px; }
+#view-dashboard ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 99px; }
+#view-dashboard ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
 /* ---- Page View Animation ---- */
 .page-view {
-  animation: dashFadeIn 600ms cubic-bezier(0.32,0.72,0,1) forwards;
+  animation: dashFadeIn 400ms cubic-bezier(0.32,0.72,0,1) forwards;
 }
 @keyframes dashFadeIn {
-  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
-  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ---- Global Transition ---- */
@@ -36,60 +36,62 @@ export const dashboardStyles = `
 #view-dashboard *::before,
 #view-dashboard *::after {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 500ms;
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 #view-dashboard input,
 #view-dashboard textarea,
 #view-dashboard select,
 #view-dashboard button {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 500ms;
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================
-   Glass Primitives
+   Card Primitives
    ============================================ */
 .glass-panel {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: #fff;
+  border: 1px solid #E5E7EB;
   border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .glass-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 1.5rem;
-  padding: 0.375rem;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 1rem;
+  padding: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .glass-card > .glass-card-inner {
-  background: rgba(255,255,255,0.04);
-  border-radius: calc(1.5rem - 0.375rem);
+  background: #fff;
+  border-radius: calc(1rem - 0.25rem);
 }
 
 /* ============================================
    Sidebar (Desktop)
    ============================================ */
 #view-dashboard aside {
-  background: #080608 !important;
-  border-right: 1px solid rgba(255,255,255,0.04) !important;
+  background: #FFFFFF !important;
+  border-right: 1px solid #E5E7EB !important;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.03);
 }
 
 /* ---- Nav Links ---- */
 .nav-link {
   position: relative;
   border-radius: 0.75rem !important;
-  color: rgba(255,255,255,0.5) !important;
+  color: #6B7280 !important;
 }
 .nav-link:hover {
-  background: rgba(255,255,255,0.05) !important;
-  color: rgba(255,255,255,0.9) !important;
+  background: #F9FAFB !important;
+  color: #111827 !important;
 }
 .nav-link.active {
-  background: rgba(249,115,22,0.15) !important;
-  color: #fb923c !important;
+  background: #FFF7ED !important;
+  color: #EA580C !important;
+  font-weight: 600;
 }
 .nav-link.active::before {
   content: '';
@@ -100,21 +102,19 @@ export const dashboardStyles = `
   width: 3px;
   height: 60%;
   border-radius: 0 99px 99px 0;
-  background: #F97316;
-  box-shadow: 0 0 12px rgba(249,115,22,0.6);
+  background: #EA580C;
 }
 
 /* ---- Mobile Nav ---- */
 .mob-nav {
-  color: rgba(255,255,255,0.35) !important;
-  transition: all 500ms cubic-bezier(0.32,0.72,0,1);
+  color: #9CA3AF !important;
+  transition: all 200ms ease;
 }
 .mob-nav.active {
-  color: #F97316 !important;
+  color: #EA580C !important;
 }
 .mob-nav.active svg {
-  stroke: #F97316;
-  filter: drop-shadow(0 0 6px rgba(249,115,22,0.5));
+  stroke: #EA580C;
 }
 .mob-nav {
   -webkit-tap-highlight-color: transparent;
@@ -124,39 +124,35 @@ export const dashboardStyles = `
    Bottom Nav (Mobile)
    ============================================ */
 #view-dashboard nav[class*="fixed bottom"] {
-  background: rgba(8,6,8,0.82) !important;
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-top: 1px solid #E5E7EB !important;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
 }
 
 /* ============================================
-   Glass Buttons
+   Buttons
    ============================================ */
 .btn-glass {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.8);
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  color: #374151;
   border-radius: 0.75rem;
 }
 .btn-glass:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+  background: #F3F4F6;
+  color: #111827;
 }
 .btn-primary {
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: #fff;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 24px -4px rgba(249,115,22,0.4);
+  box-shadow: 0 2px 8px -2px rgba(234,88,12,0.4);
 }
 .btn-primary:hover {
-  box-shadow: 0 8px 32px -4px rgba(249,115,22,0.6);
-  filter: brightness(1.1);
-}
-
-/* ---- Glow Orange ---- */
-.glow-orange {
-  box-shadow: 0 0 40px -10px rgba(249,115,22,0.35), 0 0 80px -20px rgba(249,115,22,0.15);
+  box-shadow: 0 4px 16px -2px rgba(234,88,12,0.5);
+  filter: brightness(1.05);
 }
 
 /* ============================================
@@ -171,25 +167,26 @@ export const dashboardStyles = `
 #view-dashboard input[type="time"],
 #view-dashboard textarea,
 #view-dashboard select {
-  background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  color: #fff !important;
+  background: #F9FAFB !important;
+  border: 1px solid #E5E7EB !important;
+  color: #111827 !important;
   border-radius: 0.75rem !important;
   outline: none;
 }
 #view-dashboard input:focus,
 #view-dashboard textarea:focus,
 #view-dashboard select:focus {
-  border-color: rgba(249,115,22,0.5) !important;
+  border-color: #F97316 !important;
   box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+  background: #fff !important;
 }
 #view-dashboard input::placeholder,
 #view-dashboard textarea::placeholder {
-  color: rgba(255,255,255,0.25);
+  color: #9CA3AF;
 }
 #view-dashboard select option {
-  background: #111;
-  color: #fff;
+  background: #fff;
+  color: #111827;
 }
 #view-dashboard input[type="color"] {
   background: transparent !important;
@@ -200,26 +197,24 @@ export const dashboardStyles = `
    Modal Overlays
    ============================================ */
 .modal-overlay {
-  background: rgba(0,0,0,0.6) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  transition: opacity 0.3s ease;
+  background: rgba(0,0,0,0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transition: opacity 0.2s ease;
 }
 .modal-overlay.hidden {
   opacity: 0;
   pointer-events: none;
 }
 .modal-box {
-  background: rgba(20,18,22,0.95) !important;
-  backdrop-filter: blur(40px) !important;
-  -webkit-backdrop-filter: blur(40px) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E5E7EB !important;
   border-radius: 1.25rem !important;
-  box-shadow: 0 24px 80px -12px rgba(0,0,0,0.6);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
 }
 .modal-overlay.hidden .modal-box {
-  transform: scale(0.9) translateY(20px);
+  transform: scale(0.95) translateY(10px);
   opacity: 0;
 }
 
@@ -230,9 +225,9 @@ export const dashboardStyles = `
   width: 2.75rem;
   height: 1.5rem;
   border-radius: 9999px;
-  background: rgba(255,255,255,0.1);
+  background: #D1D5DB;
   position: relative;
-  transition: background-color 500ms cubic-bezier(0.32,0.72,0,1);
+  transition: background-color 200ms ease;
 }
 .toggle-dot {
   position: absolute;
@@ -241,12 +236,13 @@ export const dashboardStyles = `
   width: 1rem;
   height: 1rem;
   border-radius: 9999px;
-  background: rgba(255,255,255,0.6);
-  transition: transform 500ms cubic-bezier(0.32,0.72,0,1), background-color 500ms;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: transform 200ms ease, background-color 200ms;
 }
 input:checked ~ .toggle-bg {
   background: #F97316;
-  box-shadow: 0 0 12px rgba(249,115,22,0.4);
+  box-shadow: 0 0 8px rgba(249,115,22,0.3);
 }
 input:checked ~ .toggle-dot {
   transform: translateX(1.25rem);
@@ -259,7 +255,6 @@ input:checked ~ .toggle-dot {
 .dragging {
   opacity: 0.5 !important;
   transform: scale(0.95);
- ring: 2px solid rgba(249,115,22,0.5);
 }
 .drag-over {
   border-top: 3px solid #F97316 !important;
@@ -294,124 +289,18 @@ input:checked ~ .toggle-dot {
    Toast
    ============================================ */
 #toast {
-  background: rgba(20,18,22,0.92) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: #1F2937 !important;
+  border: 1px solid #374151 !important;
   border-radius: 0.75rem !important;
+  box-shadow: 0 10px 30px -5px rgba(0,0,0,0.2);
+}
+#toast span {
+  color: #fff !important;
 }
 
 /* ============================================
-   CSS Overrides for Dynamically Generated Content
-   (page.tsx injects light-themed HTML — override to dark)
+   CSS for Dynamically Generated Content (Light Theme)
    ============================================ */
-
-/* ---- Overview: Stat Cards ---- */
-#page-overview .bg-white,
-#page-settings .bg-white,
-#page-menus .bg-white,
-#page-designer .bg-white,
-#page-billing .bg-white {
-  background: rgba(255,255,255,0.04) !important;
-  border-color: rgba(255,255,255,0.06) !important;
-  box-shadow: none !important;
-}
-
-/* ---- Cards with border-slate-100 ---- */
-#view-dashboard .border-slate-100 {
-  border-color: rgba(255,255,255,0.06) !important;
-}
-#view-dashboard .border-slate-200 {
-  border-color: rgba(255,255,255,0.08) !important;
-}
-
-/* ---- Backgrounds ---- */
-#view-dashboard .bg-slate-50 {
-  background: rgba(255,255,255,0.04) !important;
-}
-#view-dashboard .bg-slate-100 {
-  background: rgba(255,255,255,0.06) !important;
-}
-
-/* ---- Text Colors ---- */
-#view-dashboard .text-slate-800 {
-  color: #fff !important;
-}
-#view-dashboard .text-slate-700 {
-  color: rgba(255,255,255,0.85) !important;
-}
-#view-dashboard .text-slate-600 {
-  color: rgba(255,255,255,0.6) !important;
-}
-#view-dashboard .text-slate-500 {
-  color: rgba(255,255,255,0.4) !important;
-}
-#view-dashboard .text-slate-400 {
-  color: rgba(255,255,255,0.35) !important;
-}
-#view-dashboard .text-slate-300 {
-  color: rgba(255,255,255,0.3) !important;
-}
-
-/* ---- Shadows ---- */
-#view-dashboard .shadow-sm {
-  box-shadow: none !important;
-}
-
-/* ---- Hover States ---- */
-#view-dashboard .hover\\:bg-slate-50:hover {
-  background: rgba(255,255,255,0.06) !important;
-}
-#view-dashboard .hover\\:bg-white:hover {
-  background: rgba(255,255,255,0.08) !important;
-}
-
-/* ---- Orange backgrounds (keep but adjust for dark) ---- */
-#view-dashboard .bg-orange-50 {
-  background: rgba(249,115,22,0.1) !important;
-}
-#view-dashboard .border-orange-200 {
-  border-color: rgba(249,115,22,0.3) !important;
-}
-#view-dashboard .bg-orange-100 {
-  background: rgba(249,115,22,0.15) !important;
-}
-#view-dashboard .hover\\:bg-orange-50:hover {
-  background: rgba(249,115,22,0.15) !important;
-}
-
-/* ---- Red backgrounds ---- */
-#view-dashboard .bg-red-50 {
-  background: rgba(239,68,68,0.1) !important;
-}
-#view-dashboard .border-red-100 {
-  border-color: rgba(239,68,68,0.2) !important;
-}
-#view-dashboard .hover\\:bg-red-50:hover {
-  background: rgba(239,68,68,0.15) !important;
-}
-
-/* ---- Green checkmarks ---- */
-#view-dashboard .bg-green-50 {
-  background: rgba(34,197,94,0.1) !important;
-}
-#view-dashboard .hover\\:bg-slate-50:hover {
-  background: rgba(255,255,255,0.06) !important;
-}
-
-/* ---- Blue ---- */
-#view-dashboard .bg-blue-50 {
-  background: rgba(59,130,246,0.1) !important;
-}
-
-/* ---- Chart bars (dynamically generated) ---- */
-#scan-chart-container .bg-orange-100 {
-  background: rgba(249,115,22,0.25) !important;
-  border-radius: 0.375rem 0.375rem 0 0;
-}
-#scan-chart-container .hover\\:bg-orange-200:hover {
-  background: rgba(249,115,22,0.4) !important;
-}
 
 /* ---- Category Pills (dynamically generated) ---- */
 .cat-pill {
@@ -422,74 +311,118 @@ input:checked ~ .toggle-dot {
   white-space: nowrap;
 }
 .cat-pill.bg-white {
-  background: rgba(255,255,255,0.06) !important;
-  color: rgba(255,255,255,0.6) !important;
- border: 1px solid rgba(255,255,255,0.08);
+  background: #F3F4F6 !important;
+  color: #6B7280 !important;
+  border: 1px solid #E5E7EB;
 }
 .cat-pill.bg-white:hover {
-  background: rgba(255,255,255,0.1) !important;
-  color: rgba(255,255,255,0.8) !important;
+  background: #E5E7EB !important;
+  color: #374151 !important;
 }
 .cat-pill.bg-orange-500 {
   background: #F97316 !important;
   color: #fff !important;
-  box-shadow: 0 4px 16px -4px rgba(249,115,22,0.5);
+  box-shadow: 0 2px 8px -2px rgba(249,115,22,0.4);
 }
 
 /* ---- Menu Grid Cards (dynamically generated) ---- */
 #menu-grid > div {
-  background: rgba(255,255,255,0.04) !important;
-  border: 1px solid rgba(255,255,255,0.06) !important;
+  background: #fff !important;
+  border: 1px solid #E5E7EB !important;
   border-radius: 1rem !important;
-  box-shadow: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
   overflow: hidden;
 }
-#menu-grid .text-slate-800 {
-  color: #fff !important;
+#menu-grid .text-white {
+  color: #111827 !important;
 }
-#menu-grid .text-slate-500 {
-  color: rgba(255,255,255,0.4) !important;
+#menu-grid .text-white\\\/60 {
+  color: #6B7280 !important;
 }
-#menu-grid .text-orange-600 {
-  color: #fb923c !important;
+#menu-grid .text-white\\\/40 {
+  color: #9CA3AF !important;
+}
+#menu-grid .text-orange-400 {
+  color: #EA580C !important;
 }
 #menu-grid button {
-  background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  color: rgba(255,255,255,0.7) !important;
+  background: #F3F4F6 !important;
+  border: 1px solid #E5E7EB !important;
+  color: #4B5563 !important;
   border-radius: 0.5rem !important;
 }
 #menu-grid button:hover {
-  background: rgba(255,255,255,0.1) !important;
+  background: #E5E7EB !important;
 }
-#menu-grid .text-red-500,
-#menu-grid button.text-red-500 {
-  color: #f87171 !important;
+#menu-grid .text-red-400\\\/80 {
+  color: #EF4444 !important;
+}
+#menu-grid .bg-red-500\\\/10 {
+  background: #FEF2F2 !important;
+}
+#menu-grid .hover\\:bg-red-500\\\/20:hover {
+  background: #FEE2E2 !important;
+}
+#menu-grid .bg-white\\\/\[0\.06\] {
+  background: #F3F4F6 !important;
+}
+#menu-grid .hover\\:bg-white\\\/\[0\.10\]:hover {
+  background: #E5E7EB !important;
+}
+#menu-grid .ring-white\\\/\[0\.06\] {
+  --tw-ring-color: #E5E7EB !important;
+}
+#menu-grid .bg-white\\\/\[0\.04\] {
+  background: #fff !important;
 }
 
 /* ---- Empty State (dynamically generated) ---- */
 #menu-grid .border-dashed {
-  border-color: rgba(255,255,255,0.1) !important;
+  border-color: #D1D5DB !important;
 }
 #menu-grid .bg-white.border-dashed {
-  background: rgba(255,255,255,0.02) !important;
+  background: #FAFAFA !important;
 }
-#menu-grid .text-slate-300 {
-  color: rgba(255,255,255,0.3) !important;
+#menu-grid .text-white\\\/20 {
+  color: #D1D5DB !important;
 }
-#menu-grid .text-slate-700 {
-  color: rgba(255,255,255,0.7) !important;
+#menu-grid .text-white\\\/80 {
+  color: #374151 !important;
+}
+#menu-grid .text-white\\\/40 {
+  color: #9CA3AF !important;
+}
+#menu-grid .border-white\\\/10 {
+  border-color: #E5E7EB !important;
 }
 
 /* ---- Popular Menus (dynamically generated) ---- */
-#popular-menus-list .text-slate-800 {
-  color: #fff !important;
+#popular-menus-list .text-white {
+  color: #111827 !important;
 }
-#popular-menus-list .text-slate-400 {
-  color: rgba(255,255,255,0.4) !important;
+#popular-menus-list .text-white\\\/40 {
+  color: #9CA3AF !important;
 }
-#popular-menus-list .text-orange-500 {
-  color: #F97316 !important;
+#popular-menus-list .text-orange-400 {
+  color: #EA580C !important;
+}
+#popular-menus-list .text-white\\\/30 {
+  color: #D1D5DB !important;
+}
+#popular-menus-list .ring-white\\\/10 {
+  --tw-ring-color: #E5E7EB !important;
+}
+
+/* ---- Chart bars (dynamically generated) ---- */
+#scan-chart-container .bg-orange-500\\\/20 {
+  background: #FED7AA !important;
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+#scan-chart-container .hover\\:bg-orange-500\\\/30:hover {
+  background: #FDBA74 !important;
+}
+#scan-chart-container .text-white\\\/30 {
+  color: #9CA3AF !important;
 }
 
 /* ---- Dashed border for category add button ---- */
@@ -499,10 +432,10 @@ input:checked ~ .toggle-dot {
 
 /* ---- Mobile Header ---- */
 #view-dashboard header.md\\:hidden {
-  background: rgba(8,6,8,0.9) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid #E5E7EB !important;
 }
 
 /* ---- No Scrollbar Utility ---- */
@@ -512,12 +445,12 @@ input:checked ~ .toggle-dot {
 /* ---- Billing border highlight ---- */
 .border-orange-500 {
   border-color: #F97316 !important;
-  box-shadow: 0 0 24px -8px rgba(249,115,22,0.3);
+  box-shadow: 0 0 16px -4px rgba(249,115,22,0.2);
 }
 
 /* ---- Stat Card Icons ---- */
 .stat-icon {
-  background: rgba(255,255,255,0.06) !important;
+  background: #FFF7ED !important;
   width: 3rem;
   height: 3rem;
   border-radius: 0.75rem;
@@ -528,43 +461,68 @@ input:checked ~ .toggle-dot {
 
 /* ---- Preset button active ring ---- */
 .preset-btn {
-  transition: all 500ms cubic-bezier(0.32,0.72,0,1);
+  transition: all 200ms ease;
 }
 .preset-btn:hover .aspect-square {
-  border-color: rgba(249,115,22,0.5) !important;
-  box-shadow: 0 0 20px -4px rgba(249,115,22,0.3);
+  border-color: #F97316 !important;
+  box-shadow: 0 0 12px -2px rgba(249,115,22,0.3);
 }
 
 /* ---- Color Swatch Buttons ---- */
+#view-dashboard .border-white\\\/15[style],
 #view-dashboard .border-slate-200[style] {
-  border-color: rgba(255,255,255,0.15) !important;
+  border-color: #E5E7EB !important;
 }
 
 /* ---- QR Card Preview Area ---- */
 #view-dashboard .bg-slate-100:has(#qr-card) {
-  background: rgba(255,255,255,0.02) !important;
-  border: 1px solid rgba(255,255,255,0.04) !important;
+  background: #F9FAFB !important;
+  border: 1px solid #E5E7EB !important;
   border-radius: 1rem !important;
 }
 
 /* ---- Settings Form Labels ---- */
 #view-dashboard label {
-  color: rgba(255,255,255,0.6);
+  color: #374151;
 }
 
 /* ---- Amber/Warning pro badge ---- */
-#view-dashboard .bg-amber-50 {
-  background: rgba(245,158,11,0.1) !important;
+#view-dashboard .bg-amber-500\\\/10 {
+  background: #FFFBEB !important;
 }
-#view-dashboard .border-amber-100 {
-  border-color: rgba(245,158,11,0.2) !important;
+#view-dashboard .border-amber-500\\\/20 {
+  border-color: #FDE68A !important;
 }
-#view-dashboard .text-amber-600 {
-  color: #fbbf24 !important;
+#view-dashboard .text-amber-400 {
+  color: #D97706 !important;
 }
 
 /* ---- File input hidden ---- */
 .hidden { display: none !important; }
+
+/* ---- Responsive: sidebar, bottom nav, mobile header ---- */
+@media (min-width: 768px) {
+  #view-dashboard aside {
+    display: flex !important;
+  }
+  #view-dashboard nav[class*="fixed bottom"] {
+    display: none !important;
+  }
+  #view-dashboard header[class*="md"] {
+    display: none !important;
+  }
+  #view-dashboard main {
+    margin-left: 260px;
+  }
+}
+@media (max-width: 767px) {
+  #view-dashboard aside {
+    display: none !important;
+  }
+  #view-dashboard main {
+    margin-left: 0 !important;
+  }
+}
 
 /* ---- Responsive Padding ---- */
 @media (max-width: 767px) {
@@ -589,20 +547,246 @@ input:checked ~ .toggle-dot {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px -4px rgba(249,115,22,0.5);
+  box-shadow: 0 4px 16px -2px rgba(234,88,12,0.5);
   z-index: 25;
   border: none;
   cursor: pointer;
-  transition: all 500ms cubic-bezier(0.32,0.72,0,1);
+  transition: all 200ms ease;
 }
 .fab-btn:hover {
   transform: scale(1.08);
-  box-shadow: 0 12px 40px -4px rgba(249,115,22,0.7);
+  box-shadow: 0 6px 24px -2px rgba(234,88,12,0.6);
 }
 .fab-btn:active {
   transform: scale(0.95);
 }
 @media (min-width: 768px) {
   .fab-btn { display: none; }
+}
+
+/* ---- Override dark-themed inline classes from HTML ---- */
+#view-dashboard .text-white {
+  color: #111827 !important;
+}
+#view-dashboard .text-white\\\/50 {
+  color: #6B7280 !important;
+}
+#view-dashboard .text-white\\\/40 {
+  color: #9CA3AF !important;
+}
+#view-dashboard .text-white\\\/30 {
+  color: #D1D5DB !important;
+}
+#view-dashboard .text-white\\\/25 {
+  color: #D1D5DB !important;
+}
+#view-dashboard .text-white\\\/80 {
+  color: #374151 !important;
+}
+#view-dashboard .bg-white\\\/\[0\.04\] {
+  background: #fff !important;
+}
+#view-dashboard .bg-white\\\/\[0\.06\] {
+  background: #F3F4F6 !important;
+}
+#view-dashboard .bg-white\\\/\[0\.03\] {
+  background: #F9FAFB !important;
+}
+#view-dashboard .border-white\\\/\[0\.06\] {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .border-white\\\/\[0\.08\] {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .border-white\\\/\[0\.04\] {
+  border-color: #F3F4F6 !important;
+}
+#view-dashboard .bg-white\\\/\[0\.10\] {
+  background: #F3F4F6 !important;
+}
+#view-dashboard .hover\\:bg-white\\\/\[0\.06\]:hover {
+  background: #F3F4F6 !important;
+}
+#view-dashboard .hover\\:bg-white\\\/\[0\.10\]:hover {
+  background: #E5E7EB !important;
+}
+#view-dashboard .ring-white\\\/\[0\.04\] {
+  --tw-ring-color: #E5E7EB !important;
+}
+#view-dashboard .ring-white\\\/\[0\.06\] {
+  --tw-ring-color: #E5E7EB !important;
+}
+#view-dashboard .ring-white\\\/\[0\.10\] {
+  --tw-ring-color: #E5E7EB !important;
+}
+#view-dashboard .border-white\\\/10 {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .border-white\\\/15 {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .hover\\:text-white\\\/80:hover {
+  color: #374151 !important;
+}
+#view-dashboard .hover\\:text-white:hover {
+  color: #111827 !important;
+}
+#view-dashboard .hover\\:text-red-400:hover {
+  color: #EF4444 !important;
+}
+#view-dashboard .hover\\:bg-red-500\\\/10:hover {
+  background: #FEF2F2 !important;
+}
+#view-dashboard .bg-orange-500\\\/10 {
+  background: #FFF7ED !important;
+}
+#view-dashboard .text-orange-400 {
+  color: #FB923C !important;
+}
+#view-dashboard .text-orange-500 {
+  color: #F97316 !important;
+}
+#view-dashboard .text-orange-500\\\/70 {
+  color: #FB923C !important;
+}
+#view-dashboard .text-green-400 {
+  color: #22C55E !important;
+}
+#view-dashboard .text-red-400 {
+  color: #F87171 !important;
+}
+#view-dashboard .bg-red-500\\\/10 {
+  background: #FEF2F2 !important;
+}
+#view-dashboard .bg-red-500\\\/20 {
+  background: #FEE2E2 !important;
+}
+#view-dashboard .border-amber-500\\\/20 {
+  border-color: #FDE68A !important;
+}
+#view-dashboard .bg-amber-500\\\/10 {
+  background: #FFFBEB !important;
+}
+#view-dashboard .text-amber-400 {
+  color: #F59E0B !important;
+}
+#view-dashboard .bg-black\\\/60 {
+  background: rgba(0,0,0,0.6) !important;
+}
+#view-dashboard .bg-black\\\/20 {
+  background: rgba(0,0,0,0.2) !important;
+}
+#view-dashboard .border-white\\\/\[0\.15\] {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .hover\\:scale-110:hover {
+  transform: scale(1.1) !important;
+}
+#view-dashboard .hover\\:bg-white\\\/5:hover {
+  background: #F9FAFB !important;
+}
+#view-dashboard .hover\\:text-white\\\/60:hover {
+  color: #4B5563 !important;
+}
+#view-dashboard .hover\\:border-orange-500\\\/50:hover {
+  border-color: #FDBA74 !important;
+}
+#view-dashboard .hover\\:text-orange-400:hover {
+  color: #F97316 !important;
+}
+#view-dashboard .text-white\\\/35 {
+  color: #9CA3AF !important;
+}
+#view-dashboard .bg-white\\\/\[0\.05\] {
+  background: #F9FAFB !important;
+}
+#view-dashboard .border-white\\\/\[0\.06\] {
+  border-color: #E5E7EB !important;
+}
+#view-dashboard .hover\\:bg-white\\\/\[0\.06\]:hover {
+  background: #F3F4F6 !important;
+}
+#view-dashboard .bg-gradient-to-br.from-orange-400.to-orange-600 {
+  background: linear-gradient(135deg, #FB923C, #EA580C) !important;
+}
+#view-dashboard .shadow-orange-500\\\/30 {
+  box-shadow: 0 4px 12px -2px rgba(249,115,22,0.3) !important;
+}
+#view-dashboard .bg-gradient-to-br.from-orange-400.to-red-500 {
+  background: linear-gradient(135deg, #FB923C, #EF4444) !important;
+}
+#view-dashboard .text-orange-400\\\/70 {
+  color: #FB923C !important;
+}
+#view-dashboard .hover\\:text-red-400:hover {
+  color: #EF4444 !important;
+}
+#view-dashboard .hover\\:bg-red-500\\\/10:hover {
+  background: #FEF2F2 !important;
+}
+
+/* ---- Dynamic nav active classes (from page.tsx) ---- */
+.nav-link.bg-orange-500\\\/10 {
+  background: #FFF7ED !important;
+}
+.nav-link.text-orange-500 {
+  color: #EA580C !important;
+}
+.nav-link.text-slate-400 {
+  color: #6B7280 !important;
+}
+
+/* ---- Popular menus dynamically generated ring ---- */
+#popular-menus-list .ring-1 {
+  --tw-ring-color: #E5E7EB !important;
+}
+#popular-menus-list [class*="ring-white"] {
+  --tw-ring-color: #E5E7EB !important;
+}
+
+/* ---- Modal sticky header bg override ---- */
+#view-dashboard .modal-box [style*="rgba(20,18,22"] {
+  background: #fff !important;
+}
+
+/* ---- Additional dynamic content overrides ---- */
+#view-dashboard .text-white\\\/60 {
+  color: #6B7280 !important;
+}
+#view-dashboard .text-slate-400 {
+  color: #6B7280 !important;
+}
+#view-dashboard .hover\\:bg-white\\\/5:hover {
+  background: #F9FAFB !important;
+}
+#view-dashboard .hover\\:bg-white\\\/10:hover {
+  background: #F3F4F6 !important;
+}
+#view-dashboard .hover\\:text-white\\\/90:hover {
+  color: #111827 !important;
+}
+#view-dashboard .hover\\:border-orange-500\\\/50:hover {
+  border-color: #FDBA74 !important;
+}
+#view-dashboard .hover\\:text-white\\\/60:hover {
+  color: #4B5563 !important;
+}
+#view-dashboard .ring-white\\\/10 {
+  --tw-ring-color: #E5E7EB !important;
+}
+#view-dashboard .shadow-orange-500\\\/25 {
+  box-shadow: 0 4px 12px -2px rgba(249,115,22,0.25) !important;
+}
+#view-dashboard .shadow-lg {
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.1) !important;
+}
+#view-dashboard .text-white\\\/90 {
+  color: #374151 !important;
+}
+#view-dashboard .text-white\\\/20 {
+  color: #D1D5DB !important;
+}
+#view-dashboard .text-white\\\/70 {
+  color: #4B5563 !important;
 }
 `;
