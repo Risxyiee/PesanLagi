@@ -4,13 +4,6 @@
 /* Scan JSON files for Tailwind classes used in landing/login/dashboard HTML */
 @source "**/*.json";
 
-@layer base {
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
-}
-
 @utility glassmorphism {
   @apply bg-white/70 backdrop-blur-md border border-slate-100;
 }
