@@ -1,13 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-@layer base {
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
-}
-
 @utility glassmorphism {
   @apply bg-white/70 backdrop-blur-md border border-slate-100;
 }

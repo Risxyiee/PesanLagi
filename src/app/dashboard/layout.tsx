@@ -20,7 +20,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 font-['Plus_Jakarta_Sans',sans-serif] text-slate-900 antialiased">
       {/* Desktop Floating Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-28 flex-col items-center py-8 z-50">
         <div className="h-full w-20 glassmorphism rounded-3xl flex flex-col items-center justify-between py-6 shadow-premium">
