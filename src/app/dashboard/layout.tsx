@@ -71,7 +71,7 @@ export default function DashboardLayout({
                 isActive ? "text-amber-600" : "text-slate-500"
               )}>
                 <item.icon className="w-6 h-6" strokeWidth={1.75} />
-                <span className="text-[10px] font-semibold">item.label}</span>
+                <span className="text-[10px] font-semibold">{item.label}</span>
               </Link>
             );
           })}
