@@ -9,17 +9,10 @@ import dashboardBodyHtml from "./dashboard/dashboard-html.json";
 import { dashboardStyles } from "./dashboard/dashboard-styles";
 
 export default function Home() {
-  // Render a minimal empty shell — identical on server & client = zero hydration mismatch.
-  // ALL HTML content is injected client-side via DOM in initApp().
-
   useEffect(() => { initApp(); }, []);
-
   return <div id="app-root" style={{ minHeight: '100vh', background: '#0A0705' }} suppressHydrationWarning />;
 }
 
-// ============================================
-// ALL LOGIC RUNS ONCE IN useEffect (client only)
-// ============================================
 function initApp() {
   if ((window as any)._appInited) return;
   (window as any)._appInited = true;
@@ -27,19 +20,16 @@ function initApp() {
   const appRoot = document.getElementById('app-root');
   if (!appRoot) return;
 
-  // Inject styles into head
   const styleEl = document.createElement('style');
   styleEl.id = 'view-styles';
   styleEl.textContent = styles;
   document.head.appendChild(styleEl);
 
-  // Inject landing view
   const landingDiv = document.createElement('div');
   landingDiv.id = 'view-landing';
   landingDiv.innerHTML = bodyHtml;
   appRoot.appendChild(landingDiv);
 
-  // Inject hidden login & dashboard views into DOM
   const loginDiv = document.createElement('div');
   loginDiv.id = 'view-login';
   loginDiv.style.display = 'none';
@@ -52,9 +42,6 @@ function initApp() {
   dashDiv.innerHTML = dashboardBodyHtml;
   appRoot.appendChild(dashDiv);
 
-  // ============================================
-  // VIEW SWITCHING (pure DOM, no React)
-  // ============================================
   let currentView = 'landing';
   const landingInited = { v: false };
   const loginInited = { v: false };
@@ -80,7 +67,6 @@ function initApp() {
 
   function goTo(hash: string) { window.location.hash = hash; }
 
-  // Hash routing
   function handleHash() {
     const hash = window.location.hash.replace('#', '');
     if (hash === 'dashboard') switchView('dashboard');
@@ -88,7 +74,6 @@ function initApp() {
     else switchView('landing');
   }
 
-  // Check for OAuth success redirect (from server-side Google OAuth callback)
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('auth') === 'success') {
     window.history.replaceState({}, '', window.location.pathname);
@@ -98,7 +83,6 @@ function initApp() {
   }
 
   window.addEventListener('hashchange', handleHash);
-  // Check initial hash - landing is rendered by SSR, but user might have navigated directly to #login or #dashboard
   const initHash = window.location.hash.replace('#', '');
   if (initHash === 'dashboard') { initLanding(); switchView('dashboard'); }
   else if (initHash === 'login' || initHash === 'register') { initLanding(); switchView('login'); }
@@ -189,7 +173,6 @@ function initApp() {
     function showOk(title: string, msg: string) { swView('success'); const t = document.getElementById('success-title'); const m = document.getElementById('success-msg'); const b = document.getElementById('success-bar'); if (t) t.textContent = title; if (m) m.textContent = msg; if (b) { b.style.width = '0%'; setTimeout(() => { b.style.width = '100%'; }, 100); } }
     function chkPwd() { const pwd = (document.getElementById('register-password') as HTMLInputElement)?.value || ''; const bars = [document.getElementById('strength-1'), document.getElementById('strength-2'), document.getElementById('strength-3'), document.getElementById('strength-4')]; const txt = document.getElementById('strength-text'); let s = 0; if (pwd.length >= 6) s++; if (pwd.length >= 10) s++; if (/[A-Z]/.test(pwd)) s++; if (/[0-9]/.test(pwd)) s++; bars.forEach(b => { if (b) b.style.backgroundColor = '#E2E8F0'; }); if (!txt) return; if (!pwd.length) { txt.textContent = 'Gunakan minimal 6 karakter'; txt.className = 'text-xs text-slate-400 mt-1.5'; } else if (s <= 1) { if (bars[0]) bars[0].style.backgroundColor = '#EF4444'; txt.textContent = 'Lemah'; txt.className = 'text-xs text-red-500 mt-1.5'; } else if (s <= 2) { if (bars[0]) bars[0].style.backgroundColor = '#F59E0B'; if (bars[1]) bars[1].style.backgroundColor = '#F59E0B'; txt.textContent = 'Cukup'; txt.className = 'text-xs text-yellow-500 mt-1.5'; } else if (s === 3) { if (bars[0]) bars[0].style.backgroundColor = '#10B981'; if (bars[1]) bars[1].style.backgroundColor = '#10B981'; if (bars[2]) bars[2].style.backgroundColor = '#10B981'; txt.textContent = 'Kuat'; txt.className = 'text-xs text-green-500 mt-1.5'; } else { bars.forEach(b => { if (b) b.style.backgroundColor = '#10B981'; }); txt.textContent = 'Sangat Kuat'; txt.className = 'text-xs text-green-500 mt-1.5'; } }
 
-    // Forgot password: show email input modal
     function showForgotPassword() {
       const view = document.getElementById('login-view');
       if (!view) return;
@@ -229,10 +212,8 @@ function initApp() {
 
     (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
 
-    // Check if user is already authenticated — redirect to dashboard
     fetch('/api/auth/me').then(r => { if (r.ok) goTo('#dashboard'); }).catch(() => {});
 
-    // OAuth error params (from failed server-side Google OAuth)
     const params = new URLSearchParams(window.location.search);
     if (params.get('error')) {
       const errorMsg = params.get('error') || 'Autentikasi gagal';
@@ -267,18 +248,18 @@ function initApp() {
   }
 
   // ============================================
-  // DASHBOARD LOGIC (REAL DATABASE)
+  // DASHBOARD LOGIC
   // ============================================
   function initDashboard() {
     if (dashInited.v) return;
     dashInited.v = true;
 
-    // Runtime state
     let curUser: any = null;
     let curStore: any = null;
     let allCategories: any[] = [];
     let allMenus: any[] = [];
     let curFilter = 'all', isCustom = false, menuDel: string | null = null;
+    let dragSrcId: string | null = null;
 
     // ---- Data loaders ----
     async function loadStore() {
@@ -293,33 +274,33 @@ function initApp() {
         if (ss) ss.value = curStore.slug || '';
         if (lp && curStore.logo_url) lp.src = curStore.logo_url;
         if (dn) dn.textContent = curStore.name || 'Warung Saya';
-        // Fill settings fields
         const sd = document.getElementById('store-desc') as HTMLTextAreaElement; if (sd) sd.value = curStore.description || '';
         const sw = document.getElementById('store-wa') as HTMLInputElement; if (sw) sw.value = curStore.whatsapp || '';
         const sa = document.getElementById('store-addr') as HTMLInputElement; if (sa) sa.value = curStore.address || '';
         const sm = document.getElementById('store-map') as HTMLInputElement; if (sm) sm.value = curStore.maps_url || '';
-        // Set QR designer colors from store
+        // Load operating hours
+        if (curStore.hours && typeof curStore.hours === 'object') {
+          const days = ['mon','tue','wed','thu','fri','sat','sun'];
+          days.forEach(d => {
+            const oh = document.getElementById(`hour-${d}-open`) as HTMLInputElement;
+            const ch = document.getElementById(`hour-${d}-close`) as HTMLInputElement;
+            if (oh && curStore.hours[d + '_open']) oh.value = curStore.hours[d + '_open'];
+            if (ch && curStore.hours[d + '_close']) ch.value = curStore.hours[d + '_close'];
+          });
+        }
         const bgI = document.getElementById('bg-color') as HTMLInputElement;
         const qrI = document.getElementById('qr-color') as HTMLInputElement;
         if (bgI && curStore.bg_color) bgI.value = curStore.bg_color;
         if (qrI && curStore.qr_color) qrI.value = curStore.qr_color;
-        // Update QR card store name
         const qsn = document.getElementById('qr-store-name'); if (qsn) qsn.textContent = curStore.name || 'Warung Saya';
-        // Update QR card logo
         const ql = document.getElementById('qr-logo') as HTMLImageElement; if (ql && curStore.logo_url) ql.src = curStore.logo_url;
       } catch (e: any) { console.error('loadStore:', e); }
     }
     async function loadCategories() {
-      try {
-        const r = await fetch('/api/categories'); if (!r.ok) return;
-        allCategories = await r.json();
-      } catch (e: any) { console.error('loadCategories:', e); }
+      try { const r = await fetch('/api/categories'); if (!r.ok) return; allCategories = await r.json(); } catch (e: any) { console.error('loadCategories:', e); }
     }
     async function loadMenus() {
-      try {
-        const r = await fetch('/api/menus'); if (!r.ok) return;
-        allMenus = await r.json();
-      } catch (e: any) { console.error('loadMenus:', e); }
+      try { const r = await fetch('/api/menus'); if (!r.ok) return; allMenus = await r.json(); } catch (e: any) { console.error('loadMenus:', e); }
     }
     async function loadAll() {
       try {
@@ -329,8 +310,6 @@ function initApp() {
       } catch { goTo('#login'); return; }
       if (!curUser) { goTo('#login'); return; }
       await Promise.all([loadStore(), loadCategories(), loadMenus()]);
-      const te = document.getElementById('stat-total-menus');
-      if (te) te.textContent = String(allMenus.length);
     }
 
     // ---- Navigation ----
@@ -346,12 +325,35 @@ function initApp() {
     function autoSlug() { const n = (document.getElementById('store-name') as HTMLInputElement)?.value; const s = document.getElementById('store-slug') as HTMLInputElement; if (!s.dataset.touched) s.value = n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
     function fmtSlug(i: HTMLInputElement) { i.dataset.touched = 'true'; i.value = i.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); }
     function logoUp(e: Event) { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('logo-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; toast('Logo berhasil dipilih.'); }; r.readAsDataURL(f); } }
+    function collectHours() {
+      const days = ['mon','tue','wed','thu','fri','sat','sun'];
+      const hours: any = {};
+      days.forEach(d => {
+        const oh = (document.getElementById(`hour-${d}-open`) as HTMLInputElement)?.value || '';
+        const ch = (document.getElementById(`hour-${d}-close`) as HTMLInputElement)?.value || '';
+        hours[d + '_open'] = oh;
+        hours[d + '_close'] = ch;
+      });
+      return hours;
+    }
     async function saveSet() {
       const b = document.getElementById('settings-submit-btn'); sLoad(b, true, 'Menyimpan...');
       try {
+        // Check slug uniqueness
+        const slug = (document.getElementById('store-slug') as HTMLInputElement)?.value?.trim();
+        if (slug) {
+          const checkR = await fetch('/api/store/check-slug?slug=' + encodeURIComponent(slug));
+          if (checkR.ok) {
+            const checkD = await checkR.json();
+            if (checkD.exists && checkD.id !== curStore?.id) {
+              toast('Slug sudah digunakan oleh warung lain. Pilih slug lain.');
+              sLoad(b, false); return;
+            }
+          }
+        }
         const body: any = {
           name: (document.getElementById('store-name') as HTMLInputElement)?.value,
-          slug: (document.getElementById('store-slug') as HTMLInputElement)?.value,
+          slug: slug,
           logo_url: (document.getElementById('logo-preview') as HTMLImageElement)?.src,
           bg_color: (document.getElementById('bg-color') as HTMLInputElement)?.value,
           qr_color: (document.getElementById('qr-color') as HTMLInputElement)?.value,
@@ -359,6 +361,7 @@ function initApp() {
           whatsapp: (document.getElementById('store-wa') as HTMLInputElement)?.value,
           address: (document.getElementById('store-addr') as HTMLInputElement)?.value,
           maps_url: (document.getElementById('store-map') as HTMLInputElement)?.value,
+          hours: collectHours(),
         };
         const r = await fetch('/api/store', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         if (r.ok) { curStore = { ...curStore, ...body }; toast('Profil warung berhasil disimpan!'); }
@@ -441,7 +444,7 @@ function initApp() {
       if (!menuDel) return;
       try {
         const r = await fetch('/api/menus', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: menuDel }) });
-        if (r.ok) { allMenus = allMenus.filter(m => m.id !== menuDel); renMenus(); toast('Menu berhasil dihapus.'); }
+        if (r.ok) { allMenus = allMenus.filter(m => m.id !== menuDel); renMenus(); updateOverview(); toast('Menu berhasil dihapus.'); }
         else { const d = await r.json(); toast(d.error || 'Gagal menghapus.'); }
       } catch { toast('Gagal menghapus menu.'); }
       menuDel = null; cM('delete-modal');
@@ -461,7 +464,7 @@ function initApp() {
       };
       try {
         const r = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        if (r.ok) { await loadMenus(); renMenus(); cM('menu-modal'); toast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!'); }
+        if (r.ok) { await loadMenus(); renMenus(); updateOverview(); cM('menu-modal'); toast(id ? 'Menu berhasil diperbarui!' : 'Menu baru berhasil ditambahkan!'); }
         else { const d = await r.json(); toast(d.error || 'Gagal menyimpan menu.'); }
       } catch { toast('Gagal menyimpan menu.'); }
       sLoad(b, false);
@@ -471,17 +474,32 @@ function initApp() {
       if (f) { const r = new FileReader(); r.onload = (ev) => { const p = document.getElementById('menu-img-preview') as HTMLImageElement; if (p) p.src = (ev.target as FileReader).result as string; }; r.readAsDataURL(f); }
     }
 
-    // Drag & drop (visual only, no reorder API)
-    function dStart(e: DragEvent, id: string) { (e.target as HTMLElement).classList.add('dragging'); }
+    // Drag & drop with reorder API
+    function dStart(e: DragEvent, id: string) {
+      dragSrcId = id;
+      (e.target as HTMLElement).classList.add('dragging');
+      e.dataTransfer!.effectAllowed = 'move';
+    }
     function dOver(e: DragEvent) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('drag-over'); }
-    function dDrop(e: DragEvent, tid: string) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over'); }
+    async function dDrop(e: DragEvent, tid: string) {
+      e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove('drag-over');
+      if (!dragSrcId || dragSrcId === tid) return;
+      try {
+        const r = await fetch('/api/menus/reorder', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source_id: dragSrcId, target_id: tid })
+        });
+        if (r.ok) { await loadMenus(); renMenus(); toast('Urutan menu diperbarui.'); }
+      } catch { /* silently fail */ }
+      dragSrcId = null;
+    }
 
     // ---- QR Designer ----
     function initQR() { genQR(); updCard(); }
     function genQR() {
       const qc = document.getElementById('qrcode'); if (!qc) return;
       qc.innerHTML = '';
-      const url = `https://pesanlagi.web.id/menu/${curStore?.slug || 'warung'}`;
+      const url = `https://3kgi95g9.insforge.site/menu/${curStore?.slug || 'warung'}`;
       if (typeof (window as any).QRCode !== 'undefined') {
         new (window as any).QRCode(qc, { text: url, width: 120, height: 120, colorDark: (document.getElementById('qr-color') as HTMLInputElement)?.value || '#000', colorLight: '#fff', correctLevel: (window as any).QRCode.CorrectLevel.H });
       }
@@ -523,7 +541,77 @@ function initApp() {
         toast('Desain kartu berhasil disimpan!');
       } catch { toast('Gagal menyimpan desain.'); }
     }
-    function handleDl() { if (curUser && !curUser.is_pro && isCustom) document.getElementById('upgrade-modal')?.classList.remove('hidden'); else toast('Mengunduh PDF High-Res tanpa watermark...'); }
+
+    // ---- QR Download (real PNG generation) ----
+    async function handleDl() {
+      if (curUser && !curUser.is_pro && isCustom) { document.getElementById('upgrade-modal')?.classList.remove('hidden'); return; }
+      toast('Membuat gambar QR...');
+      const card = document.getElementById('qr-card');
+      if (!card) { toast('Gagal membuat gambar.'); return; }
+      try {
+        // Use html2canvas
+        if (typeof (window as any).html2canvas === 'function') {
+          const canvas = await (window as any).html2canvas(card, { scale: 3, useCORS: true, backgroundColor: null });
+          const link = document.createElement('a');
+          link.download = `qr-${curStore?.slug || 'menu'}-${(document.getElementById('table-number') as HTMLInputElement)?.value || '1'}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          toast('QR berhasil diunduh!');
+        } else {
+          // Fallback: just take QR code canvas
+          const qrCanvas = document.querySelector('#qrcode canvas') as HTMLCanvasElement;
+          if (qrCanvas) {
+            const link = document.createElement('a');
+            link.download = `qr-${curStore?.slug || 'menu'}.png`;
+            link.href = qrCanvas.toDataURL('image/png');
+            link.click();
+            toast('QR berhasil diunduh!');
+          } else {
+            toast('Gagal membuat gambar. Coba reload halaman.');
+          }
+        }
+      } catch { toast('Gagal membuat gambar QR.'); }
+    }
+
+    // ---- Overview with real data ----
+    function updateOverview() {
+      if (!curUser || !curStore) return;
+      // Greeting with store name
+      const greetEl = document.getElementById('dash-greeting');
+      if (greetEl) greetEl.textContent = `Selamat datang kembali, ${curStore.name || curUser.email.split('@')[0]}!`;
+      // Plan
+      const planEl = document.getElementById('stat-plan'); if (planEl) planEl.textContent = curUser.is_pro ? 'Pro' : 'Gratis';
+      // Total menus
+      const tmEl = document.getElementById('stat-total-menus'); if (tmEl) tmEl.textContent = String(allMenus.length);
+      // Categories count
+      const catCountEl = document.getElementById('stat-categories');
+      if (catCountEl) catCountEl.textContent = String(allCategories.length);
+      // Scans - show 0 for now (no tracking yet)
+      const scanEl = document.getElementById('stat-scans');
+      if (scanEl) scanEl.textContent = '0';
+      // Public link
+      const pubLink = document.getElementById('dash-public-link') as HTMLAnchorElement;
+      if (pubLink) pubLink.href = `/menu/${curStore.slug}`;
+      // Popular menus - show top 3 with real data
+      const popularEl = document.getElementById('popular-menus-list');
+      if (popularEl) {
+        if (allMenus.length === 0) {
+          popularEl.innerHTML = '<p class="text-sm text-slate-400">Belum ada menu. Tambahkan menu pertama di halaman Menus.</p>';
+        } else {
+          const top3 = allMenus.slice(0, 3);
+          popularEl.innerHTML = top3.map((m: any, i: number) => {
+            const img = m.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(m.name) + '/100/100.jpg';
+            return `<div class="flex items-center gap-3"><img src="${img}" class="w-10 h-10 rounded-lg object-cover" alt="${m.name}"><div class="flex-1"><p class="text-sm font-medium text-slate-800">${m.name}</p><p class="text-xs text-slate-400">Rp ${Number(m.price).toLocaleString('id-ID')}</p></div><span class="text-xs font-bold ${i === 0 ? 'text-orange-500' : 'text-slate-400'}">#${i + 1}</span></div>`;
+          }).join('');
+        }
+      }
+      // Scan chart - show placeholder bars
+      const chartEl = document.getElementById('scan-chart-container');
+      if (chartEl) {
+        const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+        chartEl.innerHTML = days.map(d => `<div class="flex flex-col items-center gap-2 flex-1 group"><div class="w-full bg-orange-100 rounded-t-lg group-hover:bg-orange-200 transition-colors" style="height: 4px"></div><span class="text-xs text-slate-400">${d}</span></div>`).join('');
+      }
+    }
 
     // ---- Helpers ----
     function sLoad(b: HTMLElement | null, on: boolean, t?: string) {
@@ -545,7 +633,15 @@ function initApp() {
     window.setBgColor = setBg; window.setQrColor = setQr; window.applyCustomColor = applyCC;
     window.updateCardUI = updCard; window.checkFreemiumLogic = chkFree; window.handleSaveDesign = saveDes;
     window.handleDownload = handleDl; window.setLoading = sLoad; window.showToast = toast;
-    window.closeModal = cM; window.handleLogout = logout;
+    window.closeModal = cM; window.handleLogout = logout; window.deleteCategory = deleteCategoryFn;
+
+    async function deleteCategoryFn(id: string) {
+      try {
+        const r = await fetch('/api/categories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+        if (r.ok) { await loadCategories(); renCats(); renMenus(); updateOverview(); toast('Kategori berhasil dihapus.'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menghapus kategori.'); }
+      } catch { toast('Gagal menghapus kategori.'); }
+    }
 
     // ---- Bind events ----
     document.getElementById('store-name')?.addEventListener('input', autoSlug);
@@ -565,25 +661,6 @@ function initApp() {
     document.getElementById('add-menu-fab')?.addEventListener('click', openMM);
     document.getElementById('search-menu')?.addEventListener('input', renMenus);
     document.getElementById('confirm-delete-btn')?.addEventListener('click', confirmDel);
-
-    // Update dynamic overview elements after data loads
-    function updateOverview() {
-      if (!curUser || !curStore) return;
-      const emailName = curUser.email.split('@')[0];
-      const greetEl = document.getElementById('dash-greeting'); if (greetEl) greetEl.textContent = `Selamat datang kembali, ${emailName}!`;
-      const planEl = document.getElementById('stat-plan'); if (planEl) planEl.textContent = curUser.is_pro ? 'Pro' : 'Gratis';
-      const pubLink = document.getElementById('dash-public-link') as HTMLAnchorElement; if (pubLink) pubLink.href = `/menu/${curStore.slug}`;
-    }
-    async function deleteCategory(id: string) {
-      try {
-        const r = await fetch('/api/categories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
-        if (r.ok) { await loadCategories(); renCats(); renMenus(); toast('Kategori berhasil dihapus.'); }
-        else { const d = await r.json(); toast(d.error || 'Gagal menghapus kategori.'); }
-      } catch { toast('Gagal menghapus kategori.'); }
-    }
-
-    // Expose deleteCategory
-    window.deleteCategory = deleteCategory;
 
     // Load real data then navigate
     loadAll().then(() => { updateOverview(); nav('overview'); });

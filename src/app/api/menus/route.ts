@@ -16,8 +16,13 @@ async function getStoreId(userId: string) {
   return r.rows[0]?.id || null;
 }
 
+async function ensureColumns() {
+  try { await query('ALTER TABLE menus ADD COLUMN IF NOT EXISTS sort_order integer DEFAULT 0'); } catch {}
+}
+
 export async function GET(req: NextRequest) {
   try {
+    await ensureColumns();
     const userId = await getUserId(req);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -41,7 +46,7 @@ export async function GET(req: NextRequest) {
       params.push(`%${search}%`);
       idx++;
     }
-    sql += ' ORDER BY c.name, m.name';
+    sql += ' ORDER BY m.sort_order, c.name, m.name';
 
     const result = await query(sql, params);
     return NextResponse.json(result.rows);
