@@ -218,7 +218,7 @@ function initApp() {
       }
     }
 
-    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = () => { window.location.href = '/api/auth/google'; }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
+    (window as any).showToast = showToastL; (window as any).togglePassword = togglePwd; (window as any).switchView = swView; (window as any).checkPasswordStrength = chkPwd; (window as any).googleAuth = async () => { try { const { createClient } = await import('@insforge/sdk'); const client = createClient({ baseUrl: process.env.NEXT_PUBLIC_INSFORGE_BASE_URL || 'https://3kgi95g9.ap-southeast.insforge.app', anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY || 'anon_741c122373dcd0989258c905645b024ad75afcb7f815a93515b7f2b0daf30400' }); await client.auth.signInWithOAuth('google', { redirectTo: window.location.origin + '/auth/callback' }); } catch (e: any) { console.error('Google auth error:', e); showToastL('Gagal memulai login Google. Coba lagi.'); } }; (window as any).showForgotPassword = showForgotPassword; (window as any).goToLanding = () => goTo('');
 
     // Check if user is already authenticated — redirect to dashboard
     fetch('/api/auth/me').then(r => { if (r.ok) window.location.href = '/dashboard'; }).catch(() => {});
