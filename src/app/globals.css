@@ -12,3 +12,11 @@
   @apply shadow-xl shadow-slate-200/50;
 }
 
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+

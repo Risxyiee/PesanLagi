@@ -63,6 +63,10 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
     const storeId = await getStoreId(userId);
 
+    // Nullify category_id on menus that belong to this category
+    await query('UPDATE menus SET category_id = NULL WHERE category_id = $1', [id]);
+
+    // Then delete the category
     await query('DELETE FROM categories WHERE id = $1 AND store_id = $2', [id, storeId]);
     return NextResponse.json({ success: true });
   } catch (err: any) {

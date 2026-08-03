@@ -293,11 +293,20 @@ function initApp() {
         if (ss) ss.value = curStore.slug || '';
         if (lp && curStore.logo_url) lp.src = curStore.logo_url;
         if (dn) dn.textContent = curStore.name || 'Warung Saya';
+        // Fill settings fields
+        const sd = document.getElementById('store-desc') as HTMLTextAreaElement; if (sd) sd.value = curStore.description || '';
+        const sw = document.getElementById('store-wa') as HTMLInputElement; if (sw) sw.value = curStore.whatsapp || '';
+        const sa = document.getElementById('store-addr') as HTMLInputElement; if (sa) sa.value = curStore.address || '';
+        const sm = document.getElementById('store-map') as HTMLInputElement; if (sm) sm.value = curStore.maps_url || '';
         // Set QR designer colors from store
         const bgI = document.getElementById('bg-color') as HTMLInputElement;
         const qrI = document.getElementById('qr-color') as HTMLInputElement;
         if (bgI && curStore.bg_color) bgI.value = curStore.bg_color;
         if (qrI && curStore.qr_color) qrI.value = curStore.qr_color;
+        // Update QR card store name
+        const qsn = document.getElementById('qr-store-name'); if (qsn) qsn.textContent = curStore.name || 'Warung Saya';
+        // Update QR card logo
+        const ql = document.getElementById('qr-logo') as HTMLImageElement; if (ql && curStore.logo_url) ql.src = curStore.logo_url;
       } catch (e: any) { console.error('loadStore:', e); }
     }
     async function loadCategories() {
@@ -346,6 +355,10 @@ function initApp() {
           logo_url: (document.getElementById('logo-preview') as HTMLImageElement)?.src,
           bg_color: (document.getElementById('bg-color') as HTMLInputElement)?.value,
           qr_color: (document.getElementById('qr-color') as HTMLInputElement)?.value,
+          description: (document.getElementById('store-desc') as HTMLTextAreaElement)?.value,
+          whatsapp: (document.getElementById('store-wa') as HTMLInputElement)?.value,
+          address: (document.getElementById('store-addr') as HTMLInputElement)?.value,
+          maps_url: (document.getElementById('store-map') as HTMLInputElement)?.value,
         };
         const r = await fetch('/api/store', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         if (r.ok) { curStore = { ...curStore, ...body }; toast('Profil warung berhasil disimpan!'); }
@@ -358,7 +371,7 @@ function initApp() {
     function renCats() {
       const c = document.getElementById('category-pills'); if (!c) return;
       let h = `<button class="cat-pill ${curFilter === 'all' ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="all" onclick="setCategory('all')">Semua</button>`;
-      allCategories.forEach((cat: any) => { h += `<button class="cat-pill ${curFilter === cat.id ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat.id}" onclick="setCategory('${cat.id}')">${cat.name}</button>`; });
+      allCategories.forEach((cat: any) => { h += `<div class="flex items-center gap-1 shrink-0"><button class="cat-pill ${curFilter === cat.id ? 'active bg-orange-500 text-white' : 'bg-white text-slate-600'} px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors" data-cat="${cat.id}" onclick="setCategory('${cat.id}')">${cat.name}</button><button onclick="deleteCategory('${cat.id}')" class="p-1.5 text-slate-300 hover:text-red-500 transition-colors" title="Hapus kategori"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`; });
       h += `<button onclick="document.getElementById('cat-modal').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-colors">+ Kategori</button>`;
       c.innerHTML = h;
       const s = document.getElementById('menu-cat') as HTMLSelectElement;
@@ -553,7 +566,26 @@ function initApp() {
     document.getElementById('search-menu')?.addEventListener('input', renMenus);
     document.getElementById('confirm-delete-btn')?.addEventListener('click', confirmDel);
 
+    // Update dynamic overview elements after data loads
+    function updateOverview() {
+      if (!curUser || !curStore) return;
+      const emailName = curUser.email.split('@')[0];
+      const greetEl = document.getElementById('dash-greeting'); if (greetEl) greetEl.textContent = `Selamat datang kembali, ${emailName}!`;
+      const planEl = document.getElementById('stat-plan'); if (planEl) planEl.textContent = curUser.is_pro ? 'Pro' : 'Gratis';
+      const pubLink = document.getElementById('dash-public-link') as HTMLAnchorElement; if (pubLink) pubLink.href = `/menu/${curStore.slug}`;
+    }
+    async function deleteCategory(id: string) {
+      try {
+        const r = await fetch('/api/categories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+        if (r.ok) { await loadCategories(); renCats(); renMenus(); toast('Kategori berhasil dihapus.'); }
+        else { const d = await r.json(); toast(d.error || 'Gagal menghapus kategori.'); }
+      } catch { toast('Gagal menghapus kategori.'); }
+    }
+
+    // Expose deleteCategory
+    window.deleteCategory = deleteCategory;
+
     // Load real data then navigate
-    loadAll().then(() => nav('overview'));
+    loadAll().then(() => { updateOverview(); nav('overview'); });
   }
 }
