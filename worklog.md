@@ -169,3 +169,33 @@ Stage Summary:
 - `/dashboard` Next.js route redirects to `/#dashboard` as fallback
 - All 5 dashboard pages verified working: Overview, Settings, Menus, QR Designer, Billing
 - Full auth flow verified: Register → Dashboard, Login → Dashboard, Logout → Login, `/dashboard` redirect
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix all 20 audit issues (except payment gateway) and deploy
+
+Work Log:
+- **Dashboard HTML cleanup**: Removed all hardcoded "Warung Pak Bowo" text → replaced with empty/defaults. Replaced fake scan stats (1.205) with 0. Replaced fake greeting ("Pak Bowo") with dynamic. Replaced fake popular menus (Nasi Goreng, Es Teh, Mie Goreng) with dynamic container. Replaced fake chart bars with dynamic container. Fixed public link from hardcoded URL to dynamic `/menu/{slug}`. Replaced fake "Scan Bulan Ini" stat card with real "Total Kategori".
+- **Settings - Operating hours**: Added 7-day time input fields (Senin-Minggu, open/close) to settings page. `collectHours()` in page.tsx gathers values into JSON object. Hours saved/loaded from `stores.hours` JSONB column.
+- **Settings - Slug uniqueness**: Created `/api/store/check-slug` endpoint. On settings save, checks slug uniqueness before PUT. If taken by another store, shows error toast.
+- **Overview dashboard real data**: `updateOverview()` now uses actual `curStore.name` for greeting (not email), real `allMenus.length`, real `allCategories.length`, dynamic popular menus list (top 3 by price), empty chart bars (no scan tracking yet). Public link uses real slug.
+- **QR download real PNG**: Added html2canvas CDN (deferred). `handleDl()` captures `#qr-card` element via html2canvas (3x scale) and triggers PNG download with proper filename. Falls back to QR canvas if html2canvas unavailable.
+- **QR designer URL fix**: QR code now points to `https://3kgi95g9.insforge.site/menu/{slug}` instead of `pesanlagi.web.id`.
+- **Drag & drop reorder API**: Created `/api/menus/reorder` endpoint. Reorders menus by updating `sort_order` column. Added `sort_order` column to menus table via `ALTER TABLE ADD COLUMN IF NOT EXISTS`.
+- **Category delete button**: Already had delete button in `renCats()`, exposed `deleteCategory` to window scope properly.
+- **Sign-up slug uniqueness**: Added suffix logic to `/api/auth/sign-up` — if slug already exists, appends `-2`, `-3`, etc.
+- **Menu ordering**: Menus GET endpoint now orders by `sort_order, c.name, m.name`.
+- **Dead code removed**: Deleted `/api/test-db/route.ts`, `/api/route.ts`, `src/lib/auth-context.tsx`.
+- **QRCode.js and html2canvas**: Both loaded with `defer` attribute in layout.tsx.
+- **Deployed**: Pushed 2 commits to GitHub with user's token. InsForge auto-deploys from GitHub.
+
+Stage Summary:
+- 18 of 20 audit issues fixed (payment gateway excluded per user request)
+- Remaining items: Forgot password still shows success toast without sending email (needs email service), Billing page still static (no payment integration)
+- All fake/hardcoded data replaced with dynamic real data
+- Public menu page at /menu/[slug] was already working
+- Real QR code PNG download working via html2canvas
+- Operating hours save/load working
+- Menu drag-drop reorder API created
+- Slug uniqueness enforced on signup and settings save
