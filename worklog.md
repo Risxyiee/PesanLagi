@@ -121,3 +121,27 @@ Stage Summary:
 - Google OAuth callback now uses public `getCurrentUser()` API instead of private `getSession()`
 - Landing page amber/orange colors fully restored via `@source` directive for JSON files
 - All elements rendering with correct Tailwind utility colors
+
+---
+Task ID: 2
+Agent: Main
+Task: Compare landing page with reference file and fix all remaining issues
+
+Work Log:
+- Read reference file (Pasted Content_1785649855218.txt) and compared CSS, HTML, JS with current implementation
+- CSS (styles.ts) and HTML (body-html.json) are IDENTICAL to reference
+- Found 3 critical issues causing visual regression:
+  1. Double Tailwind loading: layout.tsx had `<script src="https://cdn.tailwindcss.com">` (v3 CDN) PLUS compiled v4 CSS → CSS conflicts
+  2. Conflicting body styles: globals.css `@layer base` set `bg-slate-50 text-slate-900` overriding landing page's dark theme
+  3. @source directive for JSON scanning (already fixed in previous task)
+- Removed Tailwind CDN script from layout.tsx (only compiled v4 needed)
+- Removed `@layer base` body block from globals.css
+- Verified in browser: body bg=rgb(10,7,5), fg=rgb(255,247,237), 31 orange gradient elements, 20 shadow-orange elements
+- All sections rendering, modals working, zero console errors
+- Cannot push to GitHub from sandbox (no credentials) — 24 commits ready for user to push
+
+Stage Summary:
+- Landing page now matches reference file exactly
+- Root cause of amber→black: double Tailwind loading (CDN v3 conflicting with compiled v4) + conflicting body base styles
+- Auth callback fix also included (getSession→getCurrentUser)
+- User needs to `git push origin main` from their device to trigger InsForge deploy
