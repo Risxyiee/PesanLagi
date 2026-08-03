@@ -314,7 +314,9 @@ function initApp() {
       try {
         const meR = await fetch('/api/auth/me');
         if (meR.ok) { const d = await meR.json(); if (d.user) curUser = d.user; }
-      } catch {}
+        else { goTo('#login'); return; }
+      } catch { goTo('#login'); return; }
+      if (!curUser) { goTo('#login'); return; }
       await Promise.all([loadStore(), loadCategories(), loadMenus()]);
       const te = document.getElementById('stat-total-menus');
       if (te) te.textContent = String(allMenus.length);
