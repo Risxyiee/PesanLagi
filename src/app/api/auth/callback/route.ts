@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   if (status === 'error') {
     const errorMsg = searchParams.get('insforge_error') || 'Autentikasi Google gagal';
-    return NextResponse.redirect(`${appUrl}/#login?error=${encodeURIComponent(errorMsg)}`);
+    return NextResponse.redirect(`${appUrl}/login?error=${encodeURIComponent(errorMsg)}`);
   }
 
   try {
@@ -20,12 +20,12 @@ export async function GET(req: NextRequest) {
     );
 
     if (error || !sessionData?.user) {
-      return NextResponse.redirect(`${appUrl}/#login?error=${encodeURIComponent(error?.message || 'Gagal menukar kode OAuth')}`);
+      return NextResponse.redirect(`${appUrl}/login?error=${encodeURIComponent(error?.message || 'Gagal menukar kode OAuth')}`);
     }
 
     const email = sessionData.user.email;
     if (!email) {
-      return NextResponse.redirect(`${appUrl}/#login?error=Tidak ada email dari Google`);
+      return NextResponse.redirect(`${appUrl}/login?error=Tidak ada email dari Google`);
     }
 
     // Ensure sessions table exists
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       [token, userId, expiresAt]
     );
 
-    const response = NextResponse.redirect(`${appUrl}/#login?auth=success`);
+    const response = NextResponse.redirect(`${appUrl}/dashboard`);
     response.cookies.set('session', token, {
       httpOnly: true,
       secure: true,
@@ -77,6 +77,6 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (err: any) {
     console.error('OAuth callback error:', err.message);
-    return NextResponse.redirect(`${appUrl}/#login?error=${encodeURIComponent('Terjadi kesalahan saat login Google')}`);
+    return NextResponse.redirect(`${appUrl}/login?error=${encodeURIComponent('Terjadi kesalahan saat login Google')}`);
   }
 }
