@@ -3,11 +3,12 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Refresh Supabase session for all matched routes
   const { supabase, response } = createMiddlewareClient(request);
 
-  // This refreshes the auth token if needed
+  // If Supabase not configured (build time), skip auth
+  if (!supabase) return response;
+
+  // Refresh Supabase session for all matched routes
   await supabase.auth.getUser();
 
   // Protect /dashboard/* paths
