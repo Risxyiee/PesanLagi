@@ -101,3 +101,23 @@ Connected to InsForge as: riskiakbarp123@gmail.com (Risxyiee)
 Project: PesanLagi (45bc1b79-6548-4383-a4e8-e67a4bb24bba)
 Live URL: https://3kgi95g9.insforge.site
 Deploy ID: 9caf1553-5f98-4313-a6d7-9e6a8c99759c
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix `s.auth.getSession is not a function` error and landing page amber color regression
+
+Work Log:
+- Investigated InsForge SDK type definitions — `getSession()` and `authCallbackHandled` are private members of `Auth`/`TokenManager` classes, not accessible from client code
+- Replaced `insforgeClient.auth.authCallbackHandled` + `insforgeClient.auth.getSession()` with `insforgeClient.auth.getCurrentUser()` which is the public async API that auto-waits for pending OAuth callback
+- Fixed variable shadowing (`data` → `errData`) in error branch of auth callback
+- Diagnosed landing page amber color regression: Tailwind v4 `@import "tailwindcss"` uses automatic content detection that doesn't scan `.json` files by default, so all Tailwind utility classes in `body-html.json` (like `from-orange-400`, `text-orange-400/80`, `shadow-orange-500/30`) were not generating CSS
+- Added `@source "**/*.json"` directive to globals.css to tell Tailwind v4 to scan JSON files for class names
+- Restored `@layer base` body styles that were previously removed
+- Verified fix with browser: 31 orange gradient elements and 20 shadow-orange elements now rendering correctly with proper colors
+- Browser console: zero errors
+
+Stage Summary:
+- Google OAuth callback now uses public `getCurrentUser()` API instead of private `getSession()`
+- Landing page amber/orange colors fully restored via `@source` directive for JSON files
+- All elements rendering with correct Tailwind utility colors

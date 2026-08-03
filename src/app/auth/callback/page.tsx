@@ -10,33 +10,30 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function handleCallback() {
       try {
-        // Wait for the InsForge SDK to auto-detect and exchange insforge_code
-        // The SDK's detectAuthCallback() runs on initialization
-        await insforgeClient.auth.authCallbackHandled;
+        // getCurrentUser() automatically waits for pending OAuth callback (insforge_code exchange)
+        const { data, error } = await insforgeClient.auth.getCurrentUser();
 
-        // Small delay to ensure session is saved
-        await new Promise(r => setTimeout(r, 500));
-
-        const session = insforgeClient.auth.getSession();
-        if (!session?.user?.email) {
+        if (error || !data?.user?.email) {
           setStatus('error');
-          setErrorMsg('Tidak bisa mendapatkan data user dari Google.');
+          setErrorMsg(error?.message || 'Tidak bisa mendapatkan data user dari Google.');
           return;
         }
+
+        const email = data.user.email;
 
         // Sync: create our own session cookie via our API
         const res = await fetch('/api/auth/google-sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: session.user.email }),
+          body: JSON.stringify({ email }),
         });
 
         if (res.ok) {
           window.location.href = '/dashboard';
         } else {
-          const data = await res.json();
+          const errData = await res.json();
           setStatus('error');
-          setErrorMsg(data.error || 'Gagal menyinkronkan sesi.');
+          setErrorMsg(errData.error || 'Gagal menyinkronkan sesi.');
         }
       } catch (err: any) {
         console.error('Auth callback error:', err);
