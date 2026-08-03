@@ -97,3 +97,7 @@ Stage Summary:
 - Auth guard added: unauthenticated users redirected from #dashboard to #login
 - Full auth cycle verified: signup creates user+store, login verifies bcrypt password, session cookie works, signout clears session
 - No demo/fallback data anywhere in the codebase
+Connected to InsForge as: riskiakbarp123@gmail.com (Risxyiee)
+Project: PesanLagi (45bc1b79-6548-4383-a4e8-e67a4bb24bba)
+Live URL: https://3kgi95g9.insforge.site
+Deploy ID: 9caf1553-5f98-4313-a6d7-9e6a8c99759c
