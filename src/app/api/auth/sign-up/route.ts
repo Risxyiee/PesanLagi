@@ -30,9 +30,20 @@ export async function POST(req: NextRequest) {
 
     const user = result.rows[0];
 
-    // Auto-create a default store
+    // Auto-create a default store with unique slug
     const storeName = normalizedEmail.split('@')[0];
-    const storeSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let storeSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // Ensure slug is unique
+    const slugCheck = await query('SELECT id FROM stores WHERE slug = $1', [storeSlug]);
+    if (slugCheck.rows.length > 0) {
+      let suffix = 2;
+      while (true) {
+        const candidate = `${storeSlug}-${suffix}`;
+        const dup = await query('SELECT id FROM stores WHERE slug = $1', [candidate]);
+        if (dup.rows.length === 0) { storeSlug = candidate; break; }
+        suffix++;
+      }
+    }
     await query(
       'INSERT INTO stores (user_id, name, slug) VALUES ($1, $2, $3)',
       [user.id, storeName, storeSlug]
