@@ -510,8 +510,196 @@ export default function PublicMenuPage({
 
   const { store, categories, menus } = data;
 
+  /* -- theme & layout computation -- */
+  const themeId = store.hours?.menu_theme || 'amber';
+  const layoutMode = store.hours?.menu_layout || 'grid';
+  const themeVars = THEME_MAP[themeId] || THEME_MAP.amber;
+
+  const tw = (key: string) => ({
+    ring: { amber: 'ring-amber-300', green: 'ring-green-300', blue: 'ring-blue-300', red: 'ring-red-300', dark: 'ring-slate-400' },
+    gradFrom: { amber: 'from-amber-400', green: 'from-green-400', blue: 'from-blue-400', red: 'from-red-400', dark: 'from-slate-600' },
+    gradTo: { amber: 'to-amber-600', green: 'to-green-600', blue: 'to-blue-600', red: 'to-red-600', dark: 'to-slate-800' },
+    descColor: { amber: 'text-amber-700/80', green: 'text-green-700/80', blue: 'text-blue-700/80', red: 'text-red-700/80', dark: 'text-slate-600/80' },
+    priceColor: { amber: 'text-amber-600', green: 'text-green-600', blue: 'text-blue-600', red: 'text-red-600', dark: 'text-slate-700' },
+    iconFallback: { amber: 'text-amber-300', green: 'text-green-300', blue: 'text-blue-300', red: 'text-red-300', dark: 'text-slate-400' },
+    imgFallback: { amber: 'from-orange-50 via-amber-50 to-rose-50', green: 'from-green-50 via-emerald-50 to-teal-50', blue: 'from-blue-50 via-indigo-50 to-violet-50', red: 'from-red-50 via-rose-50 to-pink-50', dark: 'from-slate-50 via-gray-50 to-zinc-50' },
+    countColor: { amber: 'text-amber-600', green: 'text-green-600', blue: 'text-blue-600', red: 'text-red-600', dark: 'text-slate-700' },
+    footerBrand: { amber: 'text-amber-700', green: 'text-green-700', blue: 'text-blue-700', red: 'text-red-700', dark: 'text-slate-700' },
+    footerSub: { amber: 'text-amber-600/40', green: 'text-green-600/40', blue: 'text-blue-600/40', red: 'text-red-600/40', dark: 'text-slate-500/40' },
+    borderFt: { amber: 'border-amber-200/50', green: 'border-green-200/50', blue: 'border-blue-200/50', red: 'border-red-200/50', dark: 'border-slate-200/50' },
+    starFill: { amber: 'fill-amber-400 text-amber-400', green: 'fill-green-400 text-green-400', blue: 'fill-blue-400 text-blue-400', red: 'fill-red-400 text-red-400', dark: 'fill-slate-400 text-slate-400' },
+  }[key]?.[themeId] || '');
+
+  /* -- category grouping for category layout -- */
+  const menusByCategory = categories
+    .map(cat => ({ ...cat, items: visibleMenus.filter(m => m.category_id === cat.id) }))
+    .filter(group => group.items.length > 0);
+
+  const themeRgb = themeVars['--t-rgb'] || '245, 158, 11';
+  const themeShadowStyle = { boxShadow: `0 10px 15px -3px rgba(${themeRgb}, 0.3)` };
+
+  /* -- render a single menu card (grid layout) -- */
+  const renderMenuCard = (item: MenuItem, idx: number) => {
+    const inCart = cart[item.id];
+    const isUnavailable = !item.is_available;
+    const hasImage = item.image_url && item.image_url.trim() !== '';
+
+    return (
+      <FadeUp key={item.id} index={idx}>
+        <div
+          className={`${styles.menuCard} rounded-2xl p-3 flex gap-3 ${isUnavailable ? 'opacity-90' : ''}`}
+        >
+          <div
+            className="flex-1 min-w-0 flex gap-3 cursor-pointer"
+            onClick={() =>
+              !isUnavailable && setDetailItem(item)
+            }
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !isUnavailable)
+                setDetailItem(item);
+            }}
+          >
+            <div className="relative shrink-0">
+              {hasImage ? (
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className={`w-24 h-24 rounded-xl object-cover ${isUnavailable ? styles.photoHabis : ''}`}
+                  loading="lazy"
+                />
+              ) : (
+                <div className={`w-24 h-24 rounded-xl bg-gradient-to-br ${tw('imgFallback')} flex items-center justify-center`}>
+                  <Utensils
+                    className={tw('iconFallback')}
+                    size={28}
+                    strokeWidth={1.2}
+                  />
+                </div>
+              )}
+              {isUnavailable && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-extrabold tracking-wide">
+                    HABIS
+                  </span>
+                </span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3
+                  className={`text-sm font-bold leading-tight ${isUnavailable ? 'text-slate-400' : 'text-slate-900'}`}
+                >
+                  {item.name}
+                </h3>
+                <p
+                  className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${isUnavailable ? 'text-slate-400' : 'text-slate-500'}`}
+                >
+                  {item.description}
+                </p>
+              </div>
+              {isUnavailable ? (
+                <span className="text-base font-extrabold text-slate-400 line-through decoration-red-400 decoration-2">
+                  Rp {formatPrice(item.price)}
+                </span>
+              ) : (
+                <span className={`text-base font-extrabold ${tw('priceColor')}`}>
+                  Rp {formatPrice(item.price)}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col justify-end shrink-0">
+            {isUnavailable ? (
+              <span className="text-[11px] font-bold text-slate-400 italic">
+                Habis
+              </span>
+            ) : inCart ? (
+              <QtyStepper
+                qty={inCart.qty}
+                onMinus={() => removeFromCart(item.id)}
+                onPlus={() => addToCart(item)}
+              />
+            ) : (
+              <button
+                className={styles.addBtn}
+                onClick={() => addToCart(item)}
+                aria-label={`Tambah ${item.name}`}
+              >
+                <Plus size={20} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </div>
+      </FadeUp>
+    );
+  };
+
+  /* -- render a compact list item (list layout) -- */
+  const renderListItem = (item: MenuItem, idx: number) => {
+    const inCart = cart[item.id];
+    const isUnavailable = !item.is_available;
+
+    return (
+      <FadeUp key={item.id} index={idx}>
+        <div
+          className={`${styles.menuCard} rounded-xl px-3 py-2.5 flex items-center gap-3 ${isUnavailable ? 'opacity-90' : ''}`}
+        >
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={() =>
+              !isUnavailable && setDetailItem(item)
+            }
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !isUnavailable)
+                setDetailItem(item);
+            }}
+          >
+            <h3
+              className={`text-sm font-bold leading-tight ${isUnavailable ? 'text-slate-400' : 'text-slate-900'}`}
+            >
+              {item.name}
+            </h3>
+            {item.description && (
+              <p className={`text-[11px] mt-0.5 leading-relaxed line-clamp-1 ${isUnavailable ? 'text-slate-400' : 'text-slate-500'}`}>
+                {item.description}
+              </p>
+            )}
+          </div>
+          <span className={`text-sm font-extrabold shrink-0 ${isUnavailable ? 'text-slate-400 line-through' : tw('priceColor')}`}>
+            Rp {formatPrice(item.price)}
+          </span>
+          <div className="shrink-0">
+            {isUnavailable ? (
+              <span className="text-[10px] font-bold text-slate-400 italic">
+                Habis
+              </span>
+            ) : inCart ? (
+              <QtyStepper
+                qty={inCart.qty}
+                onMinus={() => removeFromCart(item.id)}
+                onPlus={() => addToCart(item)}
+              />
+            ) : (
+              <button
+                className={styles.addBtn}
+                onClick={() => addToCart(item)}
+                aria-label={`Tambah ${item.name}`}
+              >
+                <Plus size={18} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </div>
+      </FadeUp>
+    );
+  };
+
   return (
-    <div className={styles.root}>
+    <div className={styles.root} style={themeVars as React.CSSProperties}>
       <div className={styles.mobileFrame}>
         {/* Background Blobs */}
         <div className={`${styles.bgBlob} ${styles.blobA}`} />
@@ -532,10 +720,10 @@ export default function PublicMenuPage({
                     <img
                       src={store.logo_url}
                       alt={store.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-amber-300 shadow-md"
+                      className={`w-12 h-12 rounded-full object-cover ring-2 ${tw('ring')} shadow-md`}
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 ring-2 ring-amber-300 shadow-md flex items-center justify-center text-white text-lg font-extrabold">
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${tw('gradFrom')} ${tw('gradTo')} ring-2 ${tw('ring')} shadow-md flex items-center justify-center text-white text-lg font-extrabold`}>
                       {store.name?.charAt(0)?.toUpperCase() || 'W'}
                     </div>
                   )}
@@ -546,7 +734,7 @@ export default function PublicMenuPage({
                     {store.name}
                   </h1>
                   {store.description && (
-                    <p className="text-[11px] text-amber-700/80 truncate font-medium">
+                    <p className={`text-[11px] ${tw('descColor')} truncate font-medium`}>
                       {store.description}
                     </p>
                   )}
@@ -562,7 +750,7 @@ export default function PublicMenuPage({
               </div>
               <div className="flex items-center gap-3 mt-2.5 text-[11px] text-slate-600 font-medium">
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> 08.00 - 22.00
+                  <Clock className="w-3 h-3" /> {store.hours?.open_time || '08.00'} - {store.hours?.close_time || '22.00'}
                 </span>
                 {store.address && (
                   <span className="flex items-center gap-1">
@@ -573,7 +761,7 @@ export default function PublicMenuPage({
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> 4.9
+                  <Star className={`w-3 h-3 ${tw('starFill')}`} /> 4.9
                 </span>
               </div>
             </header>
@@ -639,7 +827,7 @@ export default function PublicMenuPage({
               <h2 className="text-sm font-bold text-slate-900">
                 Pilih Menu Favoritmu
               </h2>
-              <span className="text-[11px] text-amber-700/80 font-semibold">
+              <span className={`text-[11px] ${tw('descColor')} font-semibold`}>
                 {visibleMenus.length} menu tersedia
               </span>
             </div>
@@ -648,7 +836,10 @@ export default function PublicMenuPage({
               {visibleMenus.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center mx-auto mb-3">
-                    <SearchX className="w-8 h-8 text-amber-500" />
+                    <SearchX
+                      className="w-8 h-8"
+                      style={{ color: 'var(--t-500, #f59e0b)' }}
+                    />
                   </div>
                   <p className="text-sm font-bold text-slate-900">
                     Menu tidak ditemukan
@@ -657,111 +848,43 @@ export default function PublicMenuPage({
                     Coba kata kunci lain atau pilih kategori berbeda
                   </p>
                 </div>
-              ) : (
-                visibleMenus.map((item, idx) => {
-                  const inCart = cart[item.id];
-                  const isUnavailable = !item.is_available;
-                  const hasImage =
-                    item.image_url && item.image_url.trim() !== '';
-
-                  return (
-                    <FadeUp key={item.id} index={idx}>
+              ) : layoutMode === 'category' && activeCategory === null ? (
+                /* Category-grouped layout */
+                menusByCategory.map((group) => (
+                  <div key={group.id}>
+                    <div className="flex items-center gap-2 mb-2">
                       <div
-                        className={`${styles.menuCard} rounded-2xl p-3 flex gap-3 ${isUnavailable ? 'opacity-90' : ''}`}
-                      >
-                        <div
-                          className="flex-1 min-w-0 flex gap-3 cursor-pointer"
-                          onClick={() =>
-                            !isUnavailable && setDetailItem(item)
-                          }
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !isUnavailable)
-                              setDetailItem(item);
-                          }}
-                        >
-                          <div className="relative shrink-0">
-                            {hasImage ? (
-                              <img
-                                src={item.image_url}
-                                alt={item.name}
-                                className={`w-24 h-24 rounded-xl object-cover ${isUnavailable ? styles.photoHabis : ''}`}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
-                                <Utensils
-                                  className="text-amber-300"
-                                  size={28}
-                                  strokeWidth={1.2}
-                                />
-                              </div>
-                            )}
-                            {isUnavailable && (
-                              <span className="absolute inset-0 flex items-center justify-center">
-                                <span className="px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-extrabold tracking-wide">
-                                  HABIS
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                            <div>
-                              <h3
-                                className={`text-sm font-bold leading-tight ${isUnavailable ? 'text-slate-400' : 'text-slate-900'}`}
-                              >
-                                {item.name}
-                              </h3>
-                              <p
-                                className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${isUnavailable ? 'text-slate-400' : 'text-slate-500'}`}
-                              >
-                                {item.description}
-                              </p>
-                            </div>
-                            {isUnavailable ? (
-                              <span className="text-base font-extrabold text-slate-400 line-through decoration-red-400 decoration-2">
-                                Rp {formatPrice(item.price)}
-                              </span>
-                            ) : (
-                              <span className="text-base font-extrabold text-amber-600">
-                                Rp {formatPrice(item.price)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col justify-end shrink-0">
-                          {isUnavailable ? (
-                            <span className="text-[11px] font-bold text-slate-400 italic">
-                              Habis
-                            </span>
-                          ) : inCart ? (
-                            <QtyStepper
-                              qty={inCart.qty}
-                              onMinus={() => removeFromCart(item.id)}
-                              onPlus={() => addToCart(item)}
-                            />
-                          ) : (
-                            <button
-                              className={styles.addBtn}
-                              onClick={() => addToCart(item)}
-                              aria-label={`Tambah ${item.name}`}
-                            >
-                              <Plus size={20} strokeWidth={2.5} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </FadeUp>
-                  );
-                })
+                        className={`w-1 h-5 rounded-full bg-gradient-to-b ${tw('gradFrom')} ${tw('gradTo')}`}
+                      />
+                      <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                        {group.name}
+                      </h3>
+                      <span className={`text-[10px] ${tw('descColor')} font-semibold`}>
+                        {group.items.length} item
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {group.items.map((item, idx) =>
+                        layoutMode === 'list'
+                          ? renderListItem(item, idx)
+                          : renderMenuCard(item, idx),
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : layoutMode === 'list' ? (
+                /* List (compact) layout */
+                visibleMenus.map((item, idx) => renderListItem(item, idx))
+              ) : (
+                /* Default grid layout */
+                visibleMenus.map((item, idx) => renderMenuCard(item, idx))
               )}
             </div>
 
             {/* Footer */}
-            <footer className="mt-8 pt-6 pb-4 border-t border-amber-200/50 text-center">
+            <footer className={`mt-8 pt-6 pb-4 border-t ${tw('borderFt')} text-center`}>
               <div className="flex items-center justify-center gap-1.5">
-                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${tw('gradFrom')} ${tw('gradTo')} flex items-center justify-center`}>
                   <Utensils
                     className="w-3 h-3 text-white"
                     strokeWidth={2.5}
@@ -769,11 +892,11 @@ export default function PublicMenuPage({
                 </div>
                 <span className="text-[11px] text-slate-500 font-medium">
                   Ditenagai oleh{' '}
-                  <span className="font-bold text-amber-700">PesanLagi</span>{' '}
+                  <span className={`font-bold ${tw('footerBrand')}`}>PesanLagi</span>{' '}
                   • Bikin Menu QR Gratis
                 </span>
               </div>
-              <p className="text-[10px] text-amber-600/40 mt-1">
+              <p className={`text-[10px] ${tw('footerSub')} mt-1`}>
                 © 2025 PesanLagi.id
               </p>
             </footer>
@@ -786,10 +909,13 @@ export default function PublicMenuPage({
         >
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--t-500, #f59e0b)' }}
+              >
                 <ShoppingBag className="w-5 h-5 text-white" />
               </div>
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-amber-600 text-[11px] font-extrabold flex items-center justify-center">
+              <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white ${tw('countColor')} text-[11px] font-extrabold flex items-center justify-center`}>
                 {cartCount}
               </span>
             </div>
@@ -810,7 +936,7 @@ export default function PublicMenuPage({
               }
               setShowCheckout(true);
             }}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
+            className={`px-4 py-2.5 rounded-xl bg-gradient-to-r ${tw('gradFrom')} ${tw('gradTo')} text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform`}
           >
             Pesan Sekarang <ArrowRight className="w-4 h-4" />
           </button>
@@ -836,9 +962,9 @@ export default function PublicMenuPage({
                   onClick={() => setLightboxSrc(detailItem.image_url)}
                 />
               ) : (
-                <div className="w-full h-72 bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
+                <div className={`w-full h-72 bg-gradient-to-br ${tw('imgFallback')} flex items-center justify-center`}>
                   <Utensils
-                    className="text-amber-300"
+                    className={tw('iconFallback')}
                     size={48}
                     strokeWidth={1.2}
                   />
@@ -859,7 +985,7 @@ export default function PublicMenuPage({
               <h3 className="text-lg font-extrabold text-slate-900 flex-1">
                 {detailItem.name}
               </h3>
-              <p className="text-base font-extrabold text-amber-600 whitespace-nowrap">
+              <p className={`text-base font-extrabold ${tw('priceColor')} whitespace-nowrap`}>
                 Rp {formatPrice(detailItem.price)}
               </p>
             </div>
@@ -878,7 +1004,8 @@ export default function PublicMenuPage({
               ) : (
                 <button
                   onClick={() => addToCart(detailItem)}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                  className={`w-full py-3 rounded-xl bg-gradient-to-r ${tw('gradFrom')} ${tw('gradTo')} text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform`}
+                  style={themeShadowStyle}
                 >
                   <Plus size={20} strokeWidth={2.5} />
                   Tambah ke Keranjang
@@ -1000,7 +1127,7 @@ export default function PublicMenuPage({
             <span className="text-sm font-bold text-slate-900">
               Total Pembayaran
             </span>
-            <span className="text-base font-extrabold text-amber-600">
+            <span className={`text-base font-extrabold ${tw('priceColor')}`}>
               Rp {formatPrice(cartTotal)}
             </span>
           </div>
