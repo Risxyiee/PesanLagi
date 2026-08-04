@@ -752,3 +752,21 @@ Stage Summary:
 - All 9 dashboard buttons now have loading spinners, disabled states, and proper error toasts
 - Dashboard loads ~800ms faster after login (parallel API calls + reduced delay)
 - No regression in rendering or compilation
+---
+Task ID: legal-pages-v2
+Agent: Main Agent
+Task: Create 3 legal compliance pages (Privacy, Terms, Refund Policy) with dark theme and contact footer
+
+Work Log:
+- Rewrote /src/app/privacy/page.tsx — previously incomplete (truncated at line 109), now fully complete with all 8 sections and contact footer
+- Created /src/app/terms/page.tsx — 8 sections (Penerimaan Syarat, Layanan, Akun Pengguna, Konten Pengguna, Pembatasan Tanggung Jawab, Paket Berbayar, Penghentian, Hukum yang Berlaku) with FileText icon
+- Created /src/app/refund-policy/page.tsx — 6 sections (Kebijakan Umum, Paket Gratis, Paket Pro, Proses Pengembalian, Pengecualian, Perubahan Kebijakan) with RotateCcw icon
+- All 3 pages share identical dark theme: bg-[#0A0705], text-neutral-200/300, orange-500/10 accents
+- All 3 pages end with exact contact footer text in orange-500/5 rounded box
+- All pages are server components (no 'use client'), use Link from next/link, lucide-react icons
+- Lint passes with 0 errors (only pre-existing font warning)
+
+Stage Summary:
+- 3 legal compliance pages created: /privacy, /terms, /refund-policy
+- All content in Bahasa Indonesia
+- Consistent dark theme matching landing page
