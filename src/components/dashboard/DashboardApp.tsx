@@ -93,7 +93,8 @@ interface MenuItem {
   price: number;
   category?: string;
   description?: string;
-  image?: string;
+  image_url?: string;
+  image?: string; // fallback for compatibility
   is_available?: boolean;
   sold_count?: number;
 }
@@ -406,18 +407,27 @@ export default function DashboardApp() {
     }
   }, [menus, showToast]);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const handleDeleteMenu = useCallback(async (menuId?: string) => {
     if (!menuId) return;
+    setDeletingId(menuId);
     try {
-      await fetch("/api/menus", {
+      const res = await fetch("/api/menus", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: menuId }),
       });
-      setMenus((prev) => prev.filter((m) => m.id !== menuId));
-      showToast("Menu berhasil dihapus");
+      if (res.ok) {
+        setMenus((prev) => prev.filter((m) => m.id !== menuId));
+        showToast("Menu berhasil dihapus");
+      } else {
+        showToast("Gagal menghapus menu");
+      }
     } catch {
       showToast("Gagal menghapus menu");
+    } finally {
+      setDeletingId(null);
     }
   }, [showToast]);
 
@@ -511,11 +521,11 @@ export default function DashboardApp() {
         const data = await res.json();
         const url = data.url ?? data.publicUrl;
         if (url) {
-          setStore((prev) => (prev ? { ...prev, logo: url } : prev));
+          setStore((prev) => (prev ? { ...prev, logo_url: url } : prev));
           await fetch("/api/store", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ logo: url }),
+            body: JSON.stringify({ logo_url: url }),
           });
           showToast("Logo berhasil diperbarui!");
         }
@@ -534,7 +544,7 @@ export default function DashboardApp() {
         description: modalDesc,
         is_available: modalAvailable,
       };
-      if (modalImage) body.image = modalImage;
+      if (modalImage) body.image_url = modalImage;
       const res = await fetch("/api/menus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -752,7 +762,7 @@ export default function DashboardApp() {
   /* ---------- derived ---------- */
   const storeName = store?.name ?? user?.name ?? "Warung Saya";
   const storeSlug = (store?.slug ?? settingsSlug) || "warung-saya";
-  const storeLogo = store?.logo ?? "";
+  const storeLogo = store?.logo_url ?? "";
   const isPro = user?.is_pro ?? false;
   const menuCount = menus.length;
   const catCount = categories.length;
@@ -1171,8 +1181,8 @@ export default function DashboardApp() {
                   <div className="divide-y divide-slate-100">
                     {filteredMenus.slice(0, 4).map((m, i) => (
                       <div key={m.id ?? i} className={`${styles.menuRow} flex items-center gap-3 sm:gap-4 p-4 sm:p-5`}>
-                        {m.image ? (
-                          <img src={m.image} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt={m.name} />
+                        {m.image_url ? (
+                          <img src={m.image_url} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt={m.name} />
                         ) : (
                           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
                             <UtensilsCrossed className="w-6 h-6 text-amber-500" />
@@ -1302,8 +1312,8 @@ export default function DashboardApp() {
                   return (
                     <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover">
                       <div className="relative">
-                        {m.image ? (
-                          <img src={m.image} className="w-full h-32 sm:h-40 object-cover" alt={m.name} />
+                        {m.image_url ? (
+                          <img src={m.image_url} className="w-full h-32 sm:h-40 object-cover" alt={m.name} />
                         ) : (
                           <div className="w-full h-32 sm:h-40 bg-amber-50 flex items-center justify-center">
                             <UtensilsCrossed className="w-10 h-10 text-amber-300" />
@@ -1313,10 +1323,15 @@ export default function DashboardApp() {
                           <span className={catColor}>{m.category ?? "Makanan"}</span>
                         </span>
                         <button
-                          className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"
+                          className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors disabled:opacity-50"
                           onClick={() => handleDeleteMenu(m.id)}
+                          disabled={deletingId === m.id}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {deletingId === m.id ? (
+                            <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
                         </button>
                         {!avail && (
                           <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold" style={{ right: 40 }}>Habis</span>
