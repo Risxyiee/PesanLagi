@@ -534,7 +534,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  .root *, .root *::before, .root *::after {
     animation: none !important;
     transition-duration: .01s !important;
   }

@@ -337,7 +337,7 @@
   .authCard { animation: none !important; }
   .waveEmoji, .rocketEmoji { animation: none !important; }
   .successView, .modalOverlay, .modalBox { animation: none !important; }
-  *, *::before, *::after {
+  .root *, .root *::before, .root *::after {
     transition-duration: 0.01s !important;
     animation-duration: 0.01s !important;
   }
