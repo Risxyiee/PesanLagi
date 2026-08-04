@@ -65,10 +65,12 @@ export default function QrDesignerPage() {
   };
 
   const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
-    if (!isPro && tab !== 'presets') {
+    // FREE bisa akses: presets, templates. PRO bisa akses semua.
+    if (!isPro && (tab === 'ai' || tab === 'custom')) {
       setShowUpgradeModal(true);
+      return;
     }
+    setActiveTab(tab);
   };
 
   const handleAIGenerate = async () => {
@@ -217,11 +219,11 @@ export default function QrDesignerPage() {
             <div className="sticky top-8">
               <h2 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Live Preview</h2>
               <div ref={exportRef} style={getTemplateStyle()} className={`relative w-full aspect-[105/148] flex flex-col items-center justify-center p-6 ${getTemplateClass()}`}>
-                {/* Watermark for Free */}
+                {/* Watermark for Free — di bawah, lurus */}
                 {!isPro && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <span className="text-slate-400/40 font-bold text-xl rotate-[-30deg] border-2 border-slate-400/40 px-4 py-1 rounded">
-                      PREVIEW MODE - UPGRADE PRO
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none z-10">
+                    <span className="text-[10px] font-semibold text-slate-400/60">
+                      Dibuat dengan PesanLagi.com
                     </span>
                   </div>
                 )}
@@ -272,7 +274,7 @@ export default function QrDesignerPage() {
                   {tab === 'presets' && <><Palette size={14} /> Presets</>}
                   {tab === 'custom' && <><Palette size={14} /> Custom</>}
                   {tab === 'templates' && <><ImageIcon size={14} /> Templates</>}
-                  {!isPro && tab !== 'presets' && <Lock size={10} className="text-amber-500" />}
+                  {!isPro && (tab === 'ai' || tab === 'custom') && <Lock size={10} className="text-amber-500" />}
                 </button>
               ))}
             </div>
@@ -391,39 +393,43 @@ export default function QrDesignerPage() {
               {/* Templates Tab */}
               {activeTab === 'templates' && (
                 <div className="relative">
-                  {!isPro && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-xl">
-                      <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-2">
-                        <Lock className="w-6 h-6 text-amber-600" />
-                      </div>
-                      <p className="text-sm font-bold text-slate-900">Khusus Pengguna Pro</p>
-                      <button onClick={() => setShowUpgradeModal(true)} className="mt-2 text-xs font-bold text-amber-600">Upgrade Sekarang</button>
-                    </div>
-                  )}
                   <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
-                  <h3 className="text-sm font-bold text-slate-900 mb-4">Background & Frame Templates</h3>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Background & Frame Templates</h3>
+                  <p className="text-xs text-slate-400 mb-4">Pilih tampilan kartu QR Anda</p>
                   <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => setActiveTemplate('minimalist')} className={`p-4 border rounded-xl text-left ${activeTemplate === 'minimalist' ? 'border-amber-500 bg-amber-50' : 'border-slate-200'}`}>
+                    <button onClick={() => setActiveTemplate('minimalist')} className={`p-4 border rounded-xl text-left transition-all ${activeTemplate === 'minimalist' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className="w-full h-12 bg-white border border-slate-200 rounded mb-2"></div>
                       <span className="text-xs font-bold text-slate-900">Modern Minimalist</span>
                     </button>
-                    <button onClick={() => setActiveTemplate('rustic')} className={`p-4 border rounded-xl text-left ${activeTemplate === 'rustic' ? 'border-amber-500 bg-amber-50' : 'border-slate-200'}`}>
+                    <button onClick={() => setActiveTemplate('rustic')} className={`p-4 border rounded-xl text-left transition-all ${activeTemplate === 'rustic' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className="w-full h-12 bg-[#FDFBF7] rounded mb-2" style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(139, 90, 43, 0.1) 0px, rgba(139, 90, 43, 0.1) 2px, transparent 2px, transparent 6px)' }}></div>
                       <span className="text-xs font-bold text-slate-900">Rustic Wood Grain</span>
                     </button>
-                    <button onClick={() => setActiveTemplate('dark_gold')} className={`p-4 border rounded-xl text-left ${activeTemplate === 'dark_gold' ? 'border-amber-500 bg-amber-50' : 'border-slate-200'}`}>
+                    <button onClick={() => setActiveTemplate('dark_gold')} className={`p-4 border rounded-xl text-left transition-all ${activeTemplate === 'dark_gold' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className="w-full h-12 bg-slate-900 rounded mb-2 border-2 border-amber-500"></div>
                       <span className="text-xs font-bold text-slate-900">Dark Gold Elegance</span>
                     </button>
-                    <button onClick={() => setActiveTemplate('acrylic')} className={`p-4 border rounded-xl text-left ${activeTemplate === 'acrylic' ? 'border-amber-500 bg-amber-50' : 'border-slate-200'}`}>
+                    <button onClick={() => setActiveTemplate('acrylic')} className={`p-4 border rounded-xl text-left transition-all ${activeTemplate === 'acrylic' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className="w-full h-12 bg-white rounded mb-2 border-t-4 border-b-4 border-slate-100"></div>
                       <span className="text-xs font-bold text-slate-900">Acrylic Table Stand</span>
                     </button>
-                    <button onClick={() => fileInputRef.current?.click()} className={`p-4 border rounded-xl text-left ${activeTemplate === 'custom' ? 'border-amber-500 bg-amber-50' : 'border-slate-200'}`}>
+                    {/* Upload Custom — PRO only */}
+                    <button
+                      onClick={() => {
+                        if (!isPro) { setShowUpgradeModal(true); return; }
+                        fileInputRef.current?.click();
+                      }}
+                      className={`p-4 border rounded-xl text-left transition-all relative ${activeTemplate === 'custom' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}
+                    >
                       <div className="w-full h-12 bg-slate-100 rounded mb-2 flex items-center justify-center">
                         <ImageIcon className="w-5 h-5 text-slate-400" />
                       </div>
                       <span className="text-xs font-bold text-slate-900">Upload Custom</span>
+                      {!isPro && (
+                        <span className="absolute top-2 right-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                          <Lock size={8} /> PRO
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
