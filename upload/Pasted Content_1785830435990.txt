@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Seller — PesanLagi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ease-quiet: cubic-bezier(.22,1,.36,1); --ease-emphasis: cubic-bezier(.16,1,.3,1); }
+  * { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  html, body { background: #F8FAFC; color: #0F172A; }
+  body { overflow-x: hidden; }
+
+  .blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; will-change: transform; }
+  .blob-1 { top: -180px; right: -120px; width: 480px; height: 480px; background: radial-gradient(circle, rgba(251,191,36,0.45) 0%, rgba(245,158,11,0.25) 40%, transparent 70%); animation: blobFloat1 22s ease-in-out infinite; }
+  .blob-2 { bottom: -200px; left: -140px; width: 420px; height: 420px; background: radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(217,119,6,0.15) 50%, transparent 70%); animation: blobFloat2 26s ease-in-out infinite; }
+  @keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(1.05)} }
+  @keyframes blobFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(50px,-40px) scale(1.08)} }
+  .grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(15,23,42,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,.035) 1px, transparent 1px); background-size: 56px 56px; -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%); mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%); }
+
+  /* Sidebar */
+  .sidebar { position: fixed; top: 16px; left: 16px; bottom: 16px; width: 260px; background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); border-radius: 24px; box-shadow: 0 20px 60px -15px rgba(15,23,42,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset; z-index: 50; display: flex; flex-direction: column; transform: translateX(-110%); transition: transform .35s var(--ease-quiet), width .3s var(--ease-quiet); }
+  @media (min-width: 1024px) { .sidebar { transform: translateX(0); } }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar.collapsed { width: 76px; }
+  .sidebar.collapsed .sidebar-label, .sidebar.collapsed .profile-card, .sidebar.collapsed .pro-banner, .sidebar.collapsed .nav-badge, .sidebar.collapsed .sidebar-header-text, .sidebar.collapsed .collapse-icon { display: none; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 10px; }
+  .sidebar.collapsed .sidebar-header { justify-content: center; padding-left: 0; padding-right: 0; }
+  .sidebar.collapsed .collapse-btn-exp { display: flex; }
+  .collapse-btn-exp { display: none; }
+  .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 49; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease-quiet); }
+  .sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; color: #475569; font-size: 14px; font-weight: 600; transition: all .25s var(--ease-quiet); cursor: pointer; }
+  .nav-item:hover { background: rgba(245,158,11,0.08); color: #92400E; }
+  .nav-item.active { background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); color: white; box-shadow: 0 8px 20px -4px rgba(245,158,11,0.4); }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 16px; left: 16px; right: 16px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 40px -10px rgba(15,23,42,0.15); z-index: 50; padding: 8px; display: flex; justify-content: space-around; align-items: center; }
+  .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 12px; border-radius: 14px; color: #94A3B8; font-size: 10px; font-weight: 600; transition: all .25s var(--ease-quiet); cursor: pointer; min-width: 56px; }
+  .bottom-nav-item.active { color: #F59E0B; background: rgba(245,158,11,0.1); }
+  .bottom-nav-item i { stroke-width: 2.5; }
+
+  /* Shared components */
+  .card-hover { transition: transform .3s var(--ease-quiet), box-shadow .3s var(--ease-quiet); }
+  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -12px rgba(15,23,42,0.12); }
+  .toggle { position: relative; width: 44px; height: 24px; background: #E2E8F0; border-radius: 999px; cursor: pointer; transition: background .3s var(--ease-quiet); flex-shrink: 0; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: transform .3s var(--ease-quiet); }
+  .toggle.on { background: linear-gradient(135deg, #10B981, #059669); }
+  .toggle.on::after { transform: translateX(20px); }
+  .toggle.amber.on { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+  .cta-btn { position: relative; overflow: hidden; transition: transform .3s var(--ease-quiet), box-shadow .3s var(--ease-quiet); }
+  .cta-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent); transition: left .7s var(--ease-quiet); pointer-events: none; }
+  .cta-btn:hover::before { left: 100%; }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(245,158,11,.4); }
+  .cta-btn:active { transform: translateY(0); transition-duration: .1s; }
+  .stagger > * { opacity: 0; transform: translateY(20px); animation: staggerIn .6s var(--ease-quiet) forwards; }
+  .stagger > *:nth-child(1) { animation-delay: .05s; }
+  .stagger > *:nth-child(2) { animation-delay: .1s; }
+  .stagger > *:nth-child(3) { animation-delay: .15s; }
+  .stagger > *:nth-child(4) { animation-delay: .2s; }
+  .stagger > *:nth-child(5) { animation-delay: .25s; }
+  .stagger > *:nth-child(6) { animation-delay: .3s; }
+  .stagger > *:nth-child(7) { animation-delay: .35s; }
+  .stagger > *:nth-child(8) { animation-delay: .4s; }
+  @keyframes staggerIn { to { opacity: 1; transform: translateY(0); } }
+  .quick-tile { transition: transform .3s var(--ease-quiet), box-shadow .3s var(--ease-quiet), border-color .3s ease; cursor: pointer; }
+  .quick-tile:hover { transform: translateY(-3px); border-color: #FBBF24; box-shadow: 0 16px 40px -12px rgba(245,158,11,0.25); }
+  .quick-tile:hover .tile-icon { transform: scale(1.1) rotate(-5deg); }
+  .tile-icon { transition: transform .3s var(--ease-quiet); }
+  .wave-emoji { display: inline-block; transform-origin: 70% 70%; animation: wave 2.8s ease-in-out infinite; }
+  @keyframes wave { 0%,70%,100%{transform:rotate(0deg)} 10%{transform:rotate(14deg)} 20%{transform:rotate(-8deg)} 30%{transform:rotate(14deg)} 40%{transform:rotate(-4deg)} 50%{transform:rotate(10deg)} 60%{transform:rotate(-2deg)} }
+  .menu-row { transition: background-color .25s ease; }
+  .menu-row:hover { background-color: #FFFBEB; }
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: white; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 16px 40px -8px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: all .35s var(--ease-quiet); z-index: 100; display: flex; align-items: center; gap: 8px; }
+  @media (min-width: 1024px) { .toast { bottom: 32px; } }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .url-pill { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  ::selection { background: rgba(245,158,11,.25); color: #0F172A; }
+  .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+  .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 4px; }
+  main { transition: margin-left .3s var(--ease-quiet); }
+  @media (min-width: 1024px) { main { margin-left: 292px; } }
+  @media (min-width: 1024px) { main.collapsed { margin-left: 108px; } }
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* Filter chips */
+  .chip { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid #E2E8F0; background: white; color: #475569; cursor: pointer; transition: all .25s var(--ease-quiet); white-space: nowrap; }
+  .chip:hover { border-color: #FBBF24; color: #92400E; }
+  .chip.active { background: linear-gradient(135deg, #FBBF24, #F59E0B); color: white; border-color: transparent; box-shadow: 0 6px 16px -4px rgba(245,158,11,0.4); }
+
+  /* Order filter tabs */
+  .order-tabs { position: relative; display: flex; background: #F1F5F9; border-radius: 14px; padding: 4px; }
+  .order-tab-indicator { position: absolute; top: 4px; bottom: 4px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: left .35s var(--ease-quiet), width .35s var(--ease-quiet); z-index: 1; }
+  .order-tab { position: relative; z-index: 2; flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600; color: #64748B; cursor: pointer; transition: color .25s ease; text-align: center; border: none; background: transparent; }
+  .order-tab.active { color: #0F172A; }
+
+  /* Pulse dot */
+  .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease-quiet); }
+  .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+  .modal-card { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(.95); background: white; border-radius: 24px; box-shadow: 0 24px 80px -12px rgba(0,0,0,0.25); z-index: 101; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; opacity: 0; pointer-events: none; transition: all .35s var(--ease-quiet); }
+  .modal-card.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
+  /* Dropzone */
+  .dropzone { border: 2px dashed #CBD5E1; border-radius: 16px; padding: 24px; text-align: center; transition: all .25s ease; cursor: pointer; background: #F8FAFC; }
+  .dropzone:hover { border-color: #FBBF24; background: #FFFBEB; }
+
+  /* Chart */
+  .chart-line { stroke-dasharray: 2000; stroke-dashoffset: 2000; transition: stroke-dashoffset 1.8s var(--ease-emphasis); }
+  .chart-line.animate { stroke-dashoffset: 0; }
+  .chart-dot { opacity: 0; transition: opacity .4s ease; transition-delay: 1.5s; }
+  .chart-dot.animate { opacity: 1; }
+  .bar-fill { width: 0; transition: width 1s var(--ease-quiet); }
+
+  /* Rating stars */
+  .star-filled { color: #FBBF24; }
+  .star-empty { color: #E2E8F0; }
+
+  /* Settings input */
+  .settings-input { width: 100%; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; font-size: 14px; color: #0F172A; outline: none; transition: all .25s ease; }
+  .settings-input:focus { border-color: #F59E0B; background: #FFFBEB; box-shadow: 0 0 0 4px rgba(245,158,11,0.12); }
+
+  /* QR preview card */
+  .qr-card-preview { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px -12px rgba(15,23,42,0.15); border: 1px solid #F1F5F9; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div id="backdrop" class="sidebar-backdrop"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-header px-5 pt-6 pb-4 flex items-center gap-2.5">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+      <i data-lucide="utensils" class="w-[18px] h-[18px] text-white" stroke-width="2.5"></i>
+    </div>
+    <span class="sidebar-header-text text-xl font-extrabold tracking-tight text-slate-900 flex-1">Pesan<span class="text-amber-500">Lagi</span></span>
+    <button id="collapse-btn" class="collapse-icon w-7 h-7 rounded-lg hover:bg-slate-200/60 flex items-center justify-center text-slate-500 transition-colors">
+      <i data-lucide="panel-left-close" class="w-4 h-4"></i>
+    </button>
+    <button id="collapse-btn-exp" class="collapse-btn-exp w-7 h-7 rounded-lg hover:bg-slate-200/60 items-center justify-center text-slate-500 transition-colors">
+      <i data-lucide="panel-left-open" class="w-4 h-4"></i>
+    </button>
+  </div>
+  <div class="profile-card mx-4 mb-4 p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100">
+    <div class="flex items-center gap-3">
+      <div class="relative shrink-0">
+        <img src="https://picsum.photos/seed/warung-barokah-logo/80/80" class="w-11 h-11 rounded-xl object-cover ring-2 ring-white" alt="Warung Barokah">
+        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold text-slate-900 truncate">Warung Makan Barokah</p>
+        <p class="text-[11px] text-amber-700 font-semibold flex items-center gap-1"><i data-lucide="crown" class="w-3 h-3"></i> Member Pro Active</p>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 px-3 space-y-1 overflow-y-auto sidebar-scroll">
+    <div class="nav-item active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Dashboard</span></div>
+    <div class="nav-item" data-nav="menu"><i data-lucide="utensils-crossed" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Menu Makanan</span><span class="nav-badge ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md">24</span></div>
+    <div class="nav-item" data-nav="qr"><i data-lucide="qr-code" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Kartu QR Code</span></div>
+    <div class="nav-item" data-nav="orders"><i data-lucide="shopping-bag" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Pesanan Masuk</span><span class="nav-badge ml-auto text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md">3</span></div>
+    <div class="nav-item" data-nav="reports"><i data-lucide="bar-chart-3" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Laporan Penjualan</span></div>
+    <div class="nav-item" data-nav="reviews"><i data-lucide="star" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Ulasan Pelanggan</span></div>
+    <div class="nav-item" data-nav="settings"><i data-lucide="settings" class="w-[18px] h-[18px] shrink-0"></i><span class="sidebar-label">Pengaturan Profil</span></div>
+  </nav>
+  <div class="pro-banner m-3 p-3.5 rounded-2xl bg-slate-900 text-white relative overflow-hidden">
+    <div class="absolute -top-8 -right-8 w-24 h-24 bg-amber-500/30 rounded-full blur-2xl"></div>
+    <div class="relative">
+      <div class="flex items-center gap-2 mb-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i><span class="text-xs font-bold text-amber-400">PRO ACTIVE</span></div>
+      <p class="text-xs text-slate-300 mb-2.5 leading-relaxed">Berakhir dalam 28 hari. Perpanjang untuk fitur premium.</p>
+      <button class="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-amber-500/30 transition-all">Perpanjang Pro</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main-content" class="min-h-screen px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-8 relative z-10">
+  <!-- Mobile top bar -->
+  <div class="lg:hidden flex items-center justify-between mb-5">
+    <div class="flex items-center gap-2.5">
+      <button id="hamburger" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm"><i data-lucide="menu" class="w-5 h-5 text-slate-700"></i></button>
+      <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/30"><i data-lucide="utensils" class="w-4 h-4 text-white" stroke-width="2.5"></i></div><span class="text-lg font-extrabold tracking-tight text-slate-900">Pesan<span class="text-amber-500">Lagi</span></span></div>
+    </div>
+    <button class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative"><i data-lucide="bell" class="w-[18px] h-[18px] text-slate-600"></i><span class="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white"></span></button>
+  </div>
+  <!-- Desktop top bar -->
+  <div class="hidden lg:flex items-center justify-between mb-7">
+    <div><h2 class="text-sm text-slate-500 font-medium">Selasa, 14 Januari 2025</h2><h1 id="page-title" class="text-2xl font-extrabold text-slate-900">Dashboard Warung</h1></div>
+    <div class="flex items-center gap-2">
+      <button class="px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-700 hover:border-amber-300 transition-colors"><i data-lucide="search" class="w-4 h-4"></i><span class="hidden xl:inline text-slate-400">Cari menu, pesanan...</span></button>
+      <button class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:border-amber-300 transition-colors relative"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white"></span></button>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section data-page="dashboard" class="page-section active">
+    <div class="relative mb-6 rounded-3xl overflow-hidden bg-gradient-to-br from-amber-500 via-amber-500 to-orange-500 p-6 sm:p-8 shadow-xl shadow-amber-500/30">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+      <div class="absolute bottom-0 left-1/3 w-40 h-40 bg-yellow-300/20 rounded-full blur-2xl translate-y-1/2"></div>
+      <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 mb-3"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-100"></i><span class="text-xs font-bold text-white tracking-wide">Member Pro Active</span></div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight">Selamat Datang, Warung Makan Barokah <span class="wave-emoji">👋</span></h1>
+          <p class="mt-1.5 text-sm text-amber-50/90">Toko Anda sedang aktif. Kelola menu dan raih lebih banyak pelanggan hari ini.</p>
+        </div>
+        <button onclick="navigate('reports')" class="cta-btn shrink-0 px-5 py-3 rounded-xl bg-white text-amber-700 font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:shadow-2xl"><i data-lucide="rocket" class="w-4 h-4"></i><span>Lihat Statistik</span></button>
+      </div>
+    </div>
+
+    <div class="mb-6 bg-white border border-slate-100 rounded-3xl p-5 sm:p-6 shadow-lg shadow-slate-200/50 relative overflow-hidden card-hover">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/50 rounded-full blur-3xl"></div>
+      <div class="relative">
+        <div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"><i data-lucide="link" class="w-4 h-4 text-amber-600"></i></div><div><h3 class="text-sm font-bold text-slate-900">URL Menu Digital Anda</h3><p class="text-[11px] text-slate-500">Bagikan link ini ke pelanggan atau cetak QR</p></div></div>
+        <div class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3"><i data-lucide="globe" class="w-4 h-4 text-slate-400 shrink-0"></i><span class="url-pill text-sm text-slate-700 font-medium truncate flex-1">pesanlagi.web.id/menu/warung-barokah</span><span class="hidden sm:inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-md bg-green-100 text-green-700 text-[10px] font-bold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> AKTIF</span></div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="showToast('Link berhasil disalin ke clipboard!')" class="cta-btn flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30"><i data-lucide="copy" class="w-4 h-4"></i><span>Salin Link WA</span></button>
+          <button class="flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/50 transition-all"><i data-lucide="eye" class="w-4 h-4"></i><span>Lihat Menu Live</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 stagger">
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i data-lucide="utensils-crossed" class="w-5 h-5 text-amber-600"></i></div><i data-lucide="trending-up" class="w-4 h-4 text-green-500"></i></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">24<span class="text-base text-slate-400 font-bold ml-1">Menu</span></p>
+        <p class="text-xs text-slate-500 mt-1.5 font-medium">Total Menu Makanan</p><p class="text-[10px] text-green-600 font-semibold mt-1">+3 menu minggu ini</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><i data-lucide="store" class="w-5 h-5 text-green-600"></i></div><div id="store-toggle" class="toggle on" onclick="toggleStore(this)"></div></div>
+        <p class="text-base font-extrabold text-slate-900 leading-tight" id="store-status">Toko Buka</p>
+        <p class="text-xs text-slate-500 mt-1.5 font-medium">Status Toko</p><p class="text-[10px] text-green-600 font-semibold mt-1" id="store-hours">Buka sejak 08:00 WIB</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><i data-lucide="qr-code" class="w-5 h-5 text-purple-600"></i></div><span class="px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 text-[10px] font-bold">READY</span></div>
+        <p class="text-base font-extrabold text-slate-900 leading-tight">Siap Cetak A6</p>
+        <p class="text-xs text-slate-500 mt-1.5 font-medium">Status QR Code</p><p class="text-[10px] text-purple-600 font-semibold mt-1">Unduh 1x klik</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center"><i data-lucide="calendar-clock" class="w-5 h-5 text-orange-600"></i></div><i data-lucide="crown" class="w-4 h-4 text-amber-500"></i></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">28<span class="text-base text-slate-400 font-bold ml-1">Hari</span></p>
+        <p class="text-xs text-slate-500 mt-1.5 font-medium">Masa Aktif Pro</p><p class="text-[10px] text-orange-600 font-semibold mt-1">Berakhir 11 Feb 2025</p>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-slate-900">Aksi Cepat</h3></div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="quick-tile bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm" onclick="navigate('menu'); setTimeout(()=>openModal(),300)">
+          <div class="tile-icon w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mb-3 shadow-lg shadow-amber-500/30"><i data-lucide="plus" class="w-6 h-6 text-white" stroke-width="2.5"></i></div>
+          <p class="text-sm font-bold text-slate-900 leading-tight">Tambah Menu Makanan</p><p class="text-[11px] text-slate-500 mt-1">Unggah foto & harga</p>
+        </div>
+        <div class="quick-tile bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm" onclick="navigate('qr')">
+          <div class="tile-icon w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center mb-3 shadow-lg shadow-purple-500/30"><i data-lucide="palette" class="w-6 h-6 text-white" stroke-width="2.5"></i></div>
+          <p class="text-sm font-bold text-slate-900 leading-tight">Desain Kartu QR</p><p class="text-[11px] text-slate-500 mt-1">Template siap cetak</p>
+        </div>
+        <div class="quick-tile bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm" onclick="navigate('settings')">
+          <div class="tile-icon w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center mb-3 shadow-lg shadow-slate-500/30"><i data-lucide="settings" class="w-6 h-6 text-white" stroke-width="2.5"></i></div>
+          <p class="text-sm font-bold text-slate-900 leading-tight">Pengaturan Profil</p><p class="text-[11px] text-slate-500 mt-1">Edit info warung</p>
+        </div>
+        <div class="quick-tile bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm" onclick="showToast('Link menu dibagikan ke WhatsApp!')">
+          <div class="tile-icon w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg shadow-green-500/30"><i data-lucide="share-2" class="w-6 h-6 text-white" stroke-width="2.5"></i></div>
+          <p class="text-sm font-bold text-slate-900 leading-tight">Bagikan WhatsApp</p><p class="text-[11px] text-slate-500 mt-1">Sebar ke pelanggan</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-lg shadow-slate-200/50 overflow-hidden">
+      <div class="p-5 sm:p-6 flex items-center justify-between border-b border-slate-100">
+        <div><h3 class="text-base font-bold text-slate-900">Menu Makanan Anda</h3><p class="text-xs text-slate-500 mt-0.5">Kelola ketersediaan menu secara real-time</p></div>
+        <button onclick="navigate('menu')" class="px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah</button>
+      </div>
+      <div class="divide-y divide-slate-100">
+        <div class="menu-row flex items-center gap-3 sm:gap-4 p-4 sm:p-5"><img src="https://picsum.photos/seed/nasi-goreng-spesial-kampung/120/120" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt="Nasi Goreng"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">Nasi Goreng Spesial Kampung</p><div class="flex items-center gap-2 mt-0.5"><span class="text-sm font-bold text-amber-600">Rp 18.000</span><span class="text-[10px] text-slate-400">•</span><span class="text-[11px] text-slate-500">Terjual 142x</span></div></div><div class="flex items-center gap-2"><span class="hidden sm:inline text-xs font-semibold text-green-600" id="stock-1-text">Tersedia</span><div class="toggle on amber" onclick="toggleStock(this,'stock-1-text','Tersedia','Habis')"></div></div></div>
+        <div class="menu-row flex items-center gap-3 sm:gap-4 p-4 sm:p-5"><img src="https://picsum.photos/seed/mie-ayam-bakso-telur/120/120" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt="Mie Ayam Bakso"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">Mie Ayam Bakso Telur</p><div class="flex items-center gap-2 mt-0.5"><span class="text-sm font-bold text-amber-600">Rp 15.000</span><span class="text-[10px] text-slate-400">•</span><span class="text-[11px] text-slate-500">Terjual 98x</span></div></div><div class="flex items-center gap-2"><span class="hidden sm:inline text-xs font-semibold text-green-600" id="stock-2-text">Tersedia</span><div class="toggle on amber" onclick="toggleStock(this,'stock-2-text','Tersedia','Habis')"></div></div></div>
+        <div class="menu-row flex items-center gap-3 sm:gap-4 p-4 sm:p-5"><img src="https://picsum.photos/seed/ayam-geprek-mozzarella/120/120" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt="Ayam Geprek"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">Ayam Geprek Mozzarella</p><div class="flex items-center gap-2 mt-0.5"><span class="text-sm font-bold text-amber-600">Rp 22.000</span><span class="text-[10px] text-slate-400">•</span><span class="text-[11px] text-slate-500">Terjual 76x</span></div></div><div class="flex items-center gap-2"><span class="hidden sm:inline text-xs font-semibold text-red-500" id="stock-3-text">Habis</span><div class="toggle amber" onclick="toggleStock(this,'stock-3-text','Tersedia','Habis')"></div></div></div>
+        <div class="menu-row flex items-center gap-3 sm:gap-4 p-4 sm:p-5"><img src="https://picsum.photos/seed/es-teh-manis-hangat/120/120" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt="Es Teh Manis"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">Es Teh Manis Hangat</p><div class="flex items-center gap-2 mt-0.5"><span class="text-sm font-bold text-amber-600">Rp 5.000</span><span class="text-[10px] text-slate-400">•</span><span class="text-[11px] text-slate-500">Terjual 220x</span></div></div><div class="flex items-center gap-2"><span class="hidden sm:inline text-xs font-semibold text-green-600" id="stock-4-text">Tersedia</span><div class="toggle on amber" onclick="toggleStock(this,'stock-4-text','Tersedia','Habis')"></div></div></div>
+      </div>
+      <div class="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50"><button onclick="navigate('menu')" class="w-full py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold flex items-center justify-center gap-2 hover:border-amber-300 hover:bg-amber-50/50 transition-all">Lihat Semua 24 Menu<i data-lucide="arrow-right" class="w-4 h-4"></i></button></div>
+    </div>
+  </section>
+
+  <!-- ============ MENU MAKANAN ============ -->
+  <section data-page="menu" class="page-section">
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div><h2 class="text-xl font-extrabold text-slate-900">Menu Makanan</h2><p class="text-sm text-slate-500 mt-0.5">Kelola 24 menu digital warung Anda</p></div>
+      <button onclick="openModal()" class="cta-btn px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Tambah Menu</button>
+    </div>
+    <div class="mb-4 flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3.5 py-2.5"><i data-lucide="search" class="w-4 h-4 text-slate-400 shrink-0"></i><input type="text" placeholder="Cari nama menu..." class="flex-1 bg-transparent text-sm outline-none" /></div>
+    <div class="mb-5 flex gap-2 overflow-x-auto pb-1"><button class="chip active">Semua (24)</button><button class="chip">Makanan (15)</button><button class="chip">Minuman (6)</button><button class="chip">Snack (3)</button></div>
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 stagger">
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/nasi-goreng-spesial-kampung/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Nasi Goreng"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-amber-700">Makanan</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Nasi Goreng Spesial</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 142x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 18.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/mie-ayam-bakso-telur/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Mie Ayam"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-amber-700">Makanan</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Mie Ayam Bakso Telur</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 98x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 15.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/ayam-geprek-mozzarella/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Ayam Geprek"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-amber-700">Makanan</span><span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold">Habis</span></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Ayam Geprek Mozzarella</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 76x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 22.000</span><div class="toggle amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/es-teh-manis-hangat/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Es Teh"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-blue-700">Minuman</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Es Teh Manis Hangat</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 220x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 5.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/es-jeruk-peras-segar/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Es Jeruk"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-blue-700">Minuman</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Es Jeruk Peras Segar</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 85x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 7.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/soto-ayam-lamongan-asli/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Soto Ayam"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-amber-700">Makanan</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Soto Ayam Lamongan</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 65x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 17.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/kerupuk-udang-renyah/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Kerupuk"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-purple-700">Snack</span><button class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Kerupuk Udang Renyah</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 180x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 3.000</span><div class="toggle on amber" onclick="toggleStockCard(this)"></div></div></div></div>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover"><div class="relative"><img src="https://picsum.photos/seed/pisang-goreng-keju-coklat/400/300" class="w-full h-32 sm:h-40 object-cover" alt="Pisang Goreng"><span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-purple-700">Snack</span><span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold">Habis</span></div><div class="p-3 sm:p-4"><p class="text-sm font-bold text-slate-900 truncate">Pisang Goreng Keju</p><p class="text-[11px] text-slate-500 mt-0.5">Terjual 54x</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-extrabold text-amber-600">Rp 12.000</span><div class="toggle amber" onclick="toggleStockCard(this)"></div></div></div></div>
+    </div>
+  </section>
+
+  <!-- ============ QR CODE ============ -->
+  <section data-page="qr" class="page-section">
+    <div class="mb-5"><h2 class="text-xl font-extrabold text-slate-900">Kartu QR Code</h2><p class="text-sm text-slate-500 mt-0.5">Desain dan cetak kartu QR menu digital Anda</p></div>
+    <div class="grid lg:grid-cols-5 gap-5">
+      <!-- Preview -->
+      <div class="lg:col-span-3 flex items-center justify-center">
+        <div class="qr-card-preview w-full max-w-sm p-6 sm:p-8 relative">
+          <div class="absolute inset-0 border-4 border-amber-200/50 rounded-3xl m-2"></div>
+          <div class="relative text-center">
+            <div class="inline-flex items-center gap-2 mb-4"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30"><i data-lucide="utensils" class="w-5 h-5 text-white" stroke-width="2.5"></i></div><span class="text-lg font-extrabold text-slate-900">Pesan<span class="text-amber-500">Lagi</span></span></div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-1">Warung Makan Barokah</h3>
+            <p class="text-xs text-slate-500 mb-4">Scan QR untuk lihat menu & pesan langsung</p>
+            <div class="relative inline-block p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm mb-4">
+              <svg id="qr-preview-svg" viewBox="0 0 25 25" class="w-40 h-40" shape-rendering="crispEdges"></svg>
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm"><div class="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center"><i data-lucide="utensils" class="w-3.5 h-3.5 text-white" stroke-width="2.5"></i></div></div>
+            </div>
+            <div class="flex items-center justify-center gap-1.5 mb-3"><i data-lucide="globe" class="w-3.5 h-3.5 text-slate-400"></i><span class="url-pill text-xs text-slate-600 font-medium">pesanlagi.web.id/menu/warung-barokah</span></div>
+            <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400"><span class="flex items-center gap-1"><i data-lucide="shield-check" class="w-3 h-3"></i> Resmi PesanLagi</span><span>•</span><span>A6 Siap Cetak</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Customization -->
+      <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+          <h4 class="text-sm font-bold text-slate-900 mb-3">Pilih Template</h4>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button class="p-3 border-2 border-amber-500 rounded-xl bg-amber-50/50 text-left transition-all"><div class="w-full h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg mb-1.5"></div><p class="text-[11px] font-bold text-slate-900">Gold Elegan</p></button>
+            <button class="p-3 border-2 border-slate-200 rounded-xl hover:border-amber-300 text-left transition-all"><div class="w-full h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg mb-1.5"></div><p class="text-[11px] font-bold text-slate-900">Dark Premium</p></button>
+            <button class="p-3 border-2 border-slate-200 rounded-xl hover:border-amber-300 text-left transition-all"><div class="w-full h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg mb-1.5"></div><p class="text-[11px] font-bold text-slate-900">Fresh Green</p></button>
+            <button class="p-3 border-2 border-slate-200 rounded-xl hover:border-amber-300 text-left transition-all"><div class="w-full h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg mb-1.5"></div><p class="text-[11px] font-bold text-slate-900">Ocean Blue</p></button>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+          <h4 class="text-sm font-bold text-slate-900 mb-3">Ukuran Cetak</h4>
+          <div class="space-y-2">
+            <label class="flex items-center gap-3 p-2.5 rounded-xl border border-amber-500 bg-amber-50/50 cursor-pointer"><input type="radio" name="size" checked class="text-amber-500"><div class="flex-1"><p class="text-sm font-bold text-slate-900">A6 (105×148mm)</p><p class="text-[11px] text-slate-500">Ukuran standar meja</p></div><span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">RECOMMENDED</span></label>
+            <label class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:border-amber-300"><input type="radio" name="size" class="text-amber-500"><div class="flex-1"><p class="text-sm font-bold text-slate-900">A4 (210×297mm)</p><p class="text-[11px] text-slate-500">Poster dinding</p></div></label>
+            <label class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:border-amber-300"><input type="radio" name="size" class="text-amber-500"><div class="flex-1"><p class="text-sm font-bold text-slate-900">Stiker (5×5cm)</p><p class="text-[11px] text-slate-500">Tempel di meja</p></div></label>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+          <h4 class="text-sm font-bold text-slate-900 mb-3">Unduh & Cetak</h4>
+          <div class="space-y-2">
+            <button onclick="showToast('QR Code PDF berhasil diunduh!')" class="cta-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i>Unduh PDF Cetak A6</button>
+            <button onclick="showToast('QR Code PNG berhasil diunduh!')" class="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-amber-300 transition-colors"><i data-lucide="image" class="w-4 h-4"></i>Unduh PNG HD</button>
+            <button onclick="showToast('Mengarahkan ke percetakan mitra...')" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"><i data-lucide="printer" class="w-4 h-4"></i>Cetak ke Percetakan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PESANAN MASUK ============ -->
+  <section data-page="orders" class="page-section">
+    <div class="mb-5"><h2 class="text-xl font-extrabold text-slate-900">Pesanan Masuk</h2><p class="text-sm text-slate-500 mt-0.5">Kelola pesanan pelanggan secara real-time</p></div>
+    <div class="order-tabs mb-5">
+      <div id="order-tab-indicator" class="order-tab-indicator"></div>
+      <button class="order-tab active" data-status="all">Semua (8)</button>
+      <button class="order-tab" data-status="new">Baru (3)</button>
+      <button class="order-tab" data-status="process">Diproses (2)</button>
+      <button class="order-tab" data-status="done">Selesai (3)</button>
+    </div>
+    <div class="space-y-3 stagger">
+      <div class="order-card bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover" data-status="new">
+        <div class="flex items-start justify-between mb-3"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full pulse-dot"></span><span class="text-xs font-bold text-amber-600">PESANAN BARU</span><span class="text-[11px] text-slate-400">• 2 menit lalu</span></div><span class="text-sm font-extrabold text-slate-900">#ORD-0142</span></div>
+        <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100"><div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i data-lucide="user" class="w-5 h-5 text-amber-600"></i></div><div><p class="text-sm font-bold text-slate-900">Budi Santoso</p><p class="text-[11px] text-slate-500">Meja 3 • 0812-3456-7890</p></div></div>
+        <div class="space-y-1.5 mb-3"><div class="flex items-center justify-between text-sm"><span class="text-slate-600">2x Nasi Goreng Spesial</span><span class="font-semibold text-slate-900">Rp 36.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Es Teh Manis</span><span class="font-semibold text-slate-900">Rp 5.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Kerupuk Udang</span><span class="font-semibold text-slate-900">Rp 3.000</span></div></div>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100"><div><p class="text-[11px] text-slate-500">Total Pembayaran</p><p class="text-lg font-extrabold text-amber-600">Rp 44.000</p></div><div class="flex gap-2"><button onclick="showToast('Pesanan #ORD-0142 ditolak')" class="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">Tolak</button><button onclick="orderAction(this,'Diproses')" class="cta-btn px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/30">Terima</button></div></div>
+      </div>
+      <div class="order-card bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover" data-status="new">
+        <div class="flex items-start justify-between mb-3"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full pulse-dot"></span><span class="text-xs font-bold text-amber-600">PESANAN BARU</span><span class="text-[11px] text-slate-400">• 5 menit lalu</span></div><span class="text-sm font-extrabold text-slate-900">#ORD-0141</span></div>
+        <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100"><div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i data-lucide="user" class="w-5 h-5 text-amber-600"></i></div><div><p class="text-sm font-bold text-slate-900">Siti Aminah</p><p class="text-[11px] text-slate-500">Takeaway • 0813-9876-5432</p></div></div>
+        <div class="space-y-1.5 mb-3"><div class="flex items-center justify-between text-sm"><span class="text-slate-600">3x Mie Ayam Bakso</span><span class="font-semibold text-slate-900">Rp 45.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">2x Es Jeruk Peras</span><span class="font-semibold text-slate-900">Rp 14.000</span></div></div>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100"><div><p class="text-[11px] text-slate-500">Total Pembayaran</p><p class="text-lg font-extrabold text-amber-600">Rp 59.000</p></div><div class="flex gap-2"><button onclick="showToast('Pesanan #ORD-0141 ditolak')" class="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">Tolak</button><button onclick="orderAction(this,'Diproses')" class="cta-btn px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/30">Terima</button></div></div>
+      </div>
+      <div class="order-card bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover" data-status="process">
+        <div class="flex items-start justify-between mb-3"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-blue-500 rounded-full"></span><span class="text-xs font-bold text-blue-600">SEDANG DIPROSES</span><span class="text-[11px] text-slate-400">• 12 menit lalu</span></div><span class="text-sm font-extrabold text-slate-900">#ORD-0140</span></div>
+        <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100"><div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><i data-lucide="user" class="w-5 h-5 text-blue-600"></i></div><div><p class="text-sm font-bold text-slate-900">Ahmad Fauzi</p><p class="text-[11px] text-slate-500">Meja 5 • 0856-1234-5678</p></div></div>
+        <div class="space-y-1.5 mb-3"><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Ayam Geprek Mozzarella</span><span class="font-semibold text-slate-900">Rp 22.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">2x Es Teh Manis</span><span class="font-semibold text-slate-900">Rp 10.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Pisang Goreng Keju</span><span class="font-semibold text-slate-900">Rp 12.000</span></div></div>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100"><div><p class="text-[11px] text-slate-500">Total Pembayaran</p><p class="text-lg font-extrabold text-amber-600">Rp 44.000</p></div><div class="flex gap-2"><button onclick="showToast('Pesanan #ORD-0140 dibatalkan')" class="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">Batal</button><button onclick="orderAction(this,'Selesai')" class="cta-btn px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold shadow-md shadow-green-500/30">Tandai Selesai</button></div></div>
+      </div>
+      <div class="order-card bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover" data-status="new">
+        <div class="flex items-start justify-between mb-3"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full pulse-dot"></span><span class="text-xs font-bold text-amber-600">PESANAN BARU</span><span class="text-[11px] text-slate-400">• 8 menit lalu</span></div><span class="text-sm font-extrabold text-slate-900">#ORD-0139</span></div>
+        <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100"><div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i data-lucide="user" class="w-5 h-5 text-amber-600"></i></div><div><p class="text-sm font-bold text-slate-900">Dewi Lestari</p><p class="text-[11px] text-slate-500">Meja 1 • 0821-5555-7777</p></div></div>
+        <div class="space-y-1.5 mb-3"><div class="flex items-center justify-between text-sm"><span class="text-slate-600">2x Soto Ayam Lamongan</span><span class="font-semibold text-slate-900">Rp 34.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Nasi Goreng Spesial</span><span class="font-semibold text-slate-900">Rp 18.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">3x Es Teh Manis</span><span class="font-semibold text-slate-900">Rp 15.000</span></div></div>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100"><div><p class="text-[11px] text-slate-500">Total Pembayaran</p><p class="text-lg font-extrabold text-amber-600">Rp 67.000</p></div><div class="flex gap-2"><button onclick="showToast('Pesanan #ORD-0139 ditolak')" class="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">Tolak</button><button onclick="orderAction(this,'Diproses')" class="cta-btn px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/30">Terima</button></div></div>
+      </div>
+      <div class="order-card bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover opacity-70" data-status="done">
+        <div class="flex items-start justify-between mb-3"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span><span class="text-xs font-bold text-green-600">SELESAI</span><span class="text-[11px] text-slate-400">• 35 menit lalu</span></div><span class="text-sm font-extrabold text-slate-900">#ORD-0138</span></div>
+        <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100"><div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><i data-lucide="user" class="w-5 h-5 text-green-600"></i></div><div><p class="text-sm font-bold text-slate-900">Rudi Hartono</p><p class="text-[11px] text-slate-500">Takeaway • 0811-2222-3333</p></div></div>
+        <div class="space-y-1.5 mb-3"><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Mie Ayam Bakso</span><span class="font-semibold text-slate-900">Rp 15.000</span></div><div class="flex items-center justify-between text-sm"><span class="text-slate-600">1x Es Jeruk Peras</span><span class="font-semibold text-slate-900">Rp 7.000</span></div></div>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100"><div><p class="text-[11px] text-slate-500">Total Pembayaran</p><p class="text-lg font-extrabold text-green-600">Rp 22.000</p></div><span class="px-3 py-2 rounded-lg bg-green-50 text-green-600 text-xs font-bold">✓ Selesai</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LAPORAN PENJUALAN ============ -->
+  <section data-page="reports" class="page-section">
+    <div class="mb-5"><h2 class="text-xl font-extrabold text-slate-900">Laporan Penjualan</h2><p class="text-sm text-slate-500 mt-0.5">Analisis performa warung Anda 7 hari terakhir</p></div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 stagger">
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><i data-lucide="banknote" class="w-5 h-5 text-amber-600"></i></div><span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">+12.5%</span></div><p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">Rp 847K</p><p class="text-xs text-slate-500 mt-1.5 font-medium">Pendapatan Hari Ini</p></div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><i data-lucide="receipt" class="w-5 h-5 text-blue-600"></i></div><span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">+8.2%</span></div><p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">47</p><p class="text-xs text-slate-500 mt-1.5 font-medium">Total Transaksi</p></div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i></div><span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">+5.1%</span></div><p class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">Rp 18K</p><p class="text-xs text-slate-500 mt-1.5 font-medium">Rata-rata Order</p></div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover"><div class="flex items-center justify-between mb-3"><div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center"><i data-lucide="award" class="w-5 h-5 text-orange-600"></i></div><span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">BEST</span></div><p class="text-sm font-extrabold text-slate-900 leading-tight">Es Teh Manis</p><p class="text-xs text-slate-500 mt-1.5 font-medium">220x Terjual</p></div>
+    </div>
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm mb-5">
+      <div class="flex items-center justify-between mb-5"><div><h3 class="text-sm font-bold text-slate-900">Pendapatan 7 Hari Terakhir</h3><p class="text-[11px] text-slate-500 mt-0.5">Total: Rp 3.847.000</p></div><div class="flex gap-1.5"><button class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-bold">7D</button><button class="px-2.5 py-1 rounded-lg text-slate-500 text-[11px] font-semibold hover:bg-slate-50">30D</button><button class="px-2.5 py-1 rounded-lg text-slate-500 text-[11px] font-semibold hover:bg-slate-50">90D</button></div></div>
+      <svg viewBox="0 0 700 250" class="w-full" preserveAspectRatio="xMidYMid meet">
+        <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity="0.25"/><stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/></linearGradient></defs>
+        <line x1="40" y1="50" x2="680" y2="50" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="40" y1="100" x2="680" y2="100" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="40" y1="150" x2="680" y2="150" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="40" y1="200" x2="680" y2="200" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="30" y="55" font-size="10" fill="#94A3B8" text-anchor="end">1JT</text><text x="30" y="105" font-size="10" fill="#94A3B8" text-anchor="end">750K</text><text x="30" y="155" font-size="10" fill="#94A3B8" text-anchor="end">500K</text><text x="30" y="205" font-size="10" fill="#94A3B8" text-anchor="end">250K</text>
+        <path id="chart-area" d="M 80,170 C 120,155 150,140 190,145 C 230,150 260,110 300,100 C 340,90 370,120 410,85 C 450,55 480,70 520,40 C 560,25 590,55 630,45 L 630,220 L 80,220 Z" fill="url(#chartGrad)" opacity="0"/>
+        <path id="chart-line" class="chart-line" d="M 80,170 C 120,155 150,140 190,145 C 230,150 260,110 300,100 C 340,90 370,120 410,85 C 450,55 480,70 520,40 C 560,25 590,55 630,45" fill="none" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle class="chart-dot" cx="80" cy="170" r="5" fill="white" stroke="#F59E0B" stroke-width="3"/>
+        <circle class="chart-dot" cx="190" cy="145" r="5" fill="white" stroke="#F59E0B" stroke-width="3"/>
+        <circle class="chart-dot" cx="300" cy="100" r="5" fill="white" stroke="#F59E0B" stroke-width="3"/>
+        <circle class="chart-dot" cx="410" cy="85" r="5" fill="white" stroke="#F59E0B" stroke-width="3"/>
+        <circle class="chart-dot" cx="520" cy="40" r="6" fill="#F59E0B" stroke="white" stroke-width="3"/>
+        <circle class="chart-dot" cx="630" cy="45" r="5" fill="white" stroke="#F59E0B" stroke-width="3"/>
+        <text x="80" y="240" font-size="11" fill="#94A3B8" text-anchor="middle">Sen</text><text x="190" y="240" font-size="11" fill="#94A3B8" text-anchor="middle">Sel</text><text x="300" y="240" font-size="11" fill="#94A3B8" text-anchor="middle">Rab</text><text x="410" y="240" font-size="11" fill="#94A3B8" text-anchor="middle">Kam</text><text x="520" y="240" font-size="11" fill="#F59E0B" text-anchor="middle" font-weight="bold">Sab</text><text x="630" y="240" font-size="11" fill="#94A3B8" text-anchor="middle">Min</text>
+      </svg>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-5">
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 mb-4">Menu Terlaris</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3"><span class="text-xs font-bold text-slate-400 w-4">1</span><span class="text-sm font-medium text-slate-700 w-28 truncate">Es Teh Manis</span><div class="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2" data-width="100%"><span class="text-[10px] font-bold text-white">220x</span></div></div></div>
+          <div class="flex items-center gap-3"><span class="text-xs font-bold text-slate-400 w-4">2</span><span class="text-sm font-medium text-slate-700 w-28 truncate">Nasi Goreng</span><div class="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2" data-width="65%"><span class="text-[10px] font-bold text-white">142x</span></div></div></div>
+          <div class="flex items-center gap-3"><span class="text-xs font-bold text-slate-400 w-4">3</span><span class="text-sm font-medium text-slate-700 w-28 truncate">Mie Ayam Bakso</span><div class="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2" data-width="45%"><span class="text-[10px] font-bold text-white">98x</span></div></div></div>
+          <div class="flex items-center gap-3"><span class="text-xs font-bold text-slate-400 w-4">4</span><span class="text-sm font-medium text-slate-700 w-28 truncate">Ayam Geprek</span><div class="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2" data-width="35%"><span class="text-[10px] font-bold text-white">76x</span></div></div></div>
+          <div class="flex items-center gap-3"><span class="text-xs font-bold text-slate-400 w-4">5</span><span class="text-sm font-medium text-slate-700 w-28 truncate">Soto Ayam</span><div class="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden"><div class="bar-fill h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2" data-width="30%"><span class="text-[10px] font-bold text-white">65x</span></div></div></div>
+        </div>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 mb-4">Transaksi Terbaru</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100"><div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 text-green-600"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">#ORD-0138</p><p class="text-[11px] text-slate-500">Rudi Hartono • 35 min lalu</p></div><span class="text-sm font-bold text-green-600">+Rp 22K</span></div>
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100"><div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-blue-600"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">#ORD-0140</p><p class="text-[11px] text-slate-500">Ahmad Fauzi • 12 min lalu</p></div><span class="text-sm font-bold text-amber-600">+Rp 44K</span></div>
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100"><div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"><i data-lucide="bell" class="w-4 h-4 text-amber-600"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">#ORD-0142</p><p class="text-[11px] text-slate-500">Budi Santoso • 2 min lalu</p></div><span class="text-sm font-bold text-amber-600">+Rp 44K</span></div>
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-100"><div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 text-green-600"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">#ORD-0137</p><p class="text-[11px] text-slate-500">Maya Sari • 1 jam lalu</p></div><span class="text-sm font-bold text-green-600">+Rp 33K</span></div>
+          <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 text-green-600"></i></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">#ORD-0136</p><p class="text-[11px] text-slate-500">Doni Pratama • 2 jam lalu</p></div><span class="text-sm font-bold text-green-600">+Rp 56K</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ULASAN PELANGGAN ============ -->
+  <section data-page="reviews" class="page-section">
+    <div class="mb-5"><h2 class="text-xl font-extrabold text-slate-900">Ulasan Pelanggan</h2><p class="text-sm text-slate-500 mt-0.5">Lihat dan balas ulasan dari pelanggan setia</p></div>
+    <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 sm:p-6 mb-5 shadow-lg shadow-amber-500/30 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="text-center"><p class="text-4xl font-extrabold text-white leading-none">4.8</p><div class="flex items-center gap-0.5 mt-1 justify-center"><i data-lucide="star" class="w-4 h-4 fill-yellow-300 text-yellow-300"></i><i data-lucide="star" class="w-4 h-4 fill-yellow-300 text-yellow-300"></i><i data-lucide="star" class="w-4 h-4 fill-yellow-300 text-yellow-300"></i><i data-lucide="star" class="w-4 h-4 fill-yellow-300 text-yellow-300"></i><i data-lucide="star" class="w-4 h-4 fill-yellow-300 text-yellow-300"></i></div><p class="text-[11px] text-amber-50 mt-1">dari 156 ulasan</p></div>
+        <div class="flex-1 w-full space-y-1.5">
+          <div class="flex items-center gap-2"><span class="text-[11px] text-white font-semibold w-8">5★</span><div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:78%"></div></div><span class="text-[11px] text-white/80 w-8 text-right">122</span></div>
+          <div class="flex items-center gap-2"><span class="text-[11px] text-white font-semibold w-8">4★</span><div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:15%"></div></div><span class="text-[11px] text-white/80 w-8 text-right">23</span></div>
+          <div class="flex items-center gap-2"><span class="text-[11px] text-white font-semibold w-8">3★</span><div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:5%"></div></div><span class="text-[11px] text-white/80 w-8 text-right">8</span></div>
+          <div class="flex items-center gap-2"><span class="text-[11px] text-white font-semibold w-8">2★</span><div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:1.5%"></div></div><span class="text-[11px] text-white/80 w-8 text-right">2</span></div>
+          <div class="flex items-center gap-2"><span class="text-[11px] text-white font-semibold w-8">1★</span><div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:0.5%"></div></div><span class="text-[11px] text-white/80 w-8 text-right">1</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-3 stagger">
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start gap-3"><img src="https://picsum.photos/seed/budi-santoso-avatar/80/80" class="w-10 h-10 rounded-full object-cover" alt="Budi"><div class="flex-1"><div class="flex items-center justify-between"><div><p class="text-sm font-bold text-slate-900">Budi Santoso</p><div class="flex items-center gap-1 mt-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><span class="text-[11px] text-slate-400 ml-1.5">2 hari lalu</span></div></div><span class="px-2 py-0.5 rounded-md bg-green-50 text-green-600 text-[10px] font-bold">Sudah Dibalas</span></div></div></div>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">"Nasi gorengnya enak banget, porsinya banyak dan harganya bersaing. Menu digitalnya juga memudahkan pesan tanpa antri. Pasti pesan lagi!"</p>
+        <div class="mt-3 p-3 bg-slate-50 rounded-xl"><p class="text-[11px] font-bold text-slate-500 mb-1">Balasan dari Warung</p><p class="text-sm text-slate-600">Terima kasih kak Budi! Ditunggu kedatangannya lagi ya 🙏</p></div>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start gap-3"><img src="https://picsum.photos/seed/siti-aminah-avatar/80/80" class="w-10 h-10 rounded-full object-cover" alt="Siti"><div class="flex-1"><div class="flex items-center justify-between"><div><p class="text-sm font-bold text-slate-900">Siti Aminah</p><div class="flex items-center gap-1 mt-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 text-slate-200"></i><span class="text-[11px] text-slate-400 ml-1.5">3 hari lalu</span></div></div><span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold">Belum Dibalas</span></div></div></div>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">"Harga bersaing, rasa oke. Tapi agak lama saat jam ramai. Semoga kedepannya lebih cepat. Overall recommended!"</p>
+        <button onclick="showToast('Form balasan dibuka')" class="mt-3 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Balas Ulasan</button>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start gap-3"><img src="https://picsum.photos/seed/ahmad-fauzi-avatar/80/80" class="w-10 h-10 rounded-full object-cover" alt="Ahmad"><div class="flex-1"><div class="flex items-center justify-between"><div><p class="text-sm font-bold text-slate-900">Ahmad Fauzi</p><div class="flex items-center gap-1 mt-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><span class="text-[11px] text-slate-400 ml-1.5">5 hari lalu</span></div></div><span class="px-2 py-0.5 rounded-md bg-green-50 text-green-600 text-[10px] font-bold">Sudah Dibalas</span></div></div></div>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">"Ayam gepreknya juara! Level pedasnya pas, mozzarellanya lumer. QR code di meja juga praktis, scan langsung pesan. Top!"</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+        <div class="flex items-start gap-3"><img src="https://picsum.photos/seed/dewi-lestari-avatar/80/80" class="w-10 h-10 rounded-full object-cover" alt="Dewi"><div class="flex-1"><div class="flex items-center justify-between"><div><p class="text-sm font-bold text-slate-900">Dewi Lestari</p><div class="flex items-center gap-1 mt-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i><i data-lucide="star" class="w-3.5 h-3.5 text-slate-200"></i><i data-lucide="star" class="w-3.5 h-3.5 text-slate-200"></i><span class="text-[11px] text-slate-400 ml-1.5">1 minggu lalu</span></div></div><span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-bold">Belum Dibalas</span></div></div></div>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">"Tempatnya nyaman, menu digitalnya membantu. Tapi soto ayamnya kurang garam menurut saya. Semoga diperbaiki ya."</p>
+        <button onclick="showToast('Form balasan dibuka')" class="mt-3 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Balas Ulasan</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PENGATURAN PROFIL ============ -->
+  <section data-page="settings" class="page-section">
+    <div class="mb-5"><h2 class="text-xl font-extrabold text-slate-900">Pengaturan Profil</h2><p class="text-sm text-slate-500 mt-0.5">Kelola informasi warung dan preferensi tampilan</p></div>
+    <div class="space-y-4 stagger">
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"><i data-lucide="store" class="w-4 h-4 text-amber-600"></i></div><h3 class="text-sm font-bold text-slate-900">Informasi Warung</h3></div>
+        <div class="flex items-center gap-4 mb-4"><div class="relative"><img src="https://picsum.photos/seed/warung-barokah-logo/120/120" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-100" alt="Logo"><button class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30"><i data-lucide="camera" class="w-3 h-3"></i></button></div><div><p class="text-sm font-bold text-slate-900">Logo Warung</p><p class="text-[11px] text-slate-500 mt-0.5">JPG/PNG, maks 1MB</p><button class="text-xs font-semibold text-amber-600 mt-1">Ganti Logo</button></div></div>
+        <div class="grid sm:grid-cols-2 gap-3"><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Warung</label><input type="text" value="Warung Makan Barokah" class="settings-input"></div><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Kategori</label><select class="settings-input"><option>Makanan Indonesia</option><option>Makanan Cepat Saji</option><option>Minuman</option><option>Snack</option></select></div><div class="sm:col-span-2"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Deskripsi Warung</label><textarea rows="2" class="settings-input resize-none">Warung makan tradisional dengan menu khas Nusantara. Harga terjangkau, rasa juara!</textarea></div></div>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><i data-lucide="phone" class="w-4 h-4 text-blue-600"></i></div><h3 class="text-sm font-bold text-slate-900">Kontak & Lokasi</h3></div>
+        <div class="grid sm:grid-cols-2 gap-3"><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Nomor WhatsApp</label><input type="text" value="0812-3456-7890" class="settings-input"></div><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Email</label><input type="email" value="barokah@pesanlagi.id" class="settings-input"></div><div class="sm:col-span-2"><label class="block text-xs font-semibold text-slate-700 mb-1.5">Alamat Lengkap</label><textarea rows="2" class="settings-input resize-none">Jl. Merdeka No. 45, RT.03/RW.07, Kebayoran Baru, Jakarta Selatan, DKI Jakarta 12120</textarea></div></div>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-green-600"></i></div><h3 class="text-sm font-bold text-slate-900">Jam Operasional</h3></div>
+        <div class="grid sm:grid-cols-2 gap-3 mb-3"><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Jam Buka</label><input type="time" value="08:00" class="settings-input"></div><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Jam Tutup</label><input type="time" value="22:00" class="settings-input"></div></div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Hari Operasional</label>
+        <div class="flex flex-wrap gap-2"><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Sen</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Sel</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Rab</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Kam</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Jum</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 cursor-pointer"><input type="checkbox" checked class="text-amber-500"><span class="text-xs font-semibold text-amber-700">Sab</span></label><label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer"><input type="checkbox" class="text-amber-500"><span class="text-xs font-semibold text-slate-500">Min</span></label></div>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><i data-lucide="palette" class="w-4 h-4 text-purple-600"></i></div><h3 class="text-sm font-bold text-slate-900">Tampilan Menu Digital</h3></div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Warna Tema</label>
+        <div class="flex gap-2.5 mb-4"><button class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 ring-2 ring-amber-500 ring-offset-2"></button><button class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-600"></button><button class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600"></button><button class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-red-600"></button><button class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900"></button></div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Template Layout</label>
+        <div class="grid grid-cols-3 gap-2"><button class="p-2 border-2 border-amber-500 rounded-xl bg-amber-50/50"><div class="w-full h-12 bg-amber-100 rounded-lg flex items-center justify-center"><i data-lucide="layout-grid" class="w-5 h-5 text-amber-600"></i></div><p class="text-[10px] font-bold text-slate-900 mt-1">Grid</p></button><button class="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300"><div class="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><i data-lucide="list" class="w-5 h-5 text-slate-500"></i></div><p class="text-[10px] font-bold text-slate-900 mt-1">List</p></button><button class="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300"><div class="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><i data-lucide="columns-2" class="w-5 h-5 text-slate-500"></i></div><p class="text-[10px] font-bold text-slate-900 mt-1">Kategori</p></button></div>
+      </div>
+      <div class="flex gap-3"><button onclick="showToast('Perubahan berhasil disimpan!')" class="cta-btn flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Simpan Perubahan</button><button class="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 transition-colors">Batal</button></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav lg:hidden">
+  <div class="bottom-nav-item active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span></div>
+  <div class="bottom-nav-item" data-nav="menu"><i data-lucide="utensils-crossed" class="w-5 h-5"></i><span>Menu</span></div>
+  <div class="bottom-nav-item" data-nav="qr"><i data-lucide="qr-code" class="w-5 h-5"></i><span>QR</span></div>
+  <div class="bottom-nav-item" data-nav="orders"><i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Pesanan</span></div>
+  <div class="bottom-nav-item" data-nav="settings"><i data-lucide="user" class="w-5 h-5"></i><span>Profil</span></div>
+</nav>
+
+<!-- MODAL -->
+<div id="modal-backdrop" class="modal-backdrop"></div>
+<div id="modal-card" class="modal-card">
+  <div class="p-5 sm:p-6">
+    <div class="flex items-center justify-between mb-5"><div><h3 class="text-lg font-extrabold text-slate-900">Tambah Menu Baru</h3><p class="text-xs text-slate-500 mt-0.5">Isi detail menu makanan Anda</p></div><button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+    <div class="space-y-4">
+      <div class="dropzone"><div class="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-2"><i data-lucide="image-plus" class="w-6 h-6 text-amber-600"></i></div><p class="text-sm font-semibold text-slate-700">Klik atau drag foto menu ke sini</p><p class="text-[11px] text-slate-400 mt-0.5">JPG/PNG, maks 2MB</p></div>
+      <div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Menu</label><input type="text" placeholder="Contoh: Nasi Goreng Spesial" class="settings-input"></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Kategori</label><select class="settings-input"><option>Makanan</option><option>Minuman</option><option>Snack</option></select></div><div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Harga (Rp)</label><input type="number" placeholder="18000" class="settings-input"></div></div>
+      <div><label class="block text-xs font-semibold text-slate-700 mb-1.5">Deskripsi Menu</label><textarea rows="2" placeholder="Deskripsi singkat menu..." class="settings-input resize-none"></textarea></div>
+      <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl"><div><p class="text-sm font-semibold text-slate-900">Status Ketersediaan</p><p class="text-[11px] text-slate-500">Matikan jika menu sedang habis</p></div><div class="toggle on amber"></div></div>
+    </div>
+    <div class="flex gap-3 mt-6"><button onclick="closeModal()" class="flex-1 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 transition-colors">Batal</button><button onclick="closeModal(); showToast('Menu baru berhasil ditambahkan!')" class="cta-btn flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"><i data-lucide="check" class="w-4 h-4"></i>Simpan Menu</button></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i><span id="toast-text">Link berhasil disalin!</span></div>
+
+<script>
+  lucide.createIcons();
+
+  const pageTitles = { dashboard:'Dashboard Warung', menu:'Menu Makanan', qr:'Kartu QR Code', orders:'Pesanan Masuk', reports:'Laporan Penjualan', reviews:'Ulasan Pelanggan', settings:'Pengaturan Profil' };
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('backdrop');
+  const main = document.getElementById('main-content');
+
+  // Navigation
+  function navigate(pageId) {
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    const section = document.querySelector(`[data-page="${pageId}"]`);
+    if (section) section.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const navItem = document.querySelector(`.nav-item[data-nav="${pageId}"]`);
+    if (navItem) navItem.classList.add('active');
+    document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+    const bottomItem = document.querySelector(`.bottom-nav-item[data-nav="${pageId}"]`);
+    if (bottomItem) bottomItem.classList.add('active');
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = pageTitles[pageId] || 'Dashboard';
+    // Retrigger stagger
+    if (section) {
+      section.querySelectorAll('.stagger').forEach(s => { s.classList.remove('stagger'); void s.offsetWidth; s.classList.add('stagger'); });
+    }
+    // Charts
+    if (pageId === 'reports') { animateCharts(); }
+    // Close mobile
+    closeMobile();
+    // Scroll top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Sidebar controls
+  document.getElementById('hamburger').addEventListener('click', () => { sidebar.classList.add('mobile-open'); backdrop.classList.add('show'); });
+  backdrop.addEventListener('click', closeMobile);
+  function closeMobile() { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); }
+  document.getElementById('collapse-btn').addEventListener('click', toggleCollapse);
+  document.getElementById('collapse-btn-exp').addEventListener('click', toggleCollapse);
+  function toggleCollapse() { sidebar.classList.toggle('collapsed'); main.classList.toggle('collapsed'); }
+
+  // Nav click
+  document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => navigate(item.dataset.nav)));
+  document.querySelectorAll('.bottom-nav-item').forEach(item => item.addEventListener('click', () => navigate(item.dataset.nav)));
+
+  // Toggles
+  function toggleStore(el) {
+    el.classList.toggle('on');
+    const isOn = el.classList.contains('on');
+    document.getElementById('store-status').textContent = isOn ? 'Toko Buka' : 'Toko Tutup';
+    document.getElementById('store-hours').textContent = isOn ? 'Buka sejak 08:00 WIB' : 'Tutup sementara';
+    document.getElementById('store-hours').className = `text-[10px] font-semibold mt-1 ${isOn ? 'text-green-600' : 'text-red-500'}`;
+  }
+  function toggleStock(el, textId, onText, offText) {
+    el.classList.toggle('on');
+    const isOn = el.classList.contains('on');
+    const text = document.getElementById(textId);
+    text.textContent = isOn ? onText : offText;
+    text.className = `hidden sm:inline text-xs font-semibold ${isOn ? 'text-green-600' : 'text-red-500'}`;
+  }
+  function toggleStockCard(el) { el.classList.toggle('on'); }
+
+  // Order tabs
+  const orderTabs = document.querySelectorAll('.order-tab');
+  const orderIndicator = document.getElementById('order-tab-indicator');
+  function updateOrderIndicator() {
+    const active = document.querySelector('.order-tab.active');
+    if (!active) return;
+    orderIndicator.style.left = active.offsetLeft + 'px';
+    orderIndicator.style.width = active.offsetWidth + 'px';
+  }
+  setTimeout(updateOrderIndicator, 100);
+  window.addEventListener('resize', updateOrderIndicator);
+  orderTabs.forEach(tab => tab.addEventListener('click', () => {
+    orderTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    updateOrderIndicator();
+    const status = tab.dataset.status;
+    document.querySelectorAll('.order-card').forEach(card => {
+      if (status === 'all' || card.dataset.status === status) card.style.display = '';
+      else card.style.display = 'none';
+    });
+  }));
+
+  function orderAction(btn, newStatus) {
+    const card = btn.closest('.order-card');
+    if (newStatus === 'Diproses') {
+      card.dataset.status = 'process';
+      showToast('Pesanan diterima, sedang diproses');
+    } else if (newStatus === 'Selesai') {
+      card.dataset.status = 'done';
+      card.classList.add('opacity-70');
+      showToast('Pesanan selesai! 🎉');
+    }
+    // Re-filter
+    const activeTab = document.querySelector('.order-tab.active');
+    if (activeTab) {
+      const status = activeTab.dataset.status;
+      if (status !== 'all' && card.dataset.status !== status) card.style.display = 'none';
+    }
+  }
+
+  // Modal
+  function openModal() { document.getElementById('modal-backdrop').classList.add('show'); document.getElementById('modal-card').classList.add('show'); }
+  function closeModal() { document.getElementById('modal-backdrop').classList.remove('show'); document.getElementById('modal-card').classList.remove('show'); }
+  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); if (sidebar.classList.contains('mobile-open')) closeMobile(); }
+  });
+
+  // Toast
+  function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-text').textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+
+  // Filter chips
+  document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => { chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); }));
+
+  // QR generation
+  function generateQR() {
+    const svg = document.getElementById('qr-preview-svg');
+    if (!svg) return;
+    const size = 25;
+    let html = '';
+    // Finder patterns
+    [[0,0],[18,0],[0,18]].forEach(([fx,fy]) => {
+      html += `<rect x="${fx}" y="${fy}" width="7" height="7" fill="#0F172A"/>`;
+      html += `<rect x="${fx+1}" y="${fy+1}" width="5" height="5" fill="white"/>`;
+      html += `<rect x="${fx+2}" y="${fy+2}" width="3" height="3" fill="#0F172A"/>`;
+    });
+    // Alignment pattern
+    html += `<rect x="16" y="16" width="5" height="5" fill="#0F172A"/>`;
+    html += `<rect x="17" y="17" width="3" height="3" fill="white"/>`;
+    html += `<rect x="18" y="18" width="1" height="1" fill="#0F172A"/>`;
+    // Timing patterns
+    for (let i = 8; i < 17; i++) {
+      if (i % 2 === 0) {
+        html += `<rect x="${i}" y="6" width="1" height="1" fill="#0F172A"/>`;
+        html += `<rect x="6" y="${i}" width="1" height="1" fill="#0F172A"/>`;
+      }
+    }
+    // Data cells
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const inFinder = (x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16);
+        const inAlign = (x>=16&&x<=20&&y>=16&&y<=20);
+        const inCenter = (x>=10&&x<=14&&y>=10&&y<=14);
+        const inTiming = (y===6||x===6);
+        if (inFinder||inAlign||inCenter||inTiming) continue;
+        const hash = (x*7+y*13+x*y*3) % 7;
+        if (hash < 3) html += `<rect x="${x}" y="${y}" width="1" height="1" fill="#0F172A"/>`;
+      }
+    }
+    svg.innerHTML = html;
+  }
+  generateQR();
+
+  // Charts animation
+  function animateCharts() {
+    const line = document.getElementById('chart-line');
+    const area = document.getElementById('chart-area');
+    const dots = document.querySelectorAll('.chart-dot');
+    const bars = document.querySelectorAll('.bar-fill');
+    // Reset
+    if (line) { line.classList.remove('animate'); void line.offsetWidth; line.classList.add('animate'); }
+    if (area) { area.style.opacity = '0'; area.style.transition = 'opacity 1s ease 0.5s'; setTimeout(() => area.style.opacity = '1', 50); }
+    dots.forEach(d => { d.classList.remove('animate'); void d.offsetWidth; d.classList.add('animate'); });
+    bars.forEach(b => { b.style.width = '0'; });
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        bars.forEach(b => { b.style.width = b.dataset.width; });
+      }, 200);
+    });
+  }
+</script>
+
+</body>
+</html>
