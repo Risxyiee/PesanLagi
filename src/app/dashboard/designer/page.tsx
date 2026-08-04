@@ -71,28 +71,38 @@ export default function QrDesignerPage() {
     }
   };
 
-  const handleAIGenerate = () => {
+  const handleAIGenerate = async () => {
     if (!isPro) {
       setShowUpgradeModal(true);
       return;
     }
+    if (!aiPrompt.trim()) {
+      showToast('Tulis deskripsi warungmu dulu!');
+      return;
+    }
     setIsGenerating(true);
-    setTimeout(() => {
-      const prompt = aiPrompt.toLowerCase();
-      if (prompt.includes('kayu') || prompt.includes('kafe') || prompt.includes('warm')) {
-        setBgColor('#FDFBF7'); setQrColor('#3E2723'); setTextColor('#3E2723'); setAccentColor('#D97706'); setActiveTemplate('rustic');
-      } else if (prompt.includes('pedas') || prompt.includes('merah') || prompt.includes('seafood')) {
-        setBgColor('#FEF2F2'); setQrColor('#991B1B'); setTextColor('#991B1B'); setAccentColor('#EF4444'); setActiveTemplate('minimalist');
-      } else if (prompt.includes('matcha') || prompt.includes('nature') || prompt.includes('sage')) {
-        setBgColor('#F0FDF4'); setQrColor('#166534'); setTextColor('#166534'); setAccentColor('#22C55E'); setActiveTemplate('minimalist');
-      } else if (prompt.includes('mewah') || prompt.includes('dark') || prompt.includes('night')) {
-        setBgColor('#0F172A'); setQrColor('#F59E0B'); setTextColor('#F1F5F9'); setAccentColor('#FBBF24'); setActiveTemplate('dark_gold');
-      } else {
-        setBgColor('#FFFFFF'); setQrColor('#000000'); setTextColor('#000000'); setAccentColor('#64748B'); setActiveTemplate('minimalist');
+    try {
+      const res = await fetch('/api/ai/generate-theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Gagal generate desain');
       }
+      const data = await res.json();
+      setBgColor(data.bgColor);
+      setQrColor(data.qrColor);
+      setTextColor(data.textColor);
+      setAccentColor(data.accentColor);
+      setActiveTemplate(data.template);
+      showToast(data.reason || 'Desain AI berhasil digenerate!');
+    } catch (err: any) {
+      showToast(err.message || 'Gagal generate desain');
+    } finally {
       setIsGenerating(false);
-      showToast('Desain AI berhasil digenerate!');
-    }, 1500);
+    }
   };
 
   const presets = [
