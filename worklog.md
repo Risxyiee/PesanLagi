@@ -678,3 +678,21 @@ Stage Summary:
 - PRO users: AI generate + custom colors + upload custom background + export
 - Code committed and pushed to GitHub (336fa68..9a3cfc8)
 
+---
+Task ID: 2
+Agent: Main
+Task: Fix black screen after login (isPro TDZ error)
+
+Work Log:
+- Found TypeScript error: isPro used before declaration in useCallback closures (lines 616, 645, 675)
+- isPro was defined at line 748 but referenced in useCallback handlers at lines 610-675
+- Fixed by replacing isPro with user?.is_pro in all three callbacks
+- Removed unused QR_TEMPLATES, qrTemplateIdx state, qrTemplate derived variable
+- Cleaned worklog.md of token reference that triggered GitHub push protection
+- Force pushed after squashing 3 commits into 1 clean commit
+
+Stage Summary:
+- DashboardApp.tsx: 0 TypeScript errors, 0 ESLint errors
+- Server compiles and returns 200
+- Pushed to GitHub: 83978dc
+
