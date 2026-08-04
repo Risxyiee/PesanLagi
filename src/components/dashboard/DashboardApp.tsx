@@ -35,15 +35,11 @@ import {
   Download,
   Image as ImageIcon,
   Printer,
-  MessageCircle,
   Camera,
   Phone,
   Clock,
   Save,
   CheckCircle2,
-  Banknote,
-  Receipt,
-  Award,
   ShieldCheck,
   LayoutGrid,
   List,
@@ -96,17 +92,6 @@ interface MenuItem {
   image?: string;
   is_available?: boolean;
   sold_count?: number;
-}
-
-interface Review {
-  id: string;
-  name: string;
-  avatar: string;
-  rating: number;
-  text: string;
-  date: string;
-  reply?: string;
-  replied: boolean;
 }
 
 interface OrderItem {
@@ -163,152 +148,37 @@ const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: strin
 const DAYS_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 /* ------------------------------------------------------------------ */
-/*  Sample / default data                                              */
+/*  QR Templates                                                       */
 /* ------------------------------------------------------------------ */
 
-const DEFAULT_REVIEWS: Review[] = [
-  {
-    id: "r1",
-    name: "Budi Santoso",
-    avatar: "https://picsum.photos/seed/budi-santoso-avatar/80/80",
-    rating: 5,
-    text: "\"Nasi gorengnya enak banget, porsinya banyak dan harganya bersaing. Menu digitalnya juga memudahkan pesan tanpa antri. Pasti pesan lagi!\"",
-    date: "2 hari lalu",
-    reply: "Terima kasih kak Budi! Ditunggu kedatangannya lagi ya 🙏",
-    replied: true,
-  },
-  {
-    id: "r2",
-    name: "Siti Aminah",
-    avatar: "https://picsum.photos/seed/siti-aminah-avatar/80/80",
-    rating: 4,
-    text: "\"Harga bersaing, rasa oke. Tapi agak lama saat jam ramai. Semoga kedepannya lebih cepat. Overall recommended!\"",
-    date: "3 hari lalu",
-    replied: false,
-  },
-  {
-    id: "r3",
-    name: "Ahmad Fauzi",
-    avatar: "https://picsum.photos/seed/ahmad-fauzi-avatar/80/80",
-    rating: 5,
-    text: "\"Ayam gepreknya juara! Level pedasnya pas, mozzarellanya lumer. QR code di meja juga praktis, scan langsung pesan. Top!\"",
-    date: "5 hari lalu",
-    replied: true,
-  },
-  {
-    id: "r4",
-    name: "Dewi Lestari",
-    avatar: "https://picsum.photos/seed/dewi-lestari-avatar/80/80",
-    rating: 3,
-    text: "\"Tempatnya nyaman, menu digitalnya membantu. Tapi soto ayamnya kurang garam menurut saya. Semoga diperbaiki ya.\"",
-    date: "1 minggu lalu",
-    replied: false,
-  },
-];
-
-const DEFAULT_ORDERS: Order[] = [
-  {
-    id: "#ORD-0142",
-    customer: "Budi Santoso",
-    info: "Meja 3 • 0812-3456-7890",
-    time: "2 menit lalu",
-    status: "new",
-    items: [
-      { name: "2x Nasi Goreng Spesial", qty: 2, price: "Rp 36.000" },
-      { name: "1x Es Teh Manis", qty: 1, price: "Rp 5.000" },
-      { name: "1x Kerupuk Udang", qty: 1, price: "Rp 3.000" },
-    ],
-    total: "Rp 44.000",
-  },
-  {
-    id: "#ORD-0141",
-    customer: "Siti Aminah",
-    info: "Takeaway • 0813-9876-5432",
-    time: "5 menit lalu",
-    status: "new",
-    items: [
-      { name: "3x Mie Ayam Bakso", qty: 3, price: "Rp 45.000" },
-      { name: "2x Es Jeruk Peras", qty: 2, price: "Rp 14.000" },
-    ],
-    total: "Rp 59.000",
-  },
-  {
-    id: "#ORD-0140",
-    customer: "Ahmad Fauzi",
-    info: "Meja 5 • 0856-1234-5678",
-    time: "12 menit lalu",
-    status: "process",
-    items: [
-      { name: "1x Ayam Geprek Mozzarella", qty: 1, price: "Rp 22.000" },
-      { name: "2x Es Teh Manis", qty: 2, price: "Rp 10.000" },
-      { name: "1x Pisang Goreng Keju", qty: 1, price: "Rp 12.000" },
-    ],
-    total: "Rp 44.000",
-  },
-  {
-    id: "#ORD-0139",
-    customer: "Dewi Lestari",
-    info: "Meja 1 • 0821-5555-7777",
-    time: "8 menit lalu",
-    status: "new",
-    items: [
-      { name: "2x Soto Ayam Lamongan", qty: 2, price: "Rp 34.000" },
-      { name: "1x Nasi Goreng Spesial", qty: 1, price: "Rp 18.000" },
-      { name: "3x Es Teh Manis", qty: 3, price: "Rp 15.000" },
-    ],
-    total: "Rp 67.000",
-  },
-  {
-    id: "#ORD-0138",
-    customer: "Rudi Hartono",
-    info: "Takeaway • 0811-2222-3333",
-    time: "35 menit lalu",
-    status: "done",
-    items: [
-      { name: "1x Mie Ayam Bakso", qty: 1, price: "Rp 15.000" },
-      { name: "1x Es Jeruk Peras", qty: 1, price: "Rp 7.000" },
-    ],
-    total: "Rp 22.000",
-  },
-];
-
-const TOP_SELLING = [
-  { name: "Es Teh Manis", count: 220, pct: 100 },
-  { name: "Nasi Goreng", count: 142, pct: 65 },
-  { name: "Mie Ayam Bakso", count: 98, pct: 45 },
-  { name: "Ayam Geprek", count: 76, pct: 35 },
-  { name: "Soto Ayam", count: 65, pct: 30 },
-];
-
-const RECENT_TRANSACTIONS = [
-  { id: "#ORD-0138", customer: "Rudi Hartono", time: "35 min lalu", amount: "+Rp 22K", color: "green" },
-  { id: "#ORD-0140", customer: "Ahmad Fauzi", time: "12 min lalu", amount: "+Rp 44K", color: "amber" },
-  { id: "#ORD-0142", customer: "Budi Santoso", time: "2 min lalu", amount: "+Rp 44K", color: "amber" },
-  { id: "#ORD-0137", customer: "Maya Sari", time: "1 jam lalu", amount: "+Rp 33K", color: "green" },
-  { id: "#ORD-0136", customer: "Doni Pratama", time: "2 jam lalu", amount: "+Rp 56K", color: "green" },
+const QR_TEMPLATES = [
+  { name: "Gold Elegan", bg: "#FFFBEB", cardBg: "bg-amber-50", qr: "#0F172A", accent: "from-amber-400 to-amber-600", border: "border-amber-200/50", iconBg: "from-amber-400 to-amber-600" },
+  { name: "Dark Premium", bg: "#1E293B", cardBg: "bg-slate-800", qr: "#F8FAFC", accent: "from-slate-400 to-slate-600", border: "border-slate-600/50", iconBg: "from-slate-400 to-slate-600" },
+  { name: "Fresh Green", bg: "#F0FDF4", cardBg: "bg-green-50", qr: "#14532D", accent: "from-green-400 to-green-600", border: "border-green-200/50", iconBg: "from-green-400 to-green-600" },
+  { name: "Ocean Blue", bg: "#EFF6FF", cardBg: "bg-blue-50", qr: "#1E3A5F", accent: "from-blue-400 to-blue-600", border: "border-blue-200/50", iconBg: "from-blue-400 to-blue-600" },
 ];
 
 /* ------------------------------------------------------------------ */
 /*  QR SVG Generation                                                  */
 /* ------------------------------------------------------------------ */
-function generateQRSVG(): string {
+function generateQRSVG(fgColor: string = "#0F172A"): string {
   const size = 25;
   let rects = "";
   const add = (x: number, y: number, w: number, h: number, fill: string) => {
     rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`;
   };
   [[0,0],[18,0],[0,18]].forEach(([fx,fy]) => {
-    add(fx, fy, 7, 7, "#0F172A");
+    add(fx, fy, 7, 7, fgColor);
     add(fx+1, fy+1, 5, 5, "white");
-    add(fx+2, fy+2, 3, 3, "#0F172A");
+    add(fx+2, fy+2, 3, 3, fgColor);
   });
-  add(16, 16, 5, 5, "#0F172A");
+  add(16, 16, 5, 5, fgColor);
   add(17, 17, 3, 3, "white");
-  add(18, 18, 1, 1, "#0F172A");
+  add(18, 18, 1, 1, fgColor);
   for (let i = 8; i < 17; i++) {
     if (i % 2 === 0) {
-      add(i, 6, 1, 1, "#0F172A");
-      add(6, i, 1, 1, "#0F172A");
+      add(i, 6, 1, 1, fgColor);
+      add(6, i, 1, 1, fgColor);
     }
   }
   for (let y = 0; y < size; y++) {
@@ -319,7 +189,7 @@ function generateQRSVG(): string {
       const inTiming = (y===6||x===6);
       if (inFinder||inAlign||inCenter||inTiming) continue;
       const hash = (x*7+y*13+x*y*3) % 7;
-      if (hash < 3) add(x, y, 1, 1, "#0F172A");
+      if (hash < 3) add(x, y, 1, 1, fgColor);
     }
   }
   return rects;
@@ -357,11 +227,20 @@ export default function DashboardApp() {
   const [menuSearch, setMenuSearch] = useState("");
   const [activeCategoryChip, setActiveCategoryChip] = useState("all");
 
-  // Orders are local / mock
-  const [orders, setOrders] = useState<Order[]>(DEFAULT_ORDERS);
+  // Orders — start empty (no mock data)
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  // Category management
+  const [newCatName, setNewCatName] = useState("");
+  const [showAddCat, setShowAddCat] = useState(false);
+
+  // QR template selection
+  const [qrTemplateIdx, setQrTemplateIdx] = useState(0);
 
   // Settings form
   const [settingsName, setSettingsName] = useState("");
+  const [settingsSlug, setSettingsSlug] = useState("");
+  const [settingsCategory, setSettingsCategory] = useState("");
   const [settingsDesc, setSettingsDesc] = useState("");
   const [settingsPhone, setSettingsPhone] = useState("");
   const [settingsEmail, setSettingsEmail] = useState("");
@@ -369,6 +248,7 @@ export default function DashboardApp() {
   const [settingsOpenTime, setSettingsOpenTime] = useState("08:00");
   const [settingsCloseTime, setSettingsCloseTime] = useState("22:00");
   const [settingsDays, setSettingsDays] = useState<boolean[]>([true,true,true,true,true,true,false]);
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
 
   // Modal form
   const [modalName, setModalName] = useState("");
@@ -382,6 +262,8 @@ export default function DashboardApp() {
   const orderTabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [tabIndicator, setTabIndicator] = useState({ left: 0, width: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---------- auth check ---------- */
   useEffect(() => {
@@ -416,8 +298,17 @@ export default function DashboardApp() {
           setSettingsPhone(storeRes.phone ?? "");
           setSettingsEmail(storeRes.email ?? "");
           setSettingsAddress(storeRes.address ?? "");
+          setSettingsSlug(storeRes.slug ?? "");
+          setSettingsCategory(storeRes.category ?? "Makanan Indonesia");
           if (storeRes.open_time) setSettingsOpenTime(storeRes.open_time);
           if (storeRes.close_time) setSettingsCloseTime(storeRes.close_time);
+          if (storeRes.days && Array.isArray(storeRes.days)) {
+            const days = [false, false, false, false, false, false, false];
+            storeRes.days.forEach((d: number) => {
+              if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
+            });
+            setSettingsDays(days);
+          }
         }
         if (Array.isArray(menusRes)) setMenus(menusRes);
         if (Array.isArray(catsRes)) setCategories(catsRes);
@@ -480,25 +371,27 @@ export default function DashboardApp() {
     showToast(next ? "Toko dibuka" : "Toko ditutup");
   }, [storeOpen, showToast]);
 
-  const handleToggleStock = useCallback(async (menuId?: string, idx?: number) => {
-    // optimistic
+  const handleToggleStock = useCallback(async (menuId?: string) => {
+    if (!menuId) return;
+    const menuItem = menus.find((m) => m.id === menuId);
+    if (!menuItem) return;
+    const nextAvailable = !menuItem.is_available;
     setMenus((prev) =>
       prev.map((m) =>
-        (m.id === menuId) || (idx !== undefined && prev[idx] === m)
-          ? { ...m, is_available: !m.is_available }
-          : m
+        m.id === menuId ? { ...m, is_available: nextAvailable } : m
       )
     );
-    if (menuId) {
-      try {
-        await fetch("/api/menus", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: menuId, is_available: false }),
-        });
-      } catch {}
+    try {
+      await fetch("/api/menus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: menuId, is_available: nextAvailable }),
+      });
+      showToast(nextAvailable ? "Menu tersedia" : "Menu ditandai habis");
+    } catch {
+      showToast("Gagal mengubah status menu");
     }
-  }, []);
+  }, [menus, showToast]);
 
   const handleDeleteMenu = useCallback(async (menuId?: string) => {
     if (!menuId) return;
@@ -522,6 +415,8 @@ export default function DashboardApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: settingsName,
+          slug: settingsSlug,
+          category: settingsCategory,
           description: settingsDesc,
           phone: settingsPhone,
           email: settingsEmail,
@@ -539,7 +434,29 @@ export default function DashboardApp() {
     } catch {
       showToast("Gagal menyimpan perubahan");
     }
-  }, [settingsName, settingsDesc, settingsPhone, settingsEmail, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, showToast]);
+  }, [settingsName, settingsSlug, settingsCategory, settingsDesc, settingsPhone, settingsEmail, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, showToast]);
+
+  const handleCancelSettings = useCallback(() => {
+    if (store) {
+      setSettingsName(store.name ?? "");
+      setSettingsDesc(store.description ?? "");
+      setSettingsPhone(store.phone ?? "");
+      setSettingsEmail(store.email ?? "");
+      setSettingsAddress(store.address ?? "");
+      setSettingsSlug(store.slug ?? "");
+      setSettingsCategory(store.category ?? "Makanan Indonesia");
+      if (store.open_time) setSettingsOpenTime(store.open_time);
+      if (store.close_time) setSettingsCloseTime(store.close_time);
+      if (store.days && Array.isArray(store.days)) {
+        const days = [false, false, false, false, false, false, false];
+        store.days.forEach((d: number) => {
+          if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
+        });
+        setSettingsDays(days);
+      }
+    }
+    showToast("Perubahan dibatalkan");
+  }, [store, showToast]);
 
   const handleUploadImage = useCallback(async (file: File) => {
     setUploading(true);
@@ -556,6 +473,30 @@ export default function DashboardApp() {
       showToast("Gagal mengunggah gambar");
     } finally {
       setUploading(false);
+    }
+  }, [showToast]);
+
+  const handleUploadLogo = useCallback(async (file: File) => {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("bucket", "logos");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        const url = data.url ?? data.publicUrl;
+        if (url) {
+          setStore((prev) => (prev ? { ...prev, logo: url } : prev));
+          await fetch("/api/store", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ logo: url }),
+          });
+          showToast("Logo berhasil diperbarui!");
+        }
+      }
+    } catch {
+      showToast("Gagal mengunggah logo");
     }
   }, [showToast]);
 
@@ -593,26 +534,96 @@ export default function DashboardApp() {
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId
-          ? { ...o, status: newStatus === "done" ? ("done" as const) : ("process" as const) }
+          ? { ...o, status: newStatus }
           : o
       )
     );
-    showToast(newStatus === "Diproses" ? "Pesanan diterima, sedang diproses" : "Pesanan selesai! 🎉");
+    showToast(newStatus === "process" ? "Pesanan diterima, sedang diproses" : "Pesanan selesai!");
   }, [showToast]);
 
+  const handleAddCategory = useCallback(async () => {
+    if (!newCatName.trim()) return;
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCatName.trim() }),
+      });
+      if (res.ok) {
+        const cat = await res.json();
+        setCategories((prev) => [...prev, cat]);
+        setNewCatName("");
+        setShowAddCat(false);
+        showToast("Kategori berhasil ditambahkan!");
+      }
+    } catch {
+      showToast("Gagal menambah kategori");
+    }
+  }, [newCatName, showToast]);
+
+  const handleDeleteCategory = useCallback(async (catId?: string) => {
+    if (!catId) return;
+    try {
+      await fetch("/api/categories", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: catId }),
+      });
+      setCategories((prev) => prev.filter((c) => c.id !== catId));
+      if (activeCategoryChip !== "all") {
+        const remaining = categories.filter((c) => c.id !== catId);
+        if (!remaining.some((c) => c.name === activeCategoryChip)) {
+          setActiveCategoryChip("all");
+        }
+      }
+      showToast("Kategori berhasil dihapus");
+    } catch {
+      showToast("Gagal menghapus kategori");
+    }
+  }, [categories, activeCategoryChip, showToast]);
+
+  const handleSlugChange = useCallback((val: string) => {
+    const slug = val.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    setSettingsSlug(slug);
+    setSlugAvailable(null);
+    if (slugTimer.current) clearTimeout(slugTimer.current);
+    if (slug.length >= 3) {
+      slugTimer.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/store/check-slug?slug=${encodeURIComponent(slug)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setSlugAvailable(data.available ?? true);
+          }
+        } catch {}
+      }, 500);
+    }
+  }, []);
+
   /* ---------- derived ---------- */
-  const storeName = store?.name ?? user?.name ?? "Warung Makan Barokah";
-  const storeSlug = store?.slug ?? "warung-barokah";
-  const storeLogo = store?.logo ?? "https://picsum.photos/seed/warung-barokah-logo/80/80";
+  const storeName = store?.name ?? user?.name ?? "Warung Saya";
+  const storeSlug = (store?.slug ?? settingsSlug) || "warung-saya";
+  const storeLogo = store?.logo ?? "";
   const isPro = user?.is_pro ?? false;
   const menuCount = menus.length;
+  const catCount = categories.length;
   const newOrderCount = orders.filter((o) => o.status === "new").length;
 
+  // Pro days remaining
+  const proDaysLeft = (() => {
+    if (!user?.pro_ends_at) return null;
+    const end = new Date(user.pro_ends_at);
+    const now = new Date();
+    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  })();
+
   const categoryChips = [
-    { id: "all", label: `Semua (${menuCount})` },
+    { id: "all", label: `Semua (${menuCount})`, catId: undefined as string | undefined },
     ...categories.map((c) => ({
       id: c.name,
       label: `${c.name} (${menus.filter((m) => m.category === c.name).length})`,
+      catId: c.id,
     })),
   ];
 
@@ -623,17 +634,6 @@ export default function DashboardApp() {
   });
 
   const filteredOrders = orders.filter((o) => orderTab === "all" || o.status === orderTab);
-
-  const displayMenus = filteredMenus.length > 0 ? filteredMenus : [
-    { name: "Nasi Goreng Spesial", price: 18000, category: "Makanan", image: "https://picsum.photos/seed/nasi-goreng-spesial-kampung/400/300", is_available: true, sold_count: 142 },
-    { name: "Mie Ayam Bakso Telur", price: 15000, category: "Makanan", image: "https://picsum.photos/seed/mie-ayam-bakso-telur/400/300", is_available: true, sold_count: 98 },
-    { name: "Ayam Geprek Mozzarella", price: 22000, category: "Makanan", image: "https://picsum.photos/seed/ayam-geprek-mozzarella/400/300", is_available: false, sold_count: 76 },
-    { name: "Es Teh Manis Hangat", price: 5000, category: "Minuman", image: "https://picsum.photos/seed/es-teh-manis-hangat/400/300", is_available: true, sold_count: 220 },
-    { name: "Es Jeruk Peras Segar", price: 7000, category: "Minuman", image: "https://picsum.photos/seed/es-jeruk-peras-segar/400/300", is_available: true, sold_count: 85 },
-    { name: "Soto Ayam Lamongan", price: 17000, category: "Makanan", image: "https://picsum.photos/seed/soto-ayam-lamongan-asli/400/300", is_available: true, sold_count: 65 },
-    { name: "Kerupuk Udang Renyah", price: 3000, category: "Snack", image: "https://picsum.photos/seed/kerupuk-udang-renyah/400/300", is_available: true, sold_count: 180 },
-    { name: "Pisang Goreng Keju", price: 12000, category: "Snack", image: "https://picsum.photos/seed/pisang-goreng-keju-coklat/400/300", is_available: false, sold_count: 54 },
-  ];
 
   /* ---------- loading ---------- */
   if (loading) {
@@ -652,6 +652,8 @@ export default function DashboardApp() {
   }
 
   /* ---------- render ---------- */
+  const qrTemplate = QR_TEMPLATES[qrTemplateIdx];
+
   return (
     <div style={{ background: "#F8FAFC", color: "#0F172A", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", WebkitFontSmoothing: "antialiased" }} className="min-h-screen overflow-x-hidden">
       {/* Background decorations */}
@@ -703,7 +705,13 @@ export default function DashboardApp() {
         <div className={`${styles.profileCard} mx-4 mb-4 p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100`}>
           <div className="flex items-center gap-3">
             <div className="relative shrink-0">
-              <img src={storeLogo} className="w-11 h-11 rounded-xl object-cover ring-2 ring-white" alt={storeName} />
+              {storeLogo ? (
+                <img src={storeLogo} className="w-11 h-11 rounded-xl object-cover ring-2 ring-white" alt={storeName} />
+              ) : (
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center ring-2 ring-white">
+                  <span className="text-white font-bold text-lg">{storeName.charAt(0).toUpperCase()}</span>
+                </div>
+              )}
               <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
             </div>
             <div className="flex-1 min-w-0">
@@ -751,9 +759,14 @@ export default function DashboardApp() {
                 <span className="text-xs font-bold text-amber-400">PRO ACTIVE</span>
               </div>
               <p className="text-xs text-slate-300 mb-2.5 leading-relaxed">
-                Berakhir dalam 28 hari. Perpanjang untuk fitur premium.
+                {proDaysLeft !== null
+                  ? `Berakhir dalam ${proDaysLeft} hari. Perpanjang untuk fitur premium.`
+                  : "Member Pro aktif."}
               </p>
-              <button className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-amber-500/30 transition-all">
+              <button
+                onClick={() => showToast("Halaman pembayaran segera hadir")}
+                className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-amber-500/30 transition-all"
+              >
                 Perpanjang Pro
               </button>
             </div>
@@ -798,9 +811,9 @@ export default function DashboardApp() {
               </span>
             </div>
           </div>
-          <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative">
+          <button onClick={() => showToast("Tidak ada notifikasi baru")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative">
             <Bell className="w-[18px] h-[18px] text-slate-600" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />
+            {newOrderCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />}
           </button>
         </div>
 
@@ -811,13 +824,13 @@ export default function DashboardApp() {
             <h1 className="text-2xl font-extrabold text-slate-900">{PAGE_TITLES[activePage]}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button className="px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-700 hover:border-amber-300 transition-colors">
+            <button onClick={() => navigate("menu")} className="px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-700 hover:border-amber-300 transition-colors">
               <Search className="w-4 h-4" />
               <span className="hidden xl:inline text-slate-400">Cari menu, pesanan...</span>
             </button>
-            <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:border-amber-300 transition-colors relative">
+            <button onClick={() => showToast("Tidak ada notifikasi baru")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:border-amber-300 transition-colors relative">
               <Bell className="w-[18px] h-[18px]" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />
+              {newOrderCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />}
             </button>
           </div>
         </div>
@@ -838,18 +851,20 @@ export default function DashboardApp() {
                     </div>
                   )}
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-                    Selamat Datang, {storeName} <span className={styles.waveEmoji}>👋</span>
+                    Selamat Datang, {storeName}
                   </h1>
                   <p className="mt-1.5 text-sm text-amber-50/90">
-                    Toko Anda sedang aktif. Kelola menu dan raih lebih banyak pelanggan hari ini.
+                    {storeOpen
+                      ? "Toko Anda sedang aktif. Kelola menu dan raih lebih banyak pelanggan hari ini."
+                      : "Toko Anda sedang tutup. Buka toko untuk mulai menerima pesanan."}
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("reports")}
+                  onClick={() => navigate("menu")}
                   className={`${styles.ctaBtn} shrink-0 px-5 py-3 rounded-xl bg-white text-amber-700 font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:shadow-2xl`}
                 >
                   <Rocket className="w-4 h-4" />
-                  <span>Lihat Statistik</span>
+                  <span>Kelola Menu</span>
                 </button>
               </div>
             </div>
@@ -885,9 +900,12 @@ export default function DashboardApp() {
                     className={`${styles.ctaBtn} flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30`}
                   >
                     <Copy className="w-4 h-4" />
-                    <span>Salin Link WA</span>
+                    <span>Salin Link</span>
                   </button>
-                  <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/50 transition-all">
+                  <button
+                    onClick={() => window.open(`/menu/${storeSlug}`, "_blank")}
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/50 transition-all"
+                  >
                     <Eye className="w-4 h-4" />
                     <span>Lihat Menu Live</span>
                   </button>
@@ -900,13 +918,11 @@ export default function DashboardApp() {
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><UtensilsCrossed className="w-5 h-5 text-amber-600" /></div>
-                  <TrendingUp className="w-4 h-4 text-green-500" />
                 </div>
                 <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">
                   {menuCount}<span className="text-base text-slate-400 font-bold ml-1">Menu</span>
                 </p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Menu Makanan</p>
-                <p className="text-[10px] text-green-600 font-semibold mt-1">+3 menu minggu ini</p>
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-start justify-between mb-3">
@@ -929,16 +945,26 @@ export default function DashboardApp() {
                 </div>
                 <p className="text-base font-extrabold text-slate-900 leading-tight">Siap Cetak A6</p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Status QR Code</p>
-                <p className="text-[10px] text-purple-600 font-semibold mt-1">Unduh 1x klik</p>
+                <p className="text-[10px] text-purple-600 font-semibold mt-1">{catCount} Kategori</p>
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center"><CalendarClock className="w-5 h-5 text-orange-600" /></div>
-                  <Crown className="w-4 h-4 text-amber-500" />
+                  {isPro ? <Crown className="w-4 h-4 text-amber-500" /> : <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold">FREE</span>}
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">28<span className="text-base text-slate-400 font-bold ml-1">Hari</span></p>
-                <p className="text-xs text-slate-500 mt-1.5 font-medium">Masa Aktif Pro</p>
-                <p className="text-[10px] text-orange-600 font-semibold mt-1">Berakhir 11 Feb 2025</p>
+                {isPro ? (
+                  <>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">{proDaysLeft ?? 0}<span className="text-base text-slate-400 font-bold ml-1">Hari</span></p>
+                    <p className="text-xs text-slate-500 mt-1.5 font-medium">Masa Aktif Pro</p>
+                    <p className="text-[10px] text-orange-600 font-semibold mt-1">{user?.pro_ends_at ? new Date(user.pro_ends_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : ""}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-base font-extrabold text-slate-900 leading-tight">Paket Free</p>
+                    <p className="text-xs text-slate-500 mt-1.5 font-medium">Tingkatkan ke Pro</p>
+                    <p className="text-[10px] text-orange-600 font-semibold mt-1">Untuk fitur lengkap</p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -969,7 +995,10 @@ export default function DashboardApp() {
                   <p className="text-sm font-bold text-slate-900 leading-tight">Pengaturan Profil</p>
                   <p className="text-[11px] text-slate-500 mt-1">Edit info warung</p>
                 </div>
-                <div className={`${styles.quickTile} bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm`} onClick={() => showToast("Link menu dibagikan ke WhatsApp!")}>
+                <div className={`${styles.quickTile} bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm`} onClick={() => {
+                  navigator.clipboard?.writeText(`pesanlagi.web.id/menu/${storeSlug}`).catch(() => {});
+                  showToast("Link menu dibagikan ke WhatsApp!");
+                }}>
                   <div className={`${styles.tileIcon} w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg shadow-green-500/30`}>
                     <Share2 className="w-6 h-6 text-white" strokeWidth={2.5} />
                   </div>
@@ -986,42 +1015,64 @@ export default function DashboardApp() {
                   <h3 className="text-base font-bold text-slate-900">Menu Makanan Anda</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Kelola ketersediaan menu secara real-time</p>
                 </div>
-                <button onClick={() => navigate("menu")} className="px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors">
+                <button onClick={() => { navigate("menu"); setTimeout(() => setModalOpen(true), 300); }} className="px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Tambah
                 </button>
               </div>
-              <div className="divide-y divide-slate-100">
-                {displayMenus.slice(0, 4).map((m, i) => (
-                  <div key={m.id ?? i} className={`${styles.menuRow} flex items-center gap-3 sm:gap-4 p-4 sm:p-5`}>
-                    <img src={m.image} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt={m.name} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{m.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-sm font-bold text-amber-600">Rp {m.price.toLocaleString("id-ID")}</span>
-                        <span className="text-[10px] text-slate-400">•</span>
-                        <span className="text-[11px] text-slate-500">Terjual {m.sold_count ?? 0}x</span>
+              {filteredMenus.length > 0 ? (
+                <>
+                  <div className="divide-y divide-slate-100">
+                    {filteredMenus.slice(0, 4).map((m, i) => (
+                      <div key={m.id ?? i} className={`${styles.menuRow} flex items-center gap-3 sm:gap-4 p-4 sm:p-5`}>
+                        {m.image ? (
+                          <img src={m.image} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" alt={m.name} />
+                        ) : (
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                            <UtensilsCrossed className="w-6 h-6 text-amber-500" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-900 truncate">{m.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-sm font-bold text-amber-600">Rp {m.price.toLocaleString("id-ID")}</span>
+                            <span className="text-[10px] text-slate-400">•</span>
+                            <span className="text-[11px] text-slate-500">{m.category ?? "Makanan"}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`hidden sm:inline text-xs font-semibold ${m.is_available !== false ? "text-green-600" : "text-red-500"}`}>
+                            {m.is_available !== false ? "Tersedia" : "Habis"}
+                          </span>
+                          <div
+                            className={`${styles.toggle} ${m.is_available !== false ? styles.toggleAmber : ""}`}
+                            onClick={() => handleToggleStock(m.id)}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`hidden sm:inline text-xs font-semibold ${m.is_available !== false ? "text-green-600" : "text-red-500"}`}>
-                        {m.is_available !== false ? "Tersedia" : "Habis"}
-                      </span>
-                      <div
-                        className={`${styles.toggle} ${m.is_available !== false ? styles.toggleAmber : ""}`}
-                        onClick={() => handleToggleStock(m.id, i)}
-                      />
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50">
-                <button
-                  onClick={() => navigate("menu")}
-                  className="w-full py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold flex items-center justify-center gap-2 hover:border-amber-300 hover:bg-amber-50/50 transition-all"
-                >
-                  Lihat Semua {menuCount} Menu <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+                  <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50">
+                    <button
+                      onClick={() => navigate("menu")}
+                      className="w-full py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold flex items-center justify-center gap-2 hover:border-amber-300 hover:bg-amber-50/50 transition-all"
+                    >
+                      Lihat Semua {menuCount} Menu <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="p-12 text-center">
+                  <UtensilsCrossed className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Menu</h3>
+                  <p className="text-xs text-slate-500 mb-4">Tambahkan menu makanan pertama Anda</p>
+                  <button
+                    onClick={() => { navigate("menu"); setTimeout(() => setModalOpen(true), 300); }}
+                    className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold inline-flex items-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Menu
+                  </button>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -1055,49 +1106,103 @@ export default function DashboardApp() {
               {categoryChips.map((c) => (
                 <button
                   key={c.id}
-                  className={`${styles.chip} ${activeCategoryChip === c.id ? styles.chipActive : ""}`}
+                  className={`${styles.chip} ${activeCategoryChip === c.id ? styles.chipActive : ""} group relative`}
                   onClick={() => setActiveCategoryChip(c.id)}
                 >
                   {c.label}
+                  {c.catId && (
+                    <span
+                      className="ml-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCategory(c.catId); }}
+                    >
+                      ×
+                    </span>
+                  )}
                 </button>
               ))}
+              {showAddCat ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  <input
+                    type="text"
+                    placeholder="Nama kategori..."
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); if (e.key === "Escape") { setShowAddCat(false); setNewCatName(""); } }}
+                    className="px-2 py-1 border border-amber-300 rounded-lg text-xs outline-none w-32"
+                    autoFocus
+                  />
+                  <button onClick={handleAddCategory} className="px-2 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors">
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => { setShowAddCat(false); setNewCatName(""); }} className="px-2 py-1 bg-slate-200 rounded-lg text-xs hover:bg-slate-300 transition-colors">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAddCat(true)}
+                  className={`${styles.chip} flex items-center gap-1 text-amber-600 shrink-0`}
+                >
+                  <Plus className="w-3 h-3" /> Tambah
+                </button>
+              )}
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 stagger">
-              {displayMenus.map((m, i) => {
-                const catColor = m.category === "Minuman" ? "text-blue-700" : m.category === "Snack" ? "text-purple-700" : "text-amber-700";
-                const avail = m.is_available !== false;
-                return (
-                  <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover">
-                    <div className="relative">
-                      <img src={m.image} className="w-full h-32 sm:h-40 object-cover" alt={m.name} />
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-slate-700">
-                        <span className={catColor}>{m.category ?? "Makanan"}</span>
-                      </span>
-                      <button
-                        className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"
-                        onClick={() => handleDeleteMenu(m.id)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                      {!avail && (
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold" style={{ right: 40 }}>Habis</span>
-                      )}
-                    </div>
-                    <div className="p-3 sm:p-4">
-                      <p className="text-sm font-bold text-slate-900 truncate">{m.name}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Terjual {m.sold_count ?? 0}x</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm font-extrabold text-amber-600">Rp {m.price.toLocaleString("id-ID")}</span>
-                        <div
-                          className={`${styles.toggle} ${avail ? styles.toggleAmber : ""}`}
-                          onClick={() => handleToggleStock(m.id, i)}
-                        />
+            {filteredMenus.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 stagger">
+                {filteredMenus.map((m, i) => {
+                  const catColor = m.category === "Minuman" ? "text-blue-700" : m.category === "Snack" ? "text-purple-700" : "text-amber-700";
+                  const avail = m.is_available !== false;
+                  return (
+                    <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover">
+                      <div className="relative">
+                        {m.image ? (
+                          <img src={m.image} className="w-full h-32 sm:h-40 object-cover" alt={m.name} />
+                        ) : (
+                          <div className="w-full h-32 sm:h-40 bg-amber-50 flex items-center justify-center">
+                            <UtensilsCrossed className="w-10 h-10 text-amber-300" />
+                          </div>
+                        )}
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-slate-700">
+                          <span className={catColor}>{m.category ?? "Makanan"}</span>
+                        </span>
+                        <button
+                          className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteMenu(m.id)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        {!avail && (
+                          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold" style={{ right: 40 }}>Habis</span>
+                        )}
+                      </div>
+                      <div className="p-3 sm:p-4">
+                        <p className="text-sm font-bold text-slate-900 truncate">{m.name}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{m.description || "Tanpa deskripsi"}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm font-extrabold text-amber-600">Rp {m.price.toLocaleString("id-ID")}</span>
+                          <div
+                            className={`${styles.toggle} ${avail ? styles.toggleAmber : ""}`}
+                            onClick={() => handleToggleStock(m.id)}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+                <UtensilsCrossed className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Menu</h3>
+                <p className="text-xs text-slate-500 mb-4">Tambahkan menu makanan pertama Anda</p>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold inline-flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" /> Tambah Menu
+                </button>
+              </div>
+            )}
           </section>
         )}
 
@@ -1111,30 +1216,35 @@ export default function DashboardApp() {
             <div className="grid lg:grid-cols-5 gap-5">
               {/* Preview */}
               <div className="lg:col-span-3 flex items-center justify-center">
-                <div className={`${styles.qrCardPreview} w-full max-w-sm p-6 sm:p-8 relative`}>
-                  <div className="absolute inset-0 border-4 border-amber-200/50 rounded-3xl m-2" />
+                <div
+                  className={`${styles.qrCardPreview} w-full max-w-sm p-6 sm:p-8 relative`}
+                  style={{ backgroundColor: qrTemplate.bg }}
+                >
+                  <div className="absolute inset-0 border-4 rounded-3xl m-2" style={{ borderColor: qrTemplate.qr + "33" }} />
                   <div className="relative text-center">
                     <div className="inline-flex items-center gap-2 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${qrTemplate.iconBg} flex items-center justify-center shadow-lg`}
+                        style={{ boxShadow: `0 10px 15px -3px ${qrTemplate.qr}33` }}
+                      >
                         <Utensils className="w-5 h-5 text-white" strokeWidth={2.5} />
                       </div>
-                      <span className="text-lg font-extrabold text-slate-900">Pesan<span className="text-amber-500">Lagi</span></span>
+                      <span className={`text-lg font-extrabold`} style={{ color: qrTemplate.qr }}>Pesan<span className="text-amber-500">Lagi</span></span>
                     </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 mb-1">{storeName}</h3>
-                    <p className="text-xs text-slate-500 mb-4">Scan QR untuk lihat menu & pesan langsung</p>
+                    <h3 className="text-xl font-extrabold mb-1" style={{ color: qrTemplate.qr }}>{storeName}</h3>
+                    <p className="text-xs mb-4" style={{ color: qrTemplate.qr + "99" }}>Scan QR untuk lihat menu & pesan langsung</p>
                     <div className="relative inline-block p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm mb-4">
-                      <svg viewBox="0 0 25 25" className="w-40 h-40" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG() }} />
+                      <svg viewBox="0 0 25 25" className="w-40 h-40" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG(qrTemplate.qr) }} />
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm">
-                        <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                        <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${qrTemplate.iconBg} flex items-center justify-center`}>
                           <Utensils className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center justify-center gap-1.5 mb-3">
-                      <Globe className="w-3.5 h-3.5 text-slate-400" />
-                      <span className={`${styles.urlPill} text-xs text-slate-600 font-medium`}>pesanlagi.web.id/menu/{storeSlug}</span>
+                      <Globe className="w-3.5 h-3.5" style={{ color: qrTemplate.qr + "88" }} />
+                      <span className={`${styles.urlPill} text-xs font-medium`} style={{ color: qrTemplate.qr }}>pesanlagi.web.id/menu/{storeSlug}</span>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+                    <div className="flex items-center justify-center gap-2 text-[11px]" style={{ color: qrTemplate.qr + "88" }}>
                       <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Resmi PesanLagi</span>
                       <span>•</span>
                       <span>A6 Siap Cetak</span>
@@ -1147,17 +1257,13 @@ export default function DashboardApp() {
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                   <h4 className="text-sm font-bold text-slate-900 mb-3">Pilih Template</h4>
                   <div className="grid grid-cols-2 gap-2.5">
-                    {[
-                      { name: "Gold Elegan", from: "from-amber-400", to: "to-amber-600", active: true },
-                      { name: "Dark Premium", from: "from-slate-700", to: "to-slate-900", active: false },
-                      { name: "Fresh Green", from: "from-green-400", to: "to-green-600", active: false },
-                      { name: "Ocean Blue", from: "from-blue-400", to: "to-blue-600", active: false },
-                    ].map((t) => (
+                    {QR_TEMPLATES.map((t, idx) => (
                       <button
                         key={t.name}
-                        className={`p-3 border-2 ${t.active ? "border-amber-500 bg-amber-50/50" : "border-slate-200 hover:border-amber-300"} rounded-xl text-left transition-all`}
+                        onClick={() => setQrTemplateIdx(idx)}
+                        className={`p-3 border-2 ${qrTemplateIdx === idx ? "border-amber-500 bg-amber-50/50" : "border-slate-200 hover:border-amber-300"} rounded-xl text-left transition-all`}
                       >
-                        <div className={`w-full h-12 bg-gradient-to-br ${t.from} ${t.to} rounded-lg mb-1.5`} />
+                        <div className={`w-full h-12 bg-gradient-to-br ${t.accent} rounded-lg mb-1.5`} />
                         <p className="text-[11px] font-bold text-slate-900">{t.name}</p>
                       </button>
                     ))}
@@ -1216,90 +1322,100 @@ export default function DashboardApp() {
               <h2 className="text-xl font-extrabold text-slate-900">Pesanan Masuk</h2>
               <p className="text-sm text-slate-500 mt-0.5">Kelola pesanan pelanggan secara real-time</p>
             </div>
-            <div className={`${styles.orderTabs} mb-5`}>
-              <div
-                className={styles.orderTabIndicator}
-                style={{ left: tabIndicator.left, width: tabIndicator.width }}
-              />
-              {["all", "new", "process", "done"].map((s, idx) => (
-                <button
-                  key={s}
-                  ref={(el) => { orderTabRefs.current[idx] = el; }}
-                  className={`${styles.orderTab} ${orderTab === s ? styles.orderTabActive : ""}`}
-                  onClick={() => setOrderTab(s)}
-                >
-                  {s === "all" ? `Semua (${orders.length})` : s === "new" ? `Baru (${orders.filter(o=>o.status==="new").length})` : s === "process" ? `Diproses (${orders.filter(o=>o.status==="process").length})` : `Selesai (${orders.filter(o=>o.status==="done").length})`}
-                </button>
-              ))}
-            </div>
-            <div className="space-y-3 stagger">
-              {filteredOrders.map((order) => {
-                const isNew = order.status === "new";
-                const isProcess = order.status === "process";
-                const isDone = order.status === "done";
-                return (
+            {orders.length > 0 ? (
+              <>
+                <div className={`${styles.orderTabs} mb-5`}>
                   <div
-                    key={order.id}
-                    className={`bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover ${isDone ? "opacity-70" : ""}`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 ${isNew ? "bg-amber-500" : isProcess ? "bg-blue-500" : "bg-green-500"} rounded-full ${isNew ? styles.pulseDot : ""}`} />
-                        <span className={`text-xs font-bold ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`}>
-                          {isNew ? "PESANAN BARU" : isProcess ? "SEDANG DIPROSES" : "SELESAI"}
-                        </span>
-                        <span className="text-[11px] text-slate-400">• {order.time}</span>
-                      </div>
-                      <span className="text-sm font-extrabold text-slate-900">{order.id}</span>
-                    </div>
-                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
-                      <div className={`w-10 h-10 rounded-xl ${isNew ? "bg-amber-100" : isProcess ? "bg-blue-100" : "bg-green-100"} flex items-center justify-center`}>
-                        <User className={`w-5 h-5 ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{order.customer}</p>
-                        <p className="text-[11px] text-slate-500">{order.info}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5 mb-3">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-sm">
-                          <span className="text-slate-600">{item.name}</span>
-                          <span className="font-semibold text-slate-900">{item.price}</span>
+                    className={styles.orderTabIndicator}
+                    style={{ left: tabIndicator.left, width: tabIndicator.width }}
+                  />
+                  {["all", "new", "process", "done"].map((s, idx) => (
+                    <button
+                      key={s}
+                      ref={(el) => { orderTabRefs.current[idx] = el; }}
+                      className={`${styles.orderTab} ${orderTab === s ? styles.orderTabActive : ""}`}
+                      onClick={() => setOrderTab(s)}
+                    >
+                      {s === "all" ? `Semua (${orders.length})` : s === "new" ? `Baru (${orders.filter(o=>o.status==="new").length})` : s === "process" ? `Diproses (${orders.filter(o=>o.status==="process").length})` : `Selesai (${orders.filter(o=>o.status==="done").length})`}
+                    </button>
+                  ))}
+                </div>
+                <div className="space-y-3 stagger">
+                  {filteredOrders.map((order) => {
+                    const isNew = order.status === "new";
+                    const isProcess = order.status === "process";
+                    const isDone = order.status === "done";
+                    return (
+                      <div
+                        key={order.id}
+                        className={`bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover ${isDone ? "opacity-70" : ""}`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 ${isNew ? "bg-amber-500" : isProcess ? "bg-blue-500" : "bg-green-500"} rounded-full ${isNew ? styles.pulseDot : ""}`} />
+                            <span className={`text-xs font-bold ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`}>
+                              {isNew ? "PESANAN BARU" : isProcess ? "SEDANG DIPROSES" : "SELESAI"}
+                            </span>
+                            <span className="text-[11px] text-slate-400">• {order.time}</span>
+                          </div>
+                          <span className="text-sm font-extrabold text-slate-900">{order.id}</span>
                         </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                      <div>
-                        <p className="text-[11px] text-slate-500">Total Pembayaran</p>
-                        <p className={`text-lg font-extrabold ${isDone ? "text-green-600" : "text-amber-600"}`}>{order.total}</p>
-                      </div>
-                      {isDone ? (
-                        <span className="px-3 py-2 rounded-lg bg-green-50 text-green-600 text-xs font-bold">✓ Selesai</span>
-                      ) : (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setOrders((prev) => prev.filter((o) => o.id !== order.id));
-                              showToast(`Pesanan ${order.id} ditolak`);
-                            }}
-                            className="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
-                          >
-                            {isProcess ? "Batal" : "Tolak"}
-                          </button>
-                          <button
-                            onClick={() => handleOrderAction(order.id, isProcess ? "done" : "process")}
-                            className={`${styles.ctaBtn} px-4 py-2 rounded-lg ${isProcess ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-amber-500 to-amber-600"} text-white text-xs font-bold shadow-md ${isProcess ? "shadow-green-500/30" : "shadow-amber-500/30"}`}
-                          >
-                            {isProcess ? "Tandai Selesai" : "Terima"}
-                          </button>
+                        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+                          <div className={`w-10 h-10 rounded-xl ${isNew ? "bg-amber-100" : isProcess ? "bg-blue-100" : "bg-green-100"} flex items-center justify-center`}>
+                            <User className={`w-5 h-5 ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{order.customer}</p>
+                            <p className="text-[11px] text-slate-500">{order.info}</p>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                        <div className="space-y-1.5 mb-3">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-sm">
+                              <span className="text-slate-600">{item.name}</span>
+                              <span className="font-semibold text-slate-900">{item.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                          <div>
+                            <p className="text-[11px] text-slate-500">Total Pembayaran</p>
+                            <p className={`text-lg font-extrabold ${isDone ? "text-green-600" : "text-amber-600"}`}>{order.total}</p>
+                          </div>
+                          {isDone ? (
+                            <span className="px-3 py-2 rounded-lg bg-green-50 text-green-600 text-xs font-bold">✓ Selesai</span>
+                          ) : (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setOrders((prev) => prev.filter((o) => o.id !== order.id));
+                                  showToast(`Pesanan ${order.id} ditolak`);
+                                }}
+                                className="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
+                              >
+                                {isProcess ? "Batal" : "Tolak"}
+                              </button>
+                              <button
+                                onClick={() => handleOrderAction(order.id, isProcess ? "done" : "process")}
+                                className={`${styles.ctaBtn} px-4 py-2 rounded-lg ${isProcess ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-amber-500 to-amber-600"} text-white text-xs font-bold shadow-md ${isProcess ? "shadow-green-500/30" : "shadow-amber-500/30"}`}
+                              >
+                                {isProcess ? "Tandai Selesai" : "Terima"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+                <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Pesanan Masuk</h3>
+                <p className="text-xs text-slate-500">Pesanan pelanggan akan muncul di sini secara real-time</p>
+              </div>
+            )}
           </section>
         )}
 
@@ -1308,150 +1424,115 @@ export default function DashboardApp() {
           <section>
             <div className="mb-5">
               <h2 className="text-xl font-extrabold text-slate-900">Laporan Penjualan</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Analisis performa warung Anda 7 hari terakhir</p>
+              <p className="text-sm text-slate-500 mt-0.5">Analisis performa warung Anda</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 stagger">
-              {[
-                { icon: Banknote, color: "amber", label: "Pendapatan Hari Ini", value: "Rp 847K", badge: "+12.5%", badgeColor: "green" },
-                { icon: Receipt, color: "blue", label: "Total Transaksi", value: "47", badge: "+8.2%", badgeColor: "green" },
-                { icon: TrendingUp, color: "purple", label: "Rata-rata Order", value: "Rp 18K", badge: "+5.1%", badgeColor: "green" },
-                { icon: Award, color: "orange", label: "Menu Terlaris", value: "Es Teh Manis", badge: "BEST", badgeColor: "amber" },
-              ].map((c, i) => {
-                const Icon = c.icon;
-                return (
-                  <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-xl bg-${c.color}-100 flex items-center justify-center`}>
-                        <Icon className={`w-5 h-5 text-${c.color}-600`} />
-                      </div>
-                      <span className={`text-[10px] font-bold ${c.badgeColor === "green" ? "text-green-600 bg-green-50" : "text-amber-700 bg-amber-50"} px-2 py-0.5 rounded-md`}>
-                        {c.badge}
-                      </span>
-                    </div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{c.value}</p>
-                    <p className="text-xs text-slate-500 mt-1.5 font-medium">{c.label}</p>
-                  </div>
-                );
-              })}
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><UtensilsCrossed className="w-5 h-5 text-amber-600" /></div>
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{menuCount}</p>
+                <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Menu</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><LayoutGrid className="w-5 h-5 text-green-600" /></div>
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{catCount}</p>
+                <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Kategori</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><ShoppingBag className="w-5 h-5 text-blue-600" /></div>
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{orders.length}</p>
+                <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Pesanan</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-purple-600" /></div>
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{orders.filter(o => o.status === "done").length}</p>
+                <p className="text-xs text-slate-500 mt-1.5 font-medium">Pesanan Selesai</p>
+              </div>
             </div>
 
-            {/* Chart */}
+            {/* Chart placeholder */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm mb-5">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Pendapatan 7 Hari Terakhir</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Total: Rp 3.847.000</p>
-                </div>
-                <div className="flex gap-1.5">
-                  <button className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-bold">7D</button>
-                  <button className="px-2.5 py-1 rounded-lg text-slate-500 text-[11px] font-semibold hover:bg-slate-50">30D</button>
-                  <button className="px-2.5 py-1 rounded-lg text-slate-500 text-[11px] font-semibold hover:bg-slate-50">90D</button>
+                  <h3 className="text-sm font-bold text-slate-900">Pendapatan</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Data akan muncul setelah ada transaksi</p>
                 </div>
               </div>
-              <svg viewBox="0 0 700 250" className="w-full" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <line x1="40" y1="50" x2="680" y2="50" stroke="#E2E8F0" strokeWidth={1} strokeDasharray="4 4" />
-                <line x1="40" y1="100" x2="680" y2="100" stroke="#E2E8F0" strokeWidth={1} strokeDasharray="4 4" />
-                <line x1="40" y1="150" x2="680" y2="150" stroke="#E2E8F0" strokeWidth={1} strokeDasharray="4 4" />
-                <line x1="40" y1="200" x2="680" y2="200" stroke="#E2E8F0" strokeWidth={1} strokeDasharray="4 4" />
-                <text x="30" y="55" fontSize="10" fill="#94A3B8" textAnchor="end">1JT</text>
-                <text x="30" y="105" fontSize="10" fill="#94A3B8" textAnchor="end">750K</text>
-                <text x="30" y="155" fontSize="10" fill="#94A3B8" textAnchor="end">500K</text>
-                <text x="30" y="205" fontSize="10" fill="#94A3B8" textAnchor="end">250K</text>
-                <path
-                  d="M 80,170 C 120,155 150,140 190,145 C 230,150 260,110 300,100 C 340,90 370,120 410,85 C 450,55 480,70 520,40 C 560,25 590,55 630,45 L 630,220 L 80,220 Z"
-                  fill="url(#chartGrad)"
-                  style={{ opacity: chartAnimated ? 1 : 0, transition: "opacity 1s ease 0.5s" }}
-                />
-                <path
-                  className={`${styles.chartLine} ${chartAnimated ? styles.chartLineAnimate : ""}`}
-                  d="M 80,170 C 120,155 150,140 190,145 C 230,150 260,110 300,100 C 340,90 370,120 410,85 C 450,55 480,70 520,40 C 560,25 590,55 630,45"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {[
-                  [80,170], [190,145], [300,100], [410,85], [520,40], [630,45],
-                ].map(([cx, cy], idx) => (
-                  <circle
-                    key={idx}
-                    className={`${styles.chartDot} ${chartAnimated ? styles.chartDotAnimate : ""}`}
-                    cx={cx}
-                    cy={cy}
-                    r={idx === 4 ? 6 : 5}
-                    fill={idx === 4 ? "#F59E0B" : "white"}
-                    stroke="#F59E0B"
-                    strokeWidth={3}
-                  />
-                ))}
-                {["Sen","Sel","Rab","Kam","Sab","Min"].map((label, idx) => (
-                  <text
-                    key={label}
-                    x={[80,190,300,410,520,630][idx]}
-                    y="240"
-                    fontSize="11"
-                    fill={idx === 4 ? "#F59E0B" : "#94A3B8"}
-                    textAnchor="middle"
-                    fontWeight={idx === 4 ? "bold" : "normal"}
-                  >
-                    {label}
-                  </text>
-                ))}
-              </svg>
+              <div className="h-48 flex items-center justify-center text-center">
+                <div>
+                  <BarChart3 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                  <p className="text-xs text-slate-400 font-medium">Belum ada data penjualan</p>
+                </div>
+              </div>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-5">
-              {/* Top selling */}
+              {/* Top selling placeholder */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 mb-4">Menu Terlaris</h3>
-                <div className="space-y-3">
-                  {TOP_SELLING.map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-slate-400 w-4">{idx + 1}</span>
-                      <span className="text-sm font-medium text-slate-700 w-28 truncate">{item.name}</span>
-                      <div className="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden">
-                        <div
-                          className={`${styles.barFill} h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2`}
-                          style={{ width: barAnimated ? `${item.pct}%` : "0%" }}
-                        >
-                          <span className="text-[10px] font-bold text-white">{item.count}x</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {menus.length > 0 ? (
+                  <div className="space-y-3">
+                    {menus
+                      .sort((a, b) => (b.sold_count ?? 0) - (a.sold_count ?? 0))
+                      .slice(0, 5)
+                      .map((item, idx) => {
+                        const maxSold = Math.max(...menus.map(m => m.sold_count ?? 0), 1);
+                        const pct = ((item.sold_count ?? 0) / maxSold) * 100;
+                        return (
+                          <div key={item.id ?? idx} className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-slate-400 w-4">{idx + 1}</span>
+                            <span className="text-sm font-medium text-slate-700 w-28 truncate">{item.name}</span>
+                            <div className="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden">
+                              <div
+                                className={`${styles.barFill} h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex items-center justify-end pr-2`}
+                                style={{ width: barAnimated ? `${pct}%` : "0%" }}
+                              >
+                                <span className="text-[10px] font-bold text-white">{item.sold_count ?? 0}x</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center">
+                    <p className="text-xs text-slate-400">Belum ada data</p>
+                  </div>
+                )}
               </div>
-              {/* Recent transactions */}
+              {/* Recent transactions placeholder */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 mb-4">Transaksi Terbaru</h3>
-                <div className="space-y-3">
-                  {RECENT_TRANSACTIONS.map((tx, idx) => {
-                    const iconMap: Record<string, typeof Check> = { green: Check, amber: Bell, blue: Clock };
-                    const colorMap: Record<string, string> = { green: "green", amber: "amber", blue: "blue" };
-                    const TxIcon = iconMap[tx.color] ?? Check;
-                    const c = colorMap[tx.color] ?? "green";
-                    const isLast = idx === RECENT_TRANSACTIONS.length - 1;
-                    return (
-                      <div key={tx.id} className={`flex items-center gap-3 ${!isLast ? "pb-3 border-b border-slate-100" : ""}`}>
-                        <div className={`w-8 h-8 rounded-lg bg-${c}-100 flex items-center justify-center`}>
-                          <TxIcon className={`w-4 h-4 text-${c}-600`} />
+                {orders.length > 0 ? (
+                  <div className="space-y-3">
+                    {orders.slice(0, 5).map((order, idx) => {
+                      const isLast = idx === Math.min(orders.length, 5) - 1;
+                      return (
+                        <div key={order.id} className={`flex items-center gap-3 ${!isLast ? "pb-3 border-b border-slate-100" : ""}`}>
+                          <div className={`w-8 h-8 rounded-lg ${order.status === "done" ? "bg-green-100" : "bg-amber-100"} flex items-center justify-center`}>
+                            {order.status === "done" ? <Check className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-amber-600" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-slate-900 truncate">{order.id}</p>
+                            <p className="text-[11px] text-slate-500">{order.customer} • {order.time}</p>
+                          </div>
+                          <span className={`text-sm font-bold ${order.status === "done" ? "text-green-600" : "text-amber-600"}`}>{order.total}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-900 truncate">{tx.id}</p>
-                          <p className="text-[11px] text-slate-500">{tx.customer} • {tx.time}</p>
-                        </div>
-                        <span className={`text-sm font-bold text-${c}-600`}>{tx.amount}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center">
+                    <p className="text-xs text-slate-400">Belum ada transaksi</p>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -1464,73 +1545,10 @@ export default function DashboardApp() {
               <h2 className="text-xl font-extrabold text-slate-900">Ulasan Pelanggan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Lihat dan balas ulasan dari pelanggan setia</p>
             </div>
-            <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 sm:p-6 mb-5 shadow-lg shadow-amber-500/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="text-center">
-                  <p className="text-4xl font-extrabold text-white leading-none">4.8</p>
-                  <div className="flex items-center gap-0.5 mt-1 justify-center">
-                    {[1,2,3,4,5].map((s) => (
-                      <Star key={s} className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-amber-50 mt-1">dari 156 ulasan</p>
-                </div>
-                <div className="flex-1 w-full space-y-1.5">
-                  {[["5",78,122],["4",15,23],["3",5,8],["2",1.5,2],["1",0.5,1]].map(([star, pct, count]) => (
-                    <div key={star} className="flex items-center gap-2">
-                      <span className="text-[11px] text-white font-semibold w-8">{star}★</span>
-                      <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-[11px] text-white/80 w-8 text-right">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3 stagger">
-              {DEFAULT_REVIEWS.map((rev) => (
-                <div key={rev.id} className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
-                  <div className="flex items-start gap-3">
-                    <img src={rev.avatar} className="w-10 h-10 rounded-full object-cover" alt={rev.name} />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">{rev.name}</p>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            {[1,2,3,4,5].map((s) => (
-                              <Star
-                                key={s}
-                                className={`w-3.5 h-3.5 ${s <= rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`}
-                              />
-                            ))}
-                            <span className="text-[11px] text-slate-400 ml-1.5">{rev.date}</span>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${rev.replied ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
-                          {rev.replied ? "Sudah Dibalas" : "Belum Dibalas"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-600 mt-3 leading-relaxed">{rev.text}</p>
-                  {rev.reply && (
-                    <div className="mt-3 p-3 bg-slate-50 rounded-xl">
-                      <p className="text-[11px] font-bold text-slate-500 mb-1">Balasan dari Warung</p>
-                      <p className="text-sm text-slate-600">{rev.reply}</p>
-                    </div>
-                  )}
-                  {!rev.replied && (
-                    <button
-                      onClick={() => showToast("Form balasan dibuka")}
-                      className="mt-3 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" /> Balas Ulasan
-                    </button>
-                  )}
-                </div>
-              ))}
+            <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+              <Star className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Ulasan</h3>
+              <p className="text-xs text-slate-500">Ulasan dari pelanggan akan muncul di sini setelah mereka memberikan penilaian</p>
             </div>
           </section>
         )}
@@ -1551,15 +1569,34 @@ export default function DashboardApp() {
                 </div>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative">
-                    <img src={storeLogo} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-100" alt="Store logo" />
-                    <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30">
+                    {storeLogo ? (
+                      <img src={storeLogo} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-100" alt="Store logo" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center ring-2 ring-amber-100">
+                        <span className="text-white font-bold text-2xl">{storeName.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
+                    <button
+                      className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30"
+                      onClick={() => logoInputRef.current?.click()}
+                    >
                       <Camera className="w-3 h-3" />
                     </button>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadLogo(file);
+                      }}
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">Logo Warung</p>
                     <p className="text-[11px] text-slate-500 mt-0.5">JPG/PNG, maks 1MB</p>
-                    <button className="text-xs font-semibold text-amber-600 mt-1">Ganti Logo</button>
+                    <button onClick={() => logoInputRef.current?.click()} className="text-xs font-semibold text-amber-600 mt-1 hover:underline">Ganti Logo</button>
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -1569,17 +1606,49 @@ export default function DashboardApp() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Kategori</label>
-                    <select value={store?.category ?? ""} className={styles.settingsInput}>
+                    <select value={settingsCategory} onChange={(e) => setSettingsCategory(e.target.value)} className={styles.settingsInput}>
                       <option>Makanan Indonesia</option>
                       <option>Makanan Cepat Saji</option>
                       <option>Minuman</option>
                       <option>Snack</option>
+                      <option>Bakso & Soto</option>
+                      <option>Nasi & Mie</option>
                     </select>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Deskripsi Warung</label>
                     <textarea rows={2} value={settingsDesc} onChange={(e) => setSettingsDesc(e.target.value)} className={`${styles.settingsInput} resize-none`} />
                   </div>
+                </div>
+              </div>
+
+              {/* Slug */}
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center"><Globe className="w-4 h-4 text-violet-600" /></div>
+                  <h3 className="text-sm font-bold text-slate-900">URL Toko</h3>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Slug Toko</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500 shrink-0">pesanlagi.web.id/menu/</span>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={settingsSlug}
+                        onChange={(e) => handleSlugChange(e.target.value)}
+                        className={styles.settingsInput}
+                        placeholder="nama-toko-anda"
+                      />
+                      {slugAvailable === true && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-green-600">Tersedia</span>
+                      )}
+                      {slugAvailable === false && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-red-500">Sudah dipakai</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1.5">URL: pesanlagi.web.id/menu/<span className="font-semibold text-slate-600">{settingsSlug || "..."}</span></p>
                 </div>
               </div>
 
@@ -1655,21 +1724,22 @@ export default function DashboardApp() {
                   {["from-amber-400 to-amber-600","from-green-400 to-green-600","from-blue-400 to-blue-600","from-red-400 to-red-600","from-slate-700 to-slate-900"].map((g, i) => (
                     <button
                       key={g}
-                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g} ${i === 0 ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
+                      onClick={() => showToast("Tema warna dipilih")}
+                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g} ${i === 0 ? "ring-2 ring-amber-500 ring-offset-2" : "hover:ring-2 hover:ring-slate-300 hover:ring-offset-1"} transition-all`}
                     />
                   ))}
                 </div>
                 <label className="block text-xs font-semibold text-slate-700 mb-2">Template Layout</label>
                 <div className="grid grid-cols-3 gap-2">
-                  <button className="p-2 border-2 border-amber-500 rounded-xl bg-amber-50/50">
+                  <button onClick={() => showToast("Layout Grid dipilih")} className="p-2 border-2 border-amber-500 rounded-xl bg-amber-50/50 hover:border-amber-500 transition-colors">
                     <div className="w-full h-12 bg-amber-100 rounded-lg flex items-center justify-center"><LayoutGrid className="w-5 h-5 text-amber-600" /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Grid</p>
                   </button>
-                  <button className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300">
+                  <button onClick={() => showToast("Layout List dipilih")} className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300 transition-colors">
                     <div className="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><List className="w-5 h-5 text-slate-500" /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">List</p>
                   </button>
-                  <button className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300">
+                  <button onClick={() => showToast("Layout Kategori dipilih")} className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300 transition-colors">
                     <div className="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><Columns2 className="w-5 h-5 text-slate-500" /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Kategori</p>
                   </button>
@@ -1684,7 +1754,10 @@ export default function DashboardApp() {
                 >
                   <Save className="w-4 h-4" /> Simpan Perubahan
                 </button>
-                <button className="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 transition-colors">
+                <button
+                  onClick={handleCancelSettings}
+                  className="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 transition-colors"
+                >
                   Batal
                 </button>
               </div>
@@ -1776,9 +1849,10 @@ export default function DashboardApp() {
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Kategori</label>
                     <select value={modalCategory} onChange={(e) => setModalCategory(e.target.value)} className={styles.settingsInput}>
-                      <option>Makanan</option>
-                      <option>Minuman</option>
-                      <option>Snack</option>
+                      {categories.length > 0
+                        ? categories.map((c) => <option key={c.id ?? c.name}>{c.name}</option>)
+                        : <><option>Makanan</option><option>Minuman</option><option>Snack</option></>
+                      }
                     </select>
                   </div>
                   <div>
@@ -1828,5 +1902,3 @@ export default function DashboardApp() {
     </div>
   );
 }
-
-
