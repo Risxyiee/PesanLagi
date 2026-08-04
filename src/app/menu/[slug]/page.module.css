@@ -1,0 +1,553 @@
+/* ================================================================== */
+/*  Animations & complex selectors that Tailwind can't handle           */
+/* ================================================================== */
+
+/* --- Mobile Frame --------------------------------------------------- */
+.root {
+  --ease-quiet: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobileFrame {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 30%, #fffbeb 60%, #fff7ed 100%);
+  box-shadow: 0 0 80px -20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+@media (min-width: 431px) {
+  .root {
+    background: #f1f5f9;
+    padding: 24px 0;
+  }
+  .mobileFrame {
+    border-radius: 32px;
+    min-height: calc(100vh - 48px);
+  }
+}
+
+/* --- Background Blobs ----------------------------------------------- */
+.bgBlob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blobA {
+  top: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 0.5) 0%,
+    rgba(245, 158, 11, 0.2) 40%,
+    transparent 70%
+  );
+  animation: blobFloat1 18s ease-in-out infinite;
+}
+
+.blobB {
+  bottom: 20%;
+  left: -150px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.25) 0%,
+    rgba(234, 88, 12, 0.1) 50%,
+    transparent 70%
+  );
+  animation: blobFloat2 22s ease-in-out infinite;
+}
+
+.blobC {
+  top: 40%;
+  right: -120px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(
+    circle,
+    rgba(252, 211, 77, 0.3) 0%,
+    transparent 70%
+  );
+  animation: blobFloat3 20s ease-in-out infinite;
+}
+
+@keyframes blobFloat1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-20px, 30px) scale(1.1);
+  }
+}
+
+@keyframes blobFloat2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, -20px) scale(0.9);
+  }
+}
+
+@keyframes blobFloat3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-30px, 20px) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* --- Noise Texture -------------------------------------------------- */
+.bgNoise {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.contentLayer {
+  position: relative;
+  z-index: 10;
+}
+
+/* --- Sticky Header -------------------------------------------------- */
+.stickyWrap {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.stickyWrapScrolled {
+  background: rgba(255, 251, 235, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px -8px rgba(245, 158, 11, 0.15);
+}
+
+/* --- Category Chips ------------------------------------------------- */
+.catChip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  white-space: nowrap;
+  transition: all 0.25s var(--ease-quiet);
+  cursor: pointer;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.catChip:hover {
+  border-color: #fbbf24;
+  background: white;
+}
+
+.catChipActive {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 16px -4px rgba(245, 158, 11, 0.4);
+}
+
+.catScroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.catScroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Search Bar ----------------------------------------------------- */
+.searchWrap {
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.searchWrap:focus-within {
+  border-color: #f59e0b !important;
+  background-color: #fffbeb;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+}
+
+.searchWrap:focus-within .searchIcon {
+  color: #f59e0b;
+}
+
+/* --- Menu Card ------------------------------------------------------ */
+.menuCard {
+  transition: transform 0.25s var(--ease-quiet);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 20px -8px rgba(245, 158, 11, 0.1);
+}
+
+.menuCard:active {
+  transform: scale(0.98);
+}
+
+/* --- Add Button ----------------------------------------------------- */
+.addBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.4);
+  transition: transform 0.2s var(--ease-quiet);
+  cursor: pointer;
+  border: none;
+}
+
+.addBtn:hover {
+  transform: scale(1.1);
+}
+
+.addBtn:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
+}
+
+/* --- Quantity Stepper ------------------------------------------------ */
+.qtyStepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  padding: 2px;
+  height: 36px;
+  box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.2);
+}
+
+.qtyStepper button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #92400e;
+  transition: background 0.2s;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.qtyStepper button:hover {
+  background: #fffbeb;
+}
+
+.qtyStepper button:active {
+  transform: scale(0.9);
+}
+
+.qtyStepper span {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  min-width: 20px;
+  text-align: center;
+}
+
+.qtyStepperWide {
+  height: 52px;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.qtyStepperWide button {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+
+.qtyStepperWide span {
+  font-size: 18px;
+  min-width: 30px;
+}
+
+.qtyStepperFull {
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* --- Photo Habis ---------------------------------------------------- */
+.photoHabis {
+  filter: grayscale(0.6);
+  opacity: 0.7;
+}
+
+/* --- Fade-up animation ---------------------------------------------- */
+.fadeUp {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.5s var(--ease-quiet),
+    transform 0.5s var(--ease-quiet);
+}
+
+.fadeUpIn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Buka dot pulse ------------------------------------------------- */
+.bukaDot {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+/* --- Floating Cart Bar ---------------------------------------------- */
+.cartBar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  width: calc(100% - 32px);
+  max-width: 398px;
+  background: #0f172a;
+  color: white;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.4s var(--ease-quiet);
+}
+
+.cartBarShow {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- Modal Sheets --------------------------------------------------- */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-quiet);
+}
+
+.modalBackdropShow {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modalSheet {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  width: 100%;
+  max-width: 430px;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  z-index: 61;
+  padding: 20px;
+  transition: transform 0.4s var(--ease-quiet);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modalSheetShow {
+  transform: translate(-50%, 0);
+}
+
+@media (min-width: 431px) {
+  .modalSheet {
+    bottom: 24px;
+    border-radius: 24px;
+    transform: translate(-50%, calc(100% + 48px));
+  }
+  .modalSheetShow {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* --- Checkout inputs ------------------------------------------------ */
+.checkoutInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.checkoutInput:focus {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+}
+
+/* --- Option buttons ------------------------------------------------- */
+.optionBtn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-quiet);
+  background: white;
+}
+
+.optionBtnActive {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+/* --- Field collapse (table number) ---------------------------------- */
+.fieldCollapse {
+  max-height: 80px;
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    max-height 0.3s var(--ease-quiet),
+    opacity 0.3s var(--ease-quiet),
+    margin-top 0.3s var(--ease-quiet);
+}
+
+.fieldCollapseHidden {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0 !important;
+  pointer-events: none;
+}
+
+/* --- Lightbox ------------------------------------------------------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.lightboxShow {
+  display: flex;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+/* --- Toast ---------------------------------------------------------- */
+.toast {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #0f172a;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.3);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s var(--ease-quiet),
+    transform 0.3s var(--ease-quiet);
+}
+
+.toastShow {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- Selection color ------------------------------------------------ */
+.root ::selection {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+/* --- Reduced Motion ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation: none !important;
+    transition-duration: 0.01s !important;
+  }
+}

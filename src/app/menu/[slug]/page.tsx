@@ -2,20 +2,24 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
+  Search,
+  X,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ArrowRight,
+  Clock,
   MapPin,
-  Phone,
+  Star,
+  SearchX,
+  Utensils,
   UtensilsCrossed,
   MessageCircle,
-  Search,
-  ChevronRight,
+  Maximize2,
+  CheckCircle2,
   AlertCircle,
-  X,
-  Sparkles,
-  Minus,
-  Plus,
-  ShoppingBag,
-  Trash2,
 } from 'lucide-react';
+import styles from './page.module.css';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -51,12 +55,7 @@ interface MenuItem {
 interface MenuData {
   store: Store;
   categories: Category[];
-  menus: MenuItem[]
-}
-
-interface CartItem {
-  menu: MenuItem;
-  qty: number;
+  menus: MenuItem[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -65,312 +64,170 @@ interface CartItem {
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('id-ID').format(price);
 
-const WARM_BG = '#FFF9F5';
+type CartItem = { name: string; price: number; qty: number };
 
 /* ------------------------------------------------------------------ */
-/*  Skeleton loader                                                    */
+/*  Skeleton Loader                                                    */
 /* ------------------------------------------------------------------ */
-function SkeletonCard() {
-  return (
-    <div className="animate-pulse rounded-2xl bg-white shadow-sm">
-      <div className="aspect-[4/3] rounded-t-2xl bg-stone-200" />
-      <div className="space-y-3 p-4">
-        <div className="h-4 w-3/4 rounded-lg bg-stone-200" />
-        <div className="space-y-1.5">
-          <div className="h-3 w-full rounded bg-stone-100" />
-          <div className="h-3 w-2/3 rounded bg-stone-100" />
-        </div>
-        <div className="h-5 w-1/4 rounded-lg bg-orange-100" />
-      </div>
-    </div>
-  );
-}
-
 function SkeletonPage() {
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        backgroundColor: WARM_BG,
-        ['--menu-bg' as string]: WARM_BG,
-      }}
-    >
-      <div className="mx-auto max-w-2xl">
-        <header className="px-5 pb-6 pt-10 sm:px-6 sm:pt-12">
-          <div className="flex items-start gap-4">
-            <div className="h-[72px] w-[72px] animate-pulse rounded-2xl bg-stone-300 shadow-sm" />
-            <div className="min-w-0 flex-1 space-y-3 pt-1">
-              <div className="h-7 w-56 animate-pulse rounded-lg bg-stone-300" />
-              <div className="h-4 w-72 animate-pulse rounded bg-stone-200" />
-              <div className="flex gap-2">
-                <div className="h-7 w-36 animate-pulse rounded-full bg-stone-200" />
-                <div className="h-7 w-32 animate-pulse rounded-full bg-stone-200" />
+    <div className={styles.root}>
+      <div className={styles.mobileFrame}>
+        <div className={styles.bgNoise} />
+        <div className={styles.contentLayer}>
+          {/* Header skeleton */}
+          <header className="px-4 pt-4 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 animate-pulse shrink-0 rounded-full bg-amber-200" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-4 w-48 animate-pulse rounded-lg bg-amber-200" />
+                <div className="h-3 w-56 animate-pulse rounded bg-amber-100" />
               </div>
+              <div className="h-6 w-16 animate-pulse rounded-full bg-green-200" />
             </div>
+            <div className="flex items-center gap-3 mt-2.5">
+              <div className="h-3 w-24 animate-pulse rounded bg-amber-100" />
+              <div className="h-3 w-28 animate-pulse rounded bg-amber-100" />
+              <div className="h-3 w-10 animate-pulse rounded bg-amber-100" />
+            </div>
+          </header>
+          {/* Search skeleton */}
+          <div className="px-4 py-2.5">
+            <div className="h-11 animate-pulse rounded-xl bg-amber-100" />
           </div>
-          <div className="mt-6 flex items-center justify-between">
-            <div className="h-5 w-28 animate-pulse rounded bg-stone-200" />
-            <div className="h-10 w-10 animate-pulse rounded-full bg-stone-200" />
+          {/* Category chips skeleton */}
+          <div className="flex items-center gap-2 px-4 pb-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-9 w-24 animate-pulse rounded-full bg-amber-200"
+              />
+            ))}
           </div>
-        </header>
-        <div
-          className="sticky top-0 z-20 px-5 pb-4 pt-3 sm:px-6"
-          style={{
-            backgroundColor: `${WARM_BG}DD`,
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-          }}
-        >
-          <div className="scrollbar-hide -mx-5 flex gap-2.5 overflow-x-auto px-5 sm:-mx-6 sm:px-6">
+          {/* Menu cards skeleton */}
+          <main className="px-4 py-4 pb-24 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 w-24 animate-pulse rounded-full bg-stone-200" />
+              <div
+                key={i}
+                className="animate-pulse rounded-2xl bg-white/80 p-3 flex gap-3"
+              >
+                <div className="h-24 w-24 shrink-0 rounded-xl bg-amber-100" />
+                <div className="flex-1 space-y-2 py-0.5">
+                  <div className="h-4 w-32 rounded-lg bg-amber-100" />
+                  <div className="h-3 w-full rounded bg-amber-50" />
+                  <div className="h-3 w-2/3 rounded bg-amber-50" />
+                  <div className="h-5 w-20 rounded-lg bg-amber-200 mt-auto" />
+                </div>
+              </div>
             ))}
-          </div>
+          </main>
         </div>
-        <main className="px-5 pb-28 pt-5 sm:px-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        </main>
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Menu card with add-to-cart                                          */
+/*  Error State                                                        */
 /* ------------------------------------------------------------------ */
-function MenuCard({ item, index, onAdd }: { item: MenuItem; index: number; onAdd: (item: MenuItem) => void }) {
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className={styles.root}>
+      <div
+        className="flex min-h-screen items-center justify-center px-6"
+        style={{ backgroundColor: '#fffbeb' }}
+      >
+        <div className="max-w-sm text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 shadow-sm">
+            <AlertCircle className="text-red-400" size={38} strokeWidth={1.5} />
+          </div>
+          <h1 className="text-xl font-extrabold text-slate-900">Oops!</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            {message}
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            Pastikan link QR code yang Anda scan sudah benar.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Qty Stepper component                                              */
+/* ------------------------------------------------------------------ */
+function QtyStepper({
+  qty,
+  onMinus,
+  onPlus,
+  wide,
+  fullWidth,
+}: {
+  qty: number;
+  onMinus: () => void;
+  onPlus: () => void;
+  wide?: boolean;
+  fullWidth?: boolean;
+}) {
+  return (
+    <div
+      className={`${
+        styles.qtyStepper
+      } ${wide ? styles.qtyStepperWide : ''} ${fullWidth ? styles.qtyStepperFull : ''}`}
+    >
+      <button onClick={onMinus} aria-label="Kurangi">
+        <Minus
+          size={wide ? 20 : 16}
+          strokeWidth={2.5}
+        />
+      </button>
+      <span>{qty}</span>
+      <button onClick={onPlus} aria-label="Tambah">
+        <Plus
+          size={wide ? 20 : 16}
+          strokeWidth={2.5}
+        />
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  FadeUp wrapper (IntersectionObserver)                              */
+/* ------------------------------------------------------------------ */
+function FadeUp({
+  children,
+  index,
+}: {
+  children: React.ReactNode;
+  index: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
-  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); }
+        if (entry.isIntersecting) {
+          setTimeout(() => setVisible(true), index * 60);
+          observer.unobserve(el);
+        }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -20px 0px' },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
-
-  const hasImage = item.image_url && item.image_url.trim() !== '';
-
-  const handleAdd = () => {
-    onAdd(item);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 600);
-  };
+  }, [index]);
 
   return (
     <div
       ref={ref}
-      className={`transition-all duration-500 ease-out ${visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-      style={{ transitionDelay: `${(index % 6) * 80}ms` }}
+      className={`${styles.fadeUp} ${visible ? styles.fadeUpIn : ''}`}
     >
-      <div className="group overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(249,115,22,0.10)]">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
-          {hasImage ? (
-            <img src={item.image_url} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" loading="lazy" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
-              <UtensilsCrossed className="text-orange-200" size={44} strokeWidth={1.2} />
-            </div>
-          )}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/[0.04] to-transparent" />
-        </div>
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-stone-800">{item.name}</h3>
-              {item.description && (
-                <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-stone-400">{item.description}</p>
-              )}
-            </div>
-            <button
-              onClick={handleAdd}
-              className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
-                added
-                  ? 'bg-green-500 text-white shadow-md shadow-green-500/30'
-                  : 'bg-orange-500 text-white shadow-md shadow-orange-500/25 hover:bg-orange-600 hover:shadow-orange-500/40'
-              }`}
-              aria-label={`Tambah ${item.name}`}
-            >
-              {added ? <span className="text-sm font-bold">✓</span> : <Plus size={18} />}
-            </button>
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-base font-bold tracking-tight text-orange-500">Rp {formatPrice(item.price)}</p>
-            {item.category_name && (
-              <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-[11px] font-medium text-orange-500">{item.category_name}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Empty state                                                        */
-/* ------------------------------------------------------------------ */
-function EmptyState({ categoryName }: { categoryName?: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
-      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-50">
-        <UtensilsCrossed className="text-orange-400" size={34} strokeWidth={1.3} />
-      </div>
-      <p className="text-base font-semibold text-stone-600">{categoryName ? `Belum ada menu di kategori "${categoryName}"` : 'Belum ada menu tersedia'}</p>
-      <p className="mt-1.5 max-w-[260px] text-sm leading-relaxed text-stone-400">Menu akan muncul di sini setelah ditambahkan oleh restoran</p>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Error state                                                        */
-/* ------------------------------------------------------------------ */
-function ErrorState({ message }: { message: string }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center px-6" style={{ backgroundColor: WARM_BG }}>
-      <div className="max-w-sm text-center">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 shadow-sm">
-          <AlertCircle className="text-red-400" size={38} strokeWidth={1.5} />
-        </div>
-        <h1 className="text-xl font-extrabold text-stone-800">Oops!</h1>
-        <p className="mt-2 text-sm leading-relaxed text-stone-500">{message}</p>
-        <p className="mt-1 text-sm text-stone-400">Pastikan link QR code yang Anda scan sudah benar.</p>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Cart sheet                                                         */
-/* ------------------------------------------------------------------ */
-function CartSheet({
-  cart,
-  store,
-  onUpdate,
-  onRemove,
-  onClose,
-}: {
-  cart: CartItem[];
-  store: Store;
-  onUpdate: (id: string, delta: number) => void;
-  onRemove: (id: string) => void;
-  onClose: () => void;
-}) {
-  const total = cart.reduce((s, c) => s + c.menu.price * c.qty, 0);
-  const totalItems = cart.reduce((s, c) => s + c.qty, 0);
-  const waMsg = cart
-    .map((c) => `• ${c.menu.name} x${c.qty} — Rp ${formatPrice(c.menu.price * c.qty)}`)
-    .join('\n');
-  const waLink = `https://wa.me/${store.whatsapp.replace(/^\+/, '')}?text=${encodeURIComponent(
-    `Halo, saya ingin memesan dari *${store.name}*:\n\n${waMsg}\n\n_Total: Rp ${formatPrice(total)}_`
-  )}`;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      {/* Sheet */}
-      <div className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl max-h-[85vh] flex flex-col animate-slide-up">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-100 px-6 py-4 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
-              <ShoppingBag size={20} className="text-orange-500" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-stone-800">Keranjang</h2>
-              <p className="text-xs text-stone-400">{totalItems} item</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
-            <X size={18} />
-          </button>
-        </div>
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-          {cart.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-center">
-              <UtensilsCrossed size={40} className="text-stone-200 mb-3" strokeWidth={1.2} />
-              <p className="text-sm font-medium text-stone-400">Keranjang masih kosong</p>
-            </div>
-          ) : (
-            cart.map((item) => (
-              <div key={item.menu.id} className="flex items-center gap-3 rounded-2xl bg-stone-50/80 p-3">
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
-                  {item.menu.image_url ? (
-                    <img src={item.menu.image_url} alt={item.menu.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50">
-                      <UtensilsCrossed size={20} className="text-orange-200" strokeWidth={1.2} />
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-stone-800 truncate">{item.menu.name}</p>
-                  <p className="text-xs text-orange-500 font-bold">Rp {formatPrice(item.menu.price)}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => onUpdate(item.menu.id, -1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-500 hover:bg-stone-100 transition-colors active:scale-90"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="w-6 text-center text-sm font-bold text-stone-800">{item.qty}</span>
-                  <button
-                    onClick={() => onUpdate(item.menu.id, 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors active:scale-90"
-                  >
-                    <Plus size={14} />
-                  </button>
-                  <button
-                    onClick={() => onRemove(item.menu.id)}
-                    className="ml-1 flex h-8 w-8 items-center justify-center rounded-lg text-stone-300 hover:bg-red-50 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        {/* Footer */}
-        {cart.length > 0 && (
-          <div className="border-t border-stone-100 px-6 py-4 shrink-0 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-stone-500">Total</span>
-              <span className="text-lg font-extrabold text-stone-800">Rp {formatPrice(total)}</span>
-            </div>
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 py-3.5 text-white font-bold shadow-lg shadow-green-500/25 transition-all hover:from-green-600 hover:to-emerald-600 hover:shadow-xl active:scale-[0.98]"
-            >
-              <MessageCircle size={20} fill="white" />
-              Pesan via WhatsApp
-              <ChevronRight size={16} className="opacity-60" />
-            </a>
-          </div>
-        )}
-      </div>
-      <style>{`
-        @keyframes slide-up {
-          from { transform: translateY(100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slide-up { animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
-      `}</style>
+      {children}
     </div>
   );
 }
@@ -378,248 +235,740 @@ function CartSheet({
 /* ------------------------------------------------------------------ */
 /*  Main page component                                                */
 /* ------------------------------------------------------------------ */
-export default function PublicMenuPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function PublicMenuPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const [slug, setSlug] = useState<string | null>(null);
   const [data, setData] = useState<MenuData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Filters
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCart, setShowCart] = useState(false);
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const activePillRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => { params.then(({ slug: s }) => setSlug(s)); }, [params]);
+  // Cart: Record<string, CartItem> keyed by menu id
+  const [cart, setCart] = useState<Record<string, CartItem>>({});
 
-  // Fetch data
+  // Modals
+  const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  // Toast
+  const [toastMsg, setToastMsg] = useState('');
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scroll
+  const [scrolled, setScrolled] = useState(false);
+
+  // Checkout form
+  const [custName, setCustName] = useState('');
+  const [orderType, setOrderType] = useState<'dinein' | 'takeaway'>('dinein');
+  const [tableNum, setTableNum] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Refs
+  const stickyRef = useRef<HTMLDivElement>(null);
+
+  /* -- resolve params -- */
+  useEffect(() => {
+    params.then(({ slug: s }) => setSlug(s));
+  }, [params]);
+
+  /* -- fetch data -- */
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
     fetch(`/api/public/menu/${slug}`)
-      .then((res) => { if (!res.ok) throw new Error('Store tidak ditemukan'); return res.json(); })
-      .then((json: MenuData) => { if (!cancelled) { setData(json); setLoading(false); } })
-      .catch((err) => { if (!cancelled) { setError(err.message || 'Terjadi kesalahan'); setLoading(false); } });
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!res.ok) throw new Error('Store tidak ditemukan');
+        return res.json();
+      })
+      .then((json: MenuData) => {
+        if (!cancelled) {
+          setData(json);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err.message || 'Terjadi kesalahan');
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
-  // Dynamic page title
+  /* -- page title -- */
   useEffect(() => {
-    if (data?.store?.name) document.title = `${data.store.name} — Menu Digital | PesanLagi`;
+    if (data?.store?.name)
+      document.title = `${data.store.name} — Menu Digital | PesanLagi`;
   }, [data?.store?.name]);
 
-  // Scroll active pill into view
+  /* -- scroll listener for sticky shadow -- */
   useEffect(() => {
-    if (activePillRef.current && categoryScrollRef.current) {
-      const container = categoryScrollRef.current;
-      const pill = activePillRef.current;
-      container.scrollTo({ left: pill.offsetLeft - container.offsetWidth / 2 + pill.offsetWidth / 2, behavior: 'smooth' });
-    }
-  }, [activeCategory]);
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
 
-  // Cart helpers
-  const addToCart = useCallback((menu: MenuItem) => {
+  /* -- toast helper -- */
+  const showToast = useCallback((msg: string) => {
+    setToastMsg(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMsg(''), 1800);
+  }, []);
+
+  /* -- cart helpers -- */
+  const addToCart = useCallback(
+    (menu: MenuItem) => {
+      setCart((prev) => {
+        const existing = prev[menu.id];
+        if (existing) {
+          return { ...prev, [menu.id]: { ...existing, qty: existing.qty + 1 } };
+        }
+        return {
+          ...prev,
+          [menu.id]: { name: menu.name, price: menu.price, qty: 1 },
+        };
+      });
+      showToast(`${menu.name} ditambahkan`);
+    },
+    [showToast],
+  );
+
+  const removeFromCart = useCallback((menuId: string) => {
     setCart((prev) => {
-      const existing = prev.find((c) => c.menu.id === menu.id);
-      if (existing) return prev.map((c) => c.menu.id === menu.id ? { ...c, qty: c.qty + 1 } : c);
-      return [...prev, { menu, qty: 1 }];
+      const existing = prev[menuId];
+      if (!existing) return prev;
+      if (existing.qty <= 1) {
+        const next = { ...prev };
+        delete next[menuId];
+        return next;
+      }
+      return {
+        ...prev,
+        [menuId]: { ...existing, qty: existing.qty - 1 },
+      };
     });
   }, []);
 
-  const updateCart = useCallback((id: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((c) => (c.menu.id === id ? { ...c, qty: c.qty + delta } : c))
-        .filter((c) => c.qty > 0)
+  const getCartCount = useCallback(() => {
+    return Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+  }, [cart]);
+
+  const getCartTotal = useCallback(() => {
+    return Object.values(cart).reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0,
     );
-  }, []);
+  }, [cart]);
 
-  const removeFromCart = useCallback((id: string) => {
-    setCart((prev) => prev.filter((c) => c.menu.id !== id));
-  }, []);
-
-  // Filtered menus
-  const filteredMenus = useCallback(() => {
+  /* -- filtered menus -- */
+  const visibleMenus = (() => {
     if (!data) return [];
     let menus = data.menus;
-    if (activeCategory) menus = menus.filter((m) => m.category_id === activeCategory);
+    if (activeCategory) {
+      menus = menus.filter((m) => m.category_id === activeCategory);
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      menus = menus.filter((m) => m.name.toLowerCase().includes(q) || (m.description && m.description.toLowerCase().includes(q)));
+      menus = menus.filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          (m.description && m.description.toLowerCase().includes(q)),
+      );
     }
     return menus;
-  }, [data, activeCategory, searchQuery]);
+  })();
 
-  const visibleMenus = filteredMenus();
-  const cartTotal = cart.reduce((s, c) => s + c.menu.price * c.qty, 0);
-  const cartCount = cart.reduce((s, c) => s + c.qty, 0);
+  const cartCount = getCartCount();
+  const cartTotal = getCartTotal();
 
+  /* -- checkout -- */
+  const sendToWhatsApp = useCallback(() => {
+    if (!data) return;
+    const name = custName.trim() || 'Tanpa Nama';
+    const table = tableNum.trim();
+
+    if (orderType === 'dinein' && !table) {
+      showToast('Mohon isi nomor meja dulu');
+      return;
+    }
+
+    let message = `*PESANAN BARU - ${data.store.name.toUpperCase()}*\n\n`;
+    message += `*Nama Pemesan:* ${name}\n`;
+    message += `*Tipe:* ${orderType === 'dinein' ? 'Makan di Tempat' : 'Bawa Pulang'}\n`;
+    if (orderType === 'dinein') message += `*Nomor Meja:* ${table}\n`;
+    if (notes.trim()) message += `*Catatan:* ${notes.trim()}\n`;
+    message += `\n*Detail Pesanan:*\n`;
+
+    let i = 1;
+    for (const id in cart) {
+      const item = cart[id];
+      const sub = item.price * item.qty;
+      message += `${i}. ${item.name} x${item.qty} - Rp ${formatPrice(sub)}\n`;
+      i++;
+    }
+
+    const total = getCartTotal();
+    message += `\n*Total Pembayaran: Rp ${formatPrice(total)}*\n\n`;
+    message += `_Pesanan dibuat via Menu Digital PesanLagi_`;
+
+    const wa = data.store.whatsapp?.replace(/^\+/, '') || '';
+    const waUrl = `https://wa.me/${wa}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+
+    setCart({});
+    setShowCheckout(false);
+    showToast('Pesanan dikirim ke WhatsApp warung!');
+  }, [data, custName, orderType, tableNum, notes, cart, getCartTotal, showToast]);
+
+  /* -- early returns -- */
   if (loading) return <SkeletonPage />;
   if (error) return <ErrorState message={error} />;
   if (!data) return <ErrorState message="Data tidak tersedia" />;
 
   const { store, categories, menus } = data;
-  const bgColor = store.bg_color || WARM_BG;
-  const hasWhatsapp = store.whatsapp && store.whatsapp.trim() !== '';
-  const waMsg = cart
-    .map((c) => `• ${c.menu.name} x${c.qty} — Rp ${formatPrice(c.menu.price * c.qty)}`)
-    .join('\n');
-  const whatsappLink = hasWhatsapp
-    ? `https://wa.me/${store.whatsapp.replace(/^\+/, '')}?text=${encodeURIComponent(
-        `Halo, saya ingin memesan dari *${store.name}*:\n\n${waMsg || '(belum ada item)'}\n\n_Total: Rp ${formatPrice(cartTotal)}_`
-      )}`
-    : null;
-
-  const activeCategoryName = activeCategory ? categories.find((c) => c.id === activeCategory)?.name : undefined;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bgColor, ['--menu-bg' as string]: bgColor }}>
-      <div className="mx-auto flex min-h-screen max-w-2xl flex-col font-['Plus_Jakarta_Sans',sans-serif]">
-        {/* HEADER */}
-        <header className="px-5 pb-4 pt-10 sm:px-6 sm:pt-12">
-          <div className="flex items-start gap-4">
-            {store.logo_url && store.logo_url.trim() !== '' ? (
-              <img src={store.logo_url} alt={store.name} className="h-[72px] w-[72px] shrink-0 rounded-2xl border-2 border-white/80 object-cover shadow-md" />
-            ) : (
-              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border-2 border-white/80 bg-gradient-to-br from-orange-400 to-orange-600 text-[28px] font-extrabold text-white shadow-md">
-                {store.name?.charAt(0)?.toUpperCase() || 'W'}
+    <div className={styles.root}>
+      <div className={styles.mobileFrame}>
+        {/* Background Blobs */}
+        <div className={`${styles.bgBlob} ${styles.blobA}`} />
+        <div className={`${styles.bgBlob} ${styles.blobB}`} />
+        <div className={`${styles.bgBlob} ${styles.blobC}`} />
+        <div className={styles.bgNoise} />
+
+        <div className={styles.contentLayer}>
+          {/* ===================== STICKY HEADER ===================== */}
+          <div
+            ref={stickyRef}
+            className={`${styles.stickyWrap} ${scrolled ? styles.stickyWrapScrolled : ''}`}
+          >
+            <header className="px-4 pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  {store.logo_url && store.logo_url.trim() !== '' ? (
+                    <img
+                      src={store.logo_url}
+                      alt={store.name}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-amber-300 shadow-md"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 ring-2 ring-amber-300 shadow-md flex items-center justify-center text-white text-lg font-extrabold">
+                      {store.name?.charAt(0)?.toUpperCase() || 'W'}
+                    </div>
+                  )}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-base font-extrabold text-slate-900 leading-tight truncate">
+                    {store.name}
+                  </h1>
+                  {store.description && (
+                    <p className="text-[11px] text-amber-700/80 truncate font-medium">
+                      {store.description}
+                    </p>
+                  )}
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-50 border border-green-200">
+                  <span
+                    className={`w-2 h-2 bg-green-500 rounded-full ${styles.bukaDot}`}
+                  />
+                  <span className="text-[11px] font-bold text-green-700">
+                    Buka
+                  </span>
+                </span>
               </div>
-            )}
-            <div className="min-w-0 flex-1 pt-0.5">
-              <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-stone-900">{store.name}</h1>
-              {store.description && <p className="mt-1 text-sm leading-relaxed text-stone-500">{store.description}</p>}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-3 mt-2.5 text-[11px] text-slate-600 font-medium">
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> 08.00 - 22.00
+                </span>
                 {store.address && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-[12px] font-medium text-stone-500 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-                    <MapPin size={12} className="shrink-0 text-orange-400" />
-                    <span className="line-clamp-1 max-w-[180px]">{store.address}</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    <span className="truncate max-w-[140px]">
+                      {store.address}
+                    </span>
                   </span>
                 )}
-                {store.whatsapp && (
-                  <a href={`tel:+${store.whatsapp.replace(/^\+/, '')}`} className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-[12px] font-medium text-stone-500 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-colors hover:bg-orange-50 hover:text-orange-600">
-                    <Phone size={12} className="shrink-0 text-orange-400" />
-                    <span>{store.whatsapp}</span>
-                  </a>
+                <span className="flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> 4.9
+                </span>
+              </div>
+            </header>
+
+            {/* Search */}
+            <div className="px-4 py-2.5">
+              <div
+                className={`${styles.searchWrap} flex items-center gap-2 px-3.5 py-2.5 rounded-xl`}
+              >
+                <Search
+                  className={`${styles.searchIcon} w-[18px] h-[18px] text-slate-400 transition-colors`}
+                />
+                <input
+                  type="text"
+                  placeholder="Cari es teh, bakso..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center"
+                    aria-label="Hapus pencarian"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 )}
               </div>
             </div>
+
+            {/* Category Chips */}
+            {categories.length > 0 && (
+              <div className={styles.catScroll}>
+                <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto">
+                  <button
+                    onClick={() => setActiveCategory(null)}
+                    className={`${styles.catChip} ${activeCategory === null ? styles.catChipActive : ''}`}
+                  >
+                    Semua
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() =>
+                        setActiveCategory(
+                          activeCategory === cat.id ? null : cat.id,
+                        )
+                      }
+                      className={`${styles.catChip} ${activeCategory === cat.id ? styles.catChipActive : ''}`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles size={15} className="text-orange-400" />
-              <p className="text-sm font-medium text-stone-500"><span className="font-bold text-stone-700">{menus.length}</span> menu tersedia</p>
+
+          {/* ===================== MENU LIST ===================== */}
+          <main className="px-4 py-4 pb-24">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-slate-900">
+                Pilih Menu Favoritmu
+              </h2>
+              <span className="text-[11px] text-amber-700/80 font-semibold">
+                {visibleMenus.length} menu tersedia
+              </span>
             </div>
-            <button
-              onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
-                showSearch ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25' : 'bg-white text-stone-500 shadow-sm hover:text-orange-500'
-              }`}
-              aria-label="Cari menu"
-            >
-              {showSearch ? <X size={18} /> : <Search size={18} />}
-            </button>
-          </div>
-          <div className={`overflow-hidden transition-all duration-300 ease-out ${showSearch ? 'mt-4 max-h-16 opacity-100' : 'mt-0 max-h-0 opacity-0'}`}>
-            <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-stone-100">
-              <Search size={17} className="shrink-0 text-stone-300" />
-              <input type="text" placeholder="Cari menu favorit..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-transparent text-sm font-medium text-stone-700 outline-none placeholder:font-normal placeholder:text-stone-300" autoFocus />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="shrink-0 text-xs font-semibold text-orange-500 transition-colors hover:text-orange-600">Reset</button>
+
+            <div className="space-y-3">
+              {visibleMenus.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center mx-auto mb-3">
+                    <SearchX className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-900">
+                    Menu tidak ditemukan
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Coba kata kunci lain atau pilih kategori berbeda
+                  </p>
+                </div>
+              ) : (
+                visibleMenus.map((item, idx) => {
+                  const inCart = cart[item.id];
+                  const isUnavailable = !item.is_available;
+                  const hasImage =
+                    item.image_url && item.image_url.trim() !== '';
+
+                  return (
+                    <FadeUp key={item.id} index={idx}>
+                      <div
+                        className={`${styles.menuCard} rounded-2xl p-3 flex gap-3 ${isUnavailable ? 'opacity-90' : ''}`}
+                      >
+                        <div
+                          className="flex-1 min-w-0 flex gap-3 cursor-pointer"
+                          onClick={() =>
+                            !isUnavailable && setDetailItem(item)
+                          }
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !isUnavailable)
+                              setDetailItem(item);
+                          }}
+                        >
+                          <div className="relative shrink-0">
+                            {hasImage ? (
+                              <img
+                                src={item.image_url}
+                                alt={item.name}
+                                className={`w-24 h-24 rounded-xl object-cover ${isUnavailable ? styles.photoHabis : ''}`}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
+                                <Utensils
+                                  className="text-amber-300"
+                                  size={28}
+                                  strokeWidth={1.2}
+                                />
+                              </div>
+                            )}
+                            {isUnavailable && (
+                              <span className="absolute inset-0 flex items-center justify-center">
+                                <span className="px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-extrabold tracking-wide">
+                                  HABIS
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                            <div>
+                              <h3
+                                className={`text-sm font-bold leading-tight ${isUnavailable ? 'text-slate-400' : 'text-slate-900'}`}
+                              >
+                                {item.name}
+                              </h3>
+                              <p
+                                className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${isUnavailable ? 'text-slate-400' : 'text-slate-500'}`}
+                              >
+                                {item.description}
+                              </p>
+                            </div>
+                            {isUnavailable ? (
+                              <span className="text-base font-extrabold text-slate-400 line-through decoration-red-400 decoration-2">
+                                Rp {formatPrice(item.price)}
+                              </span>
+                            ) : (
+                              <span className="text-base font-extrabold text-amber-600">
+                                Rp {formatPrice(item.price)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col justify-end shrink-0">
+                          {isUnavailable ? (
+                            <span className="text-[11px] font-bold text-slate-400 italic">
+                              Habis
+                            </span>
+                          ) : inCart ? (
+                            <QtyStepper
+                              qty={inCart.qty}
+                              onMinus={() => removeFromCart(item.id)}
+                              onPlus={() => addToCart(item)}
+                            />
+                          ) : (
+                            <button
+                              className={styles.addBtn}
+                              onClick={() => addToCart(item)}
+                              aria-label={`Tambah ${item.name}`}
+                            >
+                              <Plus size={20} strokeWidth={2.5} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </FadeUp>
+                  );
+                })
               )}
             </div>
-          </div>
-        </header>
 
-        {/* CATEGORY FILTER */}
-        {categories.length > 0 && (
-          <div className="sticky top-0 z-20 px-5 pb-3.5 pt-3 sm:px-6" style={{ backgroundColor: `${bgColor}DD`, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-            <div ref={categoryScrollRef} className="scrollbar-hide -mx-5 flex gap-2.5 overflow-x-auto px-5 sm:-mx-6 sm:px-6">
-              <button
-                onClick={() => setActiveCategory(null)}
-                className={`shrink-0 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
-                  activeCategory === null ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white text-stone-500 shadow-sm ring-1 ring-stone-100 hover:bg-stone-50 hover:text-stone-700'
-                }`}
-                ref={activeCategory === null ? activePillRef : undefined}
-              >Semua</button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-                  className={`shrink-0 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
-                    activeCategory === cat.id ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white text-stone-500 shadow-sm ring-1 ring-stone-100 hover:bg-stone-50 hover:text-stone-700'
-                  }`}
-                  ref={activeCategory === cat.id ? activePillRef : undefined}
-                >{cat.name}</button>
-              ))}
+            {/* Footer */}
+            <footer className="mt-8 pt-6 pb-4 border-t border-amber-200/50 text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                  <Utensils
+                    className="w-3 h-3 text-white"
+                    strokeWidth={2.5}
+                  />
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  Ditenagai oleh{' '}
+                  <span className="font-bold text-amber-700">PesanLagi</span>{' '}
+                  • Bikin Menu QR Gratis
+                </span>
+              </div>
+              <p className="text-[10px] text-amber-600/40 mt-1">
+                © 2025 PesanLagi.id
+              </p>
+            </footer>
+          </main>
+        </div>
+
+        {/* ===================== FLOATING CART BAR ===================== */}
+        <div
+          className={`${styles.cartBar} ${cartCount > 0 ? styles.cartBarShow : ''}`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5 text-white" />
+              </div>
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-amber-600 text-[11px] font-extrabold flex items-center justify-center">
+                {cartCount}
+              </span>
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {cartCount} item • Keranjang
+              </p>
+              <p className="text-sm font-extrabold text-white">
+                Rp {formatPrice(cartTotal)}
+              </p>
             </div>
           </div>
-        )}
-
-        {/* MENU GRID */}
-        <main className="flex-1 px-5 pb-32 pt-4 sm:px-6">
-          {visibleMenus.length === 0 ? (
-            <EmptyState categoryName={activeCategoryName} />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {visibleMenus.map((item, i) => (
-                <MenuCard key={item.id} item={item} index={i} onAdd={addToCart} />
-              ))}
-            </div>
-          )}
-        </main>
-
-        {/* FOOTER */}
-        <footer className="pb-8 pt-4 text-center">
-          <p className="text-[11px] font-semibold tracking-widest text-stone-300 uppercase">
-            Powered by <span className="font-extrabold text-stone-400 tracking-wide">PesanLagi</span>
-          </p>
-        </footer>
-
-        {/* FLOATING CART BAR */}
-        {cartCount > 0 && !showCart && (
           <button
-            onClick={() => setShowCart(true)}
-            className="fixed bottom-5 left-4 right-4 z-30 mx-auto flex max-w-2xl items-center gap-3 rounded-2xl bg-stone-900 px-5 py-4 text-white shadow-2xl transition-all hover:bg-stone-800 active:scale-[0.98]"
+            onClick={() => {
+              if (cartCount === 0) {
+                showToast('Keranjang masih kosong, yuk pilih menu dulu!');
+                return;
+              }
+              setShowCheckout(true);
+            }}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500">
-              <ShoppingBag size={20} />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-bold">{cartCount} item</p>
-              <p className="text-xs text-stone-400">Rp {formatPrice(cartTotal)}</p>
-            </div>
-            <div className="flex items-center gap-1.5 rounded-xl bg-green-500 px-4 py-2.5 font-bold text-sm shadow-lg shadow-green-500/25">
-              <MessageCircle size={16} fill="white" />
-              Pesan
-            </div>
+            Pesan Sekarang <ArrowRight className="w-4 h-4" />
           </button>
-        )}
+        </div>
+      </div>
 
-        {/* CART SHEET */}
-        {showCart && (
-          <CartSheet
-            cart={cart}
-            store={store}
-            onUpdate={updateCart}
-            onRemove={removeFromCart}
-            onClose={() => setShowCart(false)}
+      {/* ===================== DETAIL MODAL ===================== */}
+      <div
+        className={`${styles.modalBackdrop} ${detailItem ? styles.modalBackdropShow : ''}`}
+        onClick={() => setDetailItem(null)}
+      />
+      <div
+        className={`${styles.modalSheet} ${detailItem ? styles.modalSheetShow : ''}`}
+      >
+        {detailItem && (
+          <>
+            <div className="relative -mx-5 -mt-5 mb-4">
+              {detailItem.image_url && detailItem.image_url.trim() !== '' ? (
+                <img
+                  src={detailItem.image_url}
+                  alt={detailItem.name}
+                  className="w-full h-72 object-cover cursor-pointer"
+                  onClick={() => setLightboxSrc(detailItem.image_url)}
+                />
+              ) : (
+                <div className="w-full h-72 bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
+                  <Utensils
+                    className="text-amber-300"
+                    size={48}
+                    strokeWidth={1.2}
+                  />
+                </div>
+              )}
+              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1 pointer-events-none">
+                <Maximize2 className="w-3 h-3" /> Tap untuk perbesar
+              </div>
+              <button
+                onClick={() => setDetailItem(null)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md text-slate-600"
+                aria-label="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <h3 className="text-lg font-extrabold text-slate-900 flex-1">
+                {detailItem.name}
+              </h3>
+              <p className="text-base font-extrabold text-amber-600 whitespace-nowrap">
+                Rp {formatPrice(detailItem.price)}
+              </p>
+            </div>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              {detailItem.description}
+            </p>
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              {cart[detailItem.id] ? (
+                <QtyStepper
+                  qty={cart[detailItem.id].qty}
+                  onMinus={() => removeFromCart(detailItem.id)}
+                  onPlus={() => addToCart(detailItem)}
+                  wide
+                  fullWidth
+                />
+              ) : (
+                <button
+                  onClick={() => addToCart(detailItem)}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                >
+                  <Plus size={20} strokeWidth={2.5} />
+                  Tambah ke Keranjang
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ===================== CHECKOUT MODAL ===================== */}
+      <div
+        className={`${styles.modalBackdrop} ${showCheckout ? styles.modalBackdropShow : ''}`}
+        onClick={() => setShowCheckout(false)}
+      />
+      <div
+        className={`${styles.modalSheet} ${showCheckout ? styles.modalSheetShow : ''}`}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-extrabold text-slate-900">
+              Detail Pesanan
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Lengkapi data untuk konfirmasi via WhatsApp
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCheckout(false)}
+            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"
+            aria-label="Tutup"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-3 mb-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Nama Pemesan
+            </label>
+            <input
+              type="text"
+              placeholder="Masukkan nama Anda"
+              value={custName}
+              onChange={(e) => setCustName(e.target.value)}
+              className={styles.checkoutInput}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Tipe Pesanan
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setOrderType('dinein')}
+                className={`${styles.optionBtn} ${orderType === 'dinein' ? styles.optionBtnActive : ''}`}
+              >
+                <UtensilsCrossed className="w-4 h-4" /> Makan di Tempat
+              </button>
+              <button
+                onClick={() => setOrderType('takeaway')}
+                className={`${styles.optionBtn} ${orderType === 'takeaway' ? styles.optionBtnActive : ''}`}
+              >
+                <ShoppingBag className="w-4 h-4" /> Bawa Pulang
+              </button>
+            </div>
+          </div>
+          <div
+            className={`${styles.fieldCollapse} ${orderType !== 'dinein' ? styles.fieldCollapseHidden : ''}`}
+            style={{ marginTop: 0 }}
+          >
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Nomor Meja
+            </label>
+            <input
+              type="number"
+              placeholder="Contoh: 5"
+              value={tableNum}
+              onChange={(e) => setTableNum(e.target.value)}
+              className={styles.checkoutInput}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Catatan (Opsional)
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: Pedasnya sedang saja"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className={styles.checkoutInput}
+            />
+          </div>
+        </div>
+
+        <div className="bg-slate-50 rounded-2xl p-4 mb-4">
+          <p className="text-xs font-bold text-slate-700 mb-2">
+            Rangkuman Pesanan
+          </p>
+          <div className="space-y-1.5 mb-3">
+            {Object.entries(cart).map(([id, item]) => (
+              <div
+                key={id}
+                className="flex items-center justify-between text-xs"
+              >
+                <span className="text-slate-600 truncate flex-1 pr-2">
+                  {item.name}{' '}
+                  <span className="text-slate-400">x{item.qty}</span>
+                </span>
+                <span className="font-semibold text-slate-900">
+                  Rp {formatPrice(item.price * item.qty)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-900">
+              Total Pembayaran
+            </span>
+            <span className="text-base font-extrabold text-amber-600">
+              Rp {formatPrice(cartTotal)}
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={sendToWhatsApp}
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Kirim Pesanan via WhatsApp
+        </button>
+      </div>
+
+      {/* ===================== LIGHTBOX ===================== */}
+      <div
+        className={`${styles.lightbox} ${lightboxSrc ? styles.lightboxShow : ''}`}
+        onClick={() => setLightboxSrc(null)}
+      >
+        <button
+          className={styles.lightboxClose}
+          aria-label="Tutup"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <X className="w-6 h-6" />
+        </button>
+        {lightboxSrc && (
+          <img
+            src={lightboxSrc}
+            alt="Foto Menu"
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
           />
         )}
+      </div>
 
-        {/* FLOATING WHATSAPP (only if cart empty) */}
-        {!hasWhatsapp ? null : cartCount === 0 ? (
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="fixed right-4 bottom-5 z-30 flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3.5 text-white shadow-xl shadow-green-500/25 transition-all duration-200 hover:from-green-600 hover:to-emerald-600 hover:shadow-2xl hover:shadow-green-500/30 active:scale-[0.97]"
-          >
-            <MessageCircle size={20} className="shrink-0" fill="white" />
-            <span className="text-[13px] font-bold leading-tight">Pesan via<br />WhatsApp</span>
-            <ChevronRight size={16} className="ml-0.5 shrink-0 opacity-60" />
-          </a>
-        ) : null}
+      {/* ===================== TOAST ===================== */}
+      <div
+        className={`${styles.toast} ${toastMsg ? styles.toastShow : ''}`}
+      >
+        <CheckCircle2 className="w-4 h-4 text-green-400" />
+        <span>{toastMsg}</span>
       </div>
     </div>
   );
