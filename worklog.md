@@ -569,3 +569,61 @@ Stage Summary:
 - page.tsx reduced from 600 lines to 192 lines
 - Dashboard now fully React-rendered with proper state management and event handling
 - This fixes the core user complaint: "tombol ga berfungsi" (buttons not working)
+---
+Task ID: 3
+Agent: Main
+Task: Convert uploaded HTML design into React component for menu/[slug] page
+
+Work Log:
+- Read worklog.md to understand prior work (landing page, auth, dashboard, login redesign)
+- Read uploaded HTML design file (798 lines) — warm amber/orange restaurant digital menu
+- Analyzed existing page.tsx (627 lines) to understand current API integration and cart structure
+- Created page.module.css with all CSS Module styles: blob animations (18s/22s/20s), noise texture, sticky header shadow, category chips, search bar focus, menu card effects, qty stepper, fade-up observer, buka dot pulse, cart bar slide, modal sheets, lightbox, toast, field collapse, checkout inputs, reduced motion support
+- Rewrote page.tsx as full React component implementing the design:
+  - Mobile frame (max-width 430px, border-radius on desktop)
+  - Sticky header with store logo, name, description, Buka badge, address, rating
+  - Search bar with amber focus effect and clear button
+  - Category chips with horizontal scroll (no scrollbar), amber gradient active state
+  - Menu cards with horizontal layout (96x96 image, name+desc+price, add button/qty stepper)
+  - Unavailable items (HABIS badge, grayscale, strikethrough price)
+  - Detail modal (bottom sheet) with full-width image, zoom to lightbox, add/stepper
+  - Checkout modal with customer name, order type toggle (dinein/takeaway), table number (collapse animation), notes, order summary, WhatsApp send
+  - Floating cart bar (dark bg, slides up/down, item count, total, Pesan Sekarang button)
+  - Lightbox full-screen image viewer
+  - Toast notifications (auto-hide 1.8s)
+  - Footer with PesanLagi branding
+  - Skeleton loader matching design style
+  - Error state
+  - Cart system using Record<string, {name, price, qty}> keyed by menu id
+  - WhatsApp message format with store name, customer info, itemized order, total
+- Used CSS Modules for animations/keyframes, Tailwind for layout/spacing/colors
+- Followed all rules: use client, params Promise pattern, .root class, no bare * selector
+- Lint passes clean, no TypeScript errors in modified files
+
+Stage Summary:
+- Complete redesign of menu/[slug] page matching uploaded HTML design with full cart, checkout, and WhatsApp integration
+
+---
+Task ID: 3
+Agent: full-stack-developer (subagent) + Main Agent
+Task: Redesign halaman publik user (menu digital) dari HTML upload ke React component
+
+Work Log:
+- Read uploaded HTML file (798 lines) containing new menu digital design
+- Analyzed current page.tsx (627 lines) and API endpoint structure
+- Converted HTML design to proper React component (975 lines TSX)
+- Created page.module.css (553 lines) for animations and complex selectors
+- Used CSS Module for animations/keyframes, Tailwind for layout
+- Implemented: warm gradient bg, animated blobs, sticky header, search, category chips
+- Implemented: menu cards with inline qty stepper, cart system via React state
+- Implemented: detail modal (bottom sheet), lightbox, checkout modal with WhatsApp
+- Implemented: floating cart bar, toast notifications, fade-up animations
+- Verified: lint passes clean, page compiles and renders correctly
+- Verified: browser test shows error state correctly for invalid slug
+- Pushed to GitHub (commit 6e667d3)
+
+Stage Summary:
+- Replaced /src/app/menu/[slug]/page.tsx (457→975 lines)
+- Created /src/app/menu/[slug]/page.module.css (553 lines)
+- No other files modified (per user request)
+- All functionality implemented via React state (no innerHTML)

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ayam Geprek Aan Muda — Menu Digital</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ease-quiet: cubic-bezier(.22,1,.36,1); }
+  * { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #F8FAFC; color: #0F172A; }
+  body { overflow-x: hidden; }
+
+  /* Mobile Frame with Warm Gradient */
+  .mobile-frame { 
+    max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative;
+    background: linear-gradient(180deg, #FFFBEB 0%, #FFF7ED 30%, #FFFBEB 60%, #FFF7ED 100%);
+    box-shadow: 0 0 80px -20px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  @media (min-width: 431px) { body { background: #F1F5F9; padding: 24px 0; } .mobile-frame { border-radius: 32px; min-height: calc(100vh - 48px); } }
+
+  /* Warm Blobs */
+  .bg-blob { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+  .blob-a { top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(251,191,36,0.5) 0%, rgba(245,158,11,0.2) 40%, transparent 70%); animation: blobFloat1 18s ease-in-out infinite; }
+  .blob-b { bottom: 20%; left: -150px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(249,115,22,0.25) 0%, rgba(234,88,12,0.1) 50%, transparent 70%); animation: blobFloat2 22s ease-in-out infinite; }
+  .blob-c { top: 40%; right: -120px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(252,211,77,0.3) 0%, transparent 70%); animation: blobFloat3 20s ease-in-out infinite; }
+  @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-20px, 30px) scale(1.1); } }
+  @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px, -20px) scale(0.9); } }
+  @keyframes blobFloat3 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.6; } 50% { transform: translate(-30px, 20px) scale(1.15); opacity: 1; } }
+
+  /* Noise Texture */
+  .bg-noise { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .content-layer { position: relative; z-index: 10; }
+
+  /* Sticky Header */
+  .sticky-wrap { position: sticky; top: 0; z-index: 30; transition: box-shadow .3s ease, background-color .3s ease; }
+  .sticky-wrap.scrolled { background: rgba(255,251,235,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 4px 20px -8px rgba(245,158,11,0.15); }
+
+  .cat-chip { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #92400E; background: rgba(255,255,255,0.6); border: 1px solid rgba(251,191,36,0.3); white-space: nowrap; transition: all .25s var(--ease-quiet); cursor: pointer; flex-shrink: 0; backdrop-filter: blur(4px); }
+  .cat-chip:hover { border-color: #FBBF24; background: white; }
+  .cat-chip.active { background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); color: white; border-color: transparent; box-shadow: 0 6px 16px -4px rgba(245,158,11,0.4); }
+
+  /* Menu Card */
+  .menu-card { transition: transform .25s var(--ease-quiet); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 20px -8px rgba(245,158,11,0.1); }
+  .menu-card:active { transform: scale(0.98); }
+
+  .add-btn { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px -2px rgba(245,158,11,0.4); transition: transform .2s var(--ease-quiet); cursor: pointer; }
+  .add-btn:hover { transform: scale(1.1); }
+  .add-btn:active { transform: scale(0.95); transition-duration: .1s; }
+
+  /* Quantity Stepper */
+  .qty-stepper { display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #FBBF24; border-radius: 10px; padding: 2px; height: 36px; box-shadow: 0 4px 12px -2px rgba(245,158,11,0.2); }
+  .qty-stepper button { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #92400E; transition: background .2s; cursor: pointer; }
+  .qty-stepper button:hover { background: #FFFBEB; }
+  .qty-stepper button:active { transform: scale(0.9); }
+  .qty-stepper span { font-size: 14px; font-weight: 800; color: #0F172A; min-width: 20px; text-align: center; }
+
+  .qty-stepper.wide { height: 52px; padding: 4px; border-radius: 12px; }
+  .qty-stepper.wide button { width: 44px; height: 44px; border-radius: 10px; }
+  .qty-stepper.wide span { font-size: 18px; min-width: 30px; }
+  .qty-stepper.w-full { width: 100%; justify-content: space-between; }
+
+  .photo-habis { filter: grayscale(0.6); opacity: 0.7; }
+
+  .fade-up { opacity: 0; transform: translateY(16px); transition: opacity .5s var(--ease-quiet), transform .5s var(--ease-quiet); }
+  .fade-up.in { opacity: 1; transform: translateY(0); }
+
+  .buka-dot { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+
+  .search-wrap { transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(4px); border: 1px solid rgba(251, 191, 36, 0.3); }
+  .search-wrap:focus-within { border-color: #F59E0B !important; background-color: #FFFBEB; box-shadow: 0 0 0 4px rgba(245,158,11,0.12); }
+  .search-wrap:focus-within .search-icon { color: #F59E0B; }
+
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  .cat-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Floating Cart Bar */
+  .cart-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(120%); width: calc(100% - 32px); max-width: 398px; background: #0F172A; color: white; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 40; box-shadow: 0 16px 40px -8px rgba(0,0,0,0.3); transition: transform .4s var(--ease-quiet); }
+  .cart-bar.show { transform: translateX(-50%) translateY(0); }
+
+  /* Modal Sheets */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease-quiet); }
+  .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+  .modal-sheet { position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 100%); width: 100%; max-width: 430px; background: white; border-radius: 24px 24px 0 0; z-index: 61; padding: 20px; transition: transform .4s var(--ease-quiet); max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
+  @media (min-width: 431px) { .modal-sheet { bottom: 24px; border-radius: 24px; transform: translate(-50%, calc(100% + 48px)); } .modal-backdrop.show + .modal-sheet { transform: translate(-50%, 0); } }
+  .modal-sheet.show { transform: translate(-50%, 0); }
+
+  .checkout-input { width: 100%; padding: 12px 16px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; font-size: 14px; color: #0F172A; outline: none; transition: all .25s ease; }
+  .checkout-input:focus { border-color: #F59E0B; background: #FFFBEB; box-shadow: 0 0 0 4px rgba(245,158,11,0.12); }
+
+  .option-btn { padding: 10px 14px; border-radius: 12px; border: 1.5px solid #E2E8F0; font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all .25s var(--ease-quiet); }
+  .option-btn.active { border-color: #F59E0B; background: #FFFBEB; color: #92400E; }
+
+  .field-collapse { max-height: 80px; opacity: 1; overflow: hidden; transition: max-height 0.3s var(--ease-quiet), opacity 0.3s var(--ease-quiet), margin-top 0.3s var(--ease-quiet); }
+  .field-collapse.is-hidden { max-height: 0; opacity: 0; margin-top: 0 !important; pointer-events: none; }
+
+  /* Lightbox */
+  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; }
+  .lightbox-close { position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
+
+  ::selection { background: rgba(245,158,11,.25); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-frame relative">
+  <!-- Background Decorations -->
+  <div class="bg-blob blob-a"></div>
+  <div class="bg-blob blob-b"></div>
+  <div class="bg-blob blob-c"></div>
+  <div class="bg-noise"></div>
+
+  <div class="content-layer">
+
+    <!-- STICKY HEADER -->
+    <div id="sticky-wrap" class="sticky-wrap">
+      <header class="px-4 pt-4 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            <img src="https://picsum.photos/seed/ayam-geprek-aan-muda-logo/120/120" class="w-12 h-12 rounded-full object-cover ring-2 ring-amber-300 shadow-md" alt="Logo">
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-base font-extrabold text-slate-900 leading-tight truncate">Ayam Geprek Aan Muda</h1>
+            <p class="text-[11px] text-amber-700/80 truncate font-medium">Pedas Nampol, Harga Ramah Kantor</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-50 border border-green-200">
+            <span class="w-2 h-2 bg-green-500 rounded-full buka-dot"></span>
+            <span class="text-[11px] font-bold text-green-700">Buka</span>
+          </span>
+        </div>
+        <div class="flex items-center gap-3 mt-2.5 text-[11px] text-slate-600 font-medium">
+          <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> 08.00 - 22.00</span>
+          <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> Jl. Krapyak No. 12</span>
+          <span class="flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i> 4.9</span>
+        </div>
+      </header>
+
+      <div class="px-4 py-2.5">
+        <div class="search-wrap flex items-center gap-2 px-3.5 py-2.5 rounded-xl">
+          <i data-lucide="search" class="search-icon w-[18px] h-[18px] text-slate-400 transition-colors"></i>
+          <input id="search-input" type="text" placeholder="Cari es teh, bakso..." class="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 outline-none" />
+          <button id="search-clear" class="hidden w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center"><i data-lucide="x" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div>
+        <div class="cat-scroll flex items-center gap-2 px-4 pb-3 overflow-x-auto">
+          <button class="cat-chip active" data-cat="all">Semua</button>
+          <button class="cat-chip" data-cat="makanan">Makanan Utama</button>
+          <button class="cat-chip" data-cat="minuman">Minuman</button>
+          <button class="cat-chip" data-cat="camilan">Camilan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENU LIST -->
+    <main class="px-4 py-4 pb-24">
+
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold text-slate-900">Pilih Menu Favoritmu</h2>
+        <span id="menu-count" class="text-[11px] text-amber-700/80 font-semibold">8 menu tersedia</span>
+      </div>
+
+      <div id="menu-list" class="space-y-3">
+
+        <!-- 1. Ayam Geprek Original -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="makanan" data-name="ayam geprek original" data-fullname="Ayam Geprek Original" data-price="15000" data-desc="Ayam crispy digeprek dengan sambal bawang pedas nampol, disajikan dengan nasi hangat, lalapan timun dan kemangi segar." data-img="https://picsum.photos/seed/ayam-geprek-original-nampol/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/ayam-geprek-original-nampol/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Ayam Geprek Original">
+              <span class="absolute -top-1.5 -left-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-bold">BEST</span>
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Ayam Geprek Original</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Ayam crispy digeprek dengan sambal bawang pedas nampol, nasi hangat & lalapan.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 15.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 2. Ayam Geprek Mozzarella -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="makanan" data-name="ayam geprek mozzarella keju lumer" data-fullname="Ayam Geprek Mozzarella" data-price="22000" data-desc="Ayam geprek pedas dengan taburan keju mozzarella lumer yang bikin nagih. Sajian premium untuk pecinta pedas dan keju." data-img="https://picsum.photos/seed/ayam-geprek-mozzarella-lumer/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/ayam-geprek-mozzarella-lumer/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Ayam Geprek Mozzarella">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Ayam Geprek Mozzarella</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Geprek pedas dengan taburan keju mozzarella lumer yang bikin nagih.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 22.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 3. Ayam Geprek Sambal Matah - HABIS -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3 opacity-90" data-cat="makanan" data-name="ayam geprek sambal matah" data-fullname="Ayam Geprek Sambal Matah" data-price="18000" data-desc="Ayam geprek dengan sambal matah khas Bali, segar dan pedas menyegarkan." data-img="https://picsum.photos/seed/ayam-geprek-sambal-matah-segar/400/400" data-habis="true">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/ayam-geprek-sambal-matah-segar/200/200" class="w-24 h-24 rounded-xl object-cover photo-habis" alt="Ayam Geprek Sambal Matah">
+              <span class="absolute inset-0 flex items-center justify-center">
+                <span class="px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-extrabold tracking-wide">HABIS</span>
+              </span>
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-400 leading-tight">Ayam Geprek Sambal Matah</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed line-clamp-2">Ayam geprek dengan sambal matah khas Bali, segar dan pedas menyegarkan.</p>
+              </div>
+              <span class="text-base font-extrabold text-slate-400 line-through decoration-red-400 decoration-2">Rp 18.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 4. Paket Geprek Hemat -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="makanan" data-name="paket geprek hemat nasi es teh" data-fullname="Paket Geprek Hemat" data-price="19000" data-desc="Ayam geprek original + nasi hangat + es teh manis. Paket lengkap untuk sekali makan, lebih hemat!" data-img="https://picsum.photos/seed/paket-geprek-hemat-hemat/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/paket-geprek-hemat-hemat/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Paket Geprek Hemat">
+              <span class="absolute -top-1.5 -left-1.5 px-1.5 py-0.5 rounded-md bg-green-500 text-white text-[9px] font-bold">HEMAT</span>
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Paket Geprek Hemat</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Ayam geprek original + nasi + es teh manis. Paket lengkap untuk sekali makan.</p>
+              </div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-base font-extrabold text-amber-600">Rp 19.000</span>
+                <span class="text-[10px] text-slate-400 line-through">Rp 20.000</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 5. Nasi Putih -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="makanan" data-name="nasi putih hangat" data-fullname="Nasi Putih" data-price="5000" data-desc="Nasi putih hangat pulen, cocok sebagai pendamping menu geprek favoritmu." data-img="https://picsum.photos/seed/nasi-putih-hangat-wangi/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/nasi-putih-hangat-wangi/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Nasi Putih">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Nasi Putih</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Nasi putih hangat pulen, cocok sebagai pendamping menu geprek.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 5.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 6. Es Teh Manis -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="minuman" data-name="es teh manis dingin segar" data-fullname="Es Teh Manis" data-price="5000" data-desc="Teh manis dingin menyegarkan, pelepas dahaga setelah makan geprek pedas." data-img="https://picsum.photos/seed/es-teh-manis-dingin-segar/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/es-teh-manis-dingin-segar/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Es Teh Manis">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Es Teh Manis</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Teh manis dingin menyegarkan, pelepas dahaga setelah makan geprek pedas.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 5.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 7. Es Jeruk Peras -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="minuman" data-name="es jeruk peras segar asli" data-fullname="Es Jeruk Peras" data-price="7000" data-desc="Jeruk peras asli segar dengan es batu, manis-asam menyegarkan tenggorokan." data-img="https://picsum.photos/seed/es-jeruk-peras-asli-segar/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/es-jeruk-peras-asli-segar/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Es Jeruk Peras">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Es Jeruk Peras</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Jeruk peras asli segar dengan es batu, manis-asam menyegarkan tenggorokan.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 7.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <!-- 8. Kerupuk Udang -->
+        <div class="menu-card fade-up rounded-2xl p-3 flex gap-3" data-cat="camilan" data-name="kerupuk udang renyah" data-fullname="Kerupuk Udang" data-price="3000" data-desc="Kerupuk udang renyah gurih, teman makan geprek biar makin nikmat." data-img="https://picsum.photos/seed/kerupuk-udang-renyah-asin/400/400">
+          <div class="flex-1 min-w-0 flex gap-3 cursor-pointer" onclick="openDetail(this)">
+            <div class="relative shrink-0">
+              <img src="https://picsum.photos/seed/kerupuk-udang-renyah-asin/200/200" class="w-24 h-24 rounded-xl object-cover" alt="Kerupuk Udang">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Kerupuk Udang</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">Kerupuk udang renyah gurih, teman makan geprek biar makin nikmat.</p>
+              </div>
+              <span class="text-base font-extrabold text-amber-600">Rp 3.000</span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end shrink-0">
+            <div class="btn-wrap"></div>
+          </div>
+        </div>
+
+        <div id="empty-state" class="hidden text-center py-12">
+          <div class="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center mx-auto mb-3"><i data-lucide="search-x" class="w-8 h-8 text-amber-500"></i></div>
+          <p class="text-sm font-bold text-slate-900">Menu tidak ditemukan</p>
+          <p class="text-xs text-slate-500 mt-1">Coba kata kunci lain atau pilih kategori berbeda</p>
+        </div>
+
+      </div>
+
+      <footer class="mt-8 pt-6 pb-4 border-t border-amber-200/50 text-center">
+        <div class="flex items-center justify-center gap-1.5">
+          <div class="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+            <i data-lucide="utensils" class="w-3 h-3 text-white" stroke-width="2.5"></i>
+          </div>
+          <span class="text-[11px] text-slate-500 font-medium">Ditenagai oleh <span class="font-bold text-amber-700">PesanLagi</span> • Bikin Menu QR Gratis</span>
+        </div>
+        <p class="text-[10px] text-amber-600/40 mt-1">© 2025 PesanLagi.id</p>
+      </footer>
+
+    </main>
+
+    <!-- Floating Cart Bar -->
+    <div id="cart-bar" class="cart-bar">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center"><i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i></div>
+          <span id="cart-count" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-amber-600 text-[11px] font-extrabold flex items-center justify-center">0</span>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium"><span id="cart-items">0 item</span> • Keranjang</p>
+          <p class="text-sm font-extrabold text-white" id="cart-total">Rp 0</p>
+        </div>
+      </div>
+      <button onclick="openCheckout()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-transform">
+        Pesan Sekarang<i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Lightbox (Photo Zoom Viewer) -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-close"><i data-lucide="x" class="w-6 h-6"></i></div>
+  <img id="lightbox-img" src="" alt="Foto Menu">
+</div>
+
+<!-- Modal Detail Menu -->
+<div id="detail-backdrop" class="modal-backdrop"></div>
+<div id="detail-sheet" class="modal-sheet">
+  <div class="relative -mx-5 -mt-5 mb-4">
+    <img id="detail-img" src="" class="w-full h-72 object-cover cursor-pointer" onclick="openLightbox(this.src)">
+    <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1 pointer-events-none">
+      <i data-lucide="maximize-2" class="w-3 h-3"></i> Tap untuk perbesar
+    </div>
+    <button onclick="closeDetail()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+  <div class="flex items-start justify-between mb-2 gap-2">
+    <h3 id="detail-name" class="text-lg font-extrabold text-slate-900 flex-1"></h3>
+    <p id="detail-price" class="text-base font-extrabold text-amber-600 whitespace-nowrap"></p>
+  </div>
+  <p id="detail-desc" class="text-sm text-slate-500 leading-relaxed"></p>
+  
+  <div class="mt-6 pt-4 border-t border-slate-100">
+    <div id="detail-btn-wrap" class="btn-wrap"></div>
+  </div>
+</div>
+
+<!-- Modal Checkout -->
+<div id="checkout-backdrop" class="modal-backdrop"></div>
+<div id="checkout-sheet" class="modal-sheet">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="text-lg font-extrabold text-slate-900">Detail Pesanan</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Lengkapi data untuk konfirmasi via WhatsApp</p>
+    </div>
+    <button onclick="closeCheckout()" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+
+  <div class="space-y-3 mb-4">
+    <div>
+      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Pemesan</label>
+      <input id="cust-name" type="text" placeholder="Masukkan nama Anda" class="checkout-input" />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tipe Pesanan</label>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="opt-dinein" class="option-btn active" onclick="selectType('dinein')"><i data-lucide="utensils-crossed" class="w-4 h-4"></i> Makan di Tempat</button>
+        <button id="opt-takeaway" class="option-btn" onclick="selectType('takeaway')"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Bawa Pulang</button>
+      </div>
+    </div>
+    <div id="table-input-wrap" class="field-collapse">
+      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nomor Meja</label>
+      <input id="cust-table" type="number" placeholder="Contoh: 5" class="checkout-input" />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan (Opsional)</label>
+      <input id="cust-notes" type="text" placeholder="Contoh: Pedasnya sedang saja" class="checkout-input" />
+    </div>
+  </div>
+
+  <div class="bg-slate-50 rounded-2xl p-4 mb-4">
+    <p class="text-xs font-bold text-slate-700 mb-2">Rangkuman Pesanan</p>
+    <div id="summary-items" class="space-y-1.5 mb-3"></div>
+    <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+      <span class="text-sm font-bold text-slate-900">Total Pembayaran</span>
+      <span id="summary-total" class="text-base font-extrabold text-amber-600">Rp 0</span>
+    </div>
+  </div>
+
+  <button onclick="sendToWhatsApp()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+    <i data-lucide="message-circle" class="w-5 h-5"></i>
+    Kirim Pesanan via WhatsApp
+  </button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-2xl z-[70] flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+  <i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i>
+  <span id="toast-text">Ditambahkan ke keranjang</span>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  // Nomor WhatsApp Pemilik Toko (Ganti dengan nomor sungguhan)
+  const WARUNG_WA = '6281234567890';
+
+  // Sticky shadow
+  const stickyWrap = document.getElementById('sticky-wrap');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) stickyWrap.classList.add('scrolled');
+    else stickyWrap.classList.remove('scrolled');
+  });
+
+  // Fade-up entry
+  const fadeEls = document.querySelectorAll('.fade-up');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('in'), i * 60);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+  fadeEls.forEach(el => io.observe(el));
+
+  // Category & Search Filter
+  const chips = document.querySelectorAll('.cat-chip');
+  const menuCards = document.querySelectorAll('.menu-card');
+  const emptyState = document.getElementById('empty-state');
+  const menuCount = document.getElementById('menu-count');
+  let currentCat = 'all';
+  let currentSearch = '';
+
+  function applyFilter() {
+    let visible = 0;
+    menuCards.forEach(card => {
+      const cat = card.dataset.cat;
+      const name = card.dataset.name || '';
+      const catMatch = currentCat === 'all' || cat === currentCat;
+      const searchMatch = currentSearch === '' || name.includes(currentSearch.toLowerCase());
+      if (catMatch && searchMatch) {
+        card.style.display = '';
+        visible++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    emptyState.classList.toggle('hidden', visible > 0);
+    menuCount.textContent = `${visible} menu tersedia`;
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentCat = chip.dataset.cat;
+      applyFilter();
+    });
+  });
+
+  const searchInput = document.getElementById('search-input');
+  const searchClear = document.getElementById('search-clear');
+  searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value.trim();
+    searchClear.classList.toggle('hidden', currentSearch === '');
+    searchClear.classList.toggle('flex', currentSearch !== '');
+    applyFilter();
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    currentSearch = '';
+    searchClear.classList.add('hidden');
+    searchClear.classList.remove('flex');
+    applyFilter();
+  });
+
+  // ====== CART SYSTEM ======
+  let cart = {};
+  const cartBar = document.getElementById('cart-bar');
+
+  function addToCart(name, price) {
+    if (cart[name]) {
+      cart[name].qty += 1;
+    } else {
+      cart[name] = { name, price, qty: 1 };
+    }
+    updateCart();
+    updateMenuButtons();
+    updateDetailButtonIfOpen(name, price);
+    showToast(`${name} ditambahkan`);
+  }
+
+  function removeFromCart(name) {
+    if (cart[name]) {
+      cart[name].qty -= 1;
+      if (cart[name].qty <= 0) {
+        delete cart[name];
+      }
+      updateCart();
+      updateMenuButtons();
+      updateDetailButtonIfOpen(name, 0);
+    }
+  }
+
+  function getCartCount() {
+    return Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+  }
+
+  function getCartTotal() {
+    return Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
+  }
+
+  function updateCart() {
+    const count = getCartCount();
+    const total = getCartTotal();
+    if (count === 0) {
+      cartBar.classList.remove('show');
+    } else {
+      cartBar.classList.add('show');
+      document.getElementById('cart-count').textContent = count;
+      document.getElementById('cart-items').textContent = `${count} item`;
+      document.getElementById('cart-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+  }
+
+  function updateMenuButtons() {
+    document.querySelectorAll('.menu-card').forEach(card => {
+      const name = card.dataset.fullname;
+      const price = parseInt(card.dataset.price);
+      const isHabis = card.dataset.habis === 'true';
+      const btnWrap = card.querySelector('.btn-wrap');
+      
+      if (!btnWrap) return;
+      
+      if (isHabis) {
+        btnWrap.innerHTML = `<span class="text-[11px] font-bold text-slate-400 italic">Habis</span>`;
+        return;
+      }
+      
+      if (cart[name]) {
+        btnWrap.innerHTML = `
+          <div class="qty-stepper">
+            <button onclick="removeFromCart('${name.replace(/'/g, "\\'")}')"><i data-lucide="minus" class="w-4 h-4" stroke-width="2.5"></i></button>
+            <span>${cart[name].qty}</span>
+            <button onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price})"><i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i></button>
+          </div>
+        `;
+      } else {
+        btnWrap.innerHTML = `
+          <button onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price})" class="add-btn"><i data-lucide="plus" class="w-5 h-5" stroke-width="2.5"></i></button>
+        `;
+      }
+    });
+    lucide.createIcons();
+  }
+
+  // ====== LIGHTBOX ======
+  function openLightbox(imgSrc) {
+    document.getElementById('lightbox-img').src = imgSrc;
+    document.getElementById('lightbox').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  // ====== DETAIL MENU MODAL ======
+  function openDetail(el) {
+    const card = el.closest('.menu-card');
+    if (!card || card.dataset.habis === 'true') return;
+    
+    const fullname = card.dataset.fullname;
+    const price = parseInt(card.dataset.price);
+    const desc = card.dataset.desc;
+    const img = card.dataset.img;
+    
+    document.getElementById('detail-img').src = img;
+    document.getElementById('detail-name').textContent = fullname;
+    document.getElementById('detail-price').textContent = `Rp ${price.toLocaleString('id-ID')}`;
+    document.getElementById('detail-desc').textContent = desc;
+    
+    updateDetailButton(fullname, price);
+    
+    document.getElementById('detail-backdrop').classList.add('show');
+    document.getElementById('detail-sheet').classList.add('show');
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-backdrop').classList.remove('show');
+    document.getElementById('detail-sheet').classList.remove('show');
+  }
+  document.getElementById('detail-backdrop').addEventListener('click', closeDetail);
+
+  function updateDetailButton(name, price) {
+    const btnWrap = document.getElementById('detail-btn-wrap');
+    if (cart[name]) {
+      btnWrap.innerHTML = `
+        <div class="qty-stepper wide w-full justify-between">
+          <button onclick="removeFromCart('${name.replace(/'/g, "\\'")}')"><i data-lucide="minus" class="w-5 h-5" stroke-width="2.5"></i></button>
+          <span>${cart[name].qty}</span>
+          <button onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price})"><i data-lucide="plus" class="w-5 h-5" stroke-width="2.5"></i></button>
+        </div>
+      `;
+    } else {
+      btnWrap.innerHTML = `
+        <button onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price})" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+          <i data-lucide="plus" class="w-5 h-5" stroke-width="2.5"></i>
+          Tambah ke Keranjang
+        </button>
+      `;
+    }
+    lucide.createIcons();
+  }
+
+  function updateDetailButtonIfOpen(name, price) {
+    if (document.getElementById('detail-sheet').classList.contains('show')) {
+      const currentName = document.getElementById('detail-name').textContent;
+      if (currentName === name) {
+        const itemPrice = cart[name] ? cart[name].price : price;
+        updateDetailButton(name, itemPrice);
+      }
+    }
+  }
+
+  // ====== CHECKOUT MODAL ======
+  let orderType = 'dinein';
+
+  function openCheckout() {
+    if (Object.keys(cart).length === 0) {
+      showToast('Keranjang masih kosong, yuk pilih menu dulu!');
+      return;
+    }
+
+    const summaryItems = document.getElementById('summary-items');
+    summaryItems.innerHTML = '';
+    for (const key in cart) {
+      const item = cart[key];
+      const subTotal = item.price * item.qty;
+      summaryItems.innerHTML += `
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-600 truncate flex-1 pr-2">${item.name} <span class="text-slate-400">x${item.qty}</span></span>
+          <span class="font-semibold text-slate-900">Rp ${subTotal.toLocaleString('id-ID')}</span>
+        </div>
+      `;
+    }
+    document.getElementById('summary-total').textContent = `Rp ${getCartTotal().toLocaleString('id-ID')}`;
+    
+    document.getElementById('checkout-backdrop').classList.add('show');
+    document.getElementById('checkout-sheet').classList.add('show');
+  }
+
+  function closeCheckout() {
+    document.getElementById('checkout-backdrop').classList.remove('show');
+    document.getElementById('checkout-sheet').classList.remove('show');
+  }
+  document.getElementById('checkout-backdrop').addEventListener('click', closeCheckout);
+
+  function selectType(type) {
+    orderType = type;
+    const dineinBtn = document.getElementById('opt-dinein');
+    const takeawayBtn = document.getElementById('opt-takeaway');
+    const tableWrap = document.getElementById('table-input-wrap');
+    
+    if (type === 'dinein') {
+      dineinBtn.classList.add('active');
+      takeawayBtn.classList.remove('active');
+      tableWrap.classList.remove('is-hidden');
+    } else {
+      takeawayBtn.classList.add('active');
+      dineinBtn.classList.remove('active');
+      tableWrap.classList.add('is-hidden');
+    }
+  }
+
+  // Send to WhatsApp
+  function sendToWhatsApp() {
+    const name = document.getElementById('cust-name').value.trim() || 'Tanpa Nama';
+    const table = document.getElementById('cust-table').value.trim();
+    const notes = document.getElementById('cust-notes').value.trim();
+    
+    if (orderType === 'dinein' && !table) {
+      showToast('Mohon isi nomor meja dulu');
+      return;
+    }
+
+    let message = `*PESANAN BARU - AYAM GEPREK AAN MUDA*\n\n`;
+    message += `*Nama Pemesan:* ${name}\n`;
+    message += `*Tipe:* ${orderType === 'dinein' ? 'Makan di Tempat' : 'Bawa Pulang'}\n`;
+    if (orderType === 'dinein') message += `*Nomor Meja:* ${table}\n`;
+    if (notes) message += `*Catatan:* ${notes}\n`;
+    message += `\n*Detail Pesanan:*\n`;
+    
+    let i = 1;
+    for (const key in cart) {
+      const item = cart[key];
+      const subTotal = item.price * item.qty;
+      message += `${i}. ${item.name} x${item.qty} - Rp ${subTotal.toLocaleString('id-ID')}\n`;
+      i++;
+    }
+    
+    const total = getCartTotal();
+    message += `\n*Total Pembayaran: Rp ${total.toLocaleString('id-ID')}*\n\n`;
+    message += `_Pesanan dibuat via Menu Digital PesanLagi_`;
+
+    const waUrl = `https://wa.me/${WARUNG_WA}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+    
+    cart = {};
+    updateCart();
+    updateMenuButtons();
+    closeCheckout();
+    showToast('Pesanan dikirim ke WhatsApp warung!');
+  }
+
+  // Toast
+  let toastTimer;
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = msg;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(10px)';
+    }, 1800);
+  }
+
+  // Init buttons on load
+  updateMenuButtons();
+</script>
+
+</body>
+</html>
