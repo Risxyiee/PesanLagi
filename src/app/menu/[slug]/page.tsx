@@ -34,6 +34,14 @@ interface Store {
   address: string;
   bg_color: string;
   qr_color: string;
+  hours?: {
+    menu_theme?: string;
+    menu_layout?: string;
+    open_time?: string;
+    close_time?: string;
+    days?: number[];
+    [key: string]: any;
+  };
 }
 
 interface Category {
@@ -65,6 +73,72 @@ const formatPrice = (price: number) =>
   new Intl.NumberFormat('id-ID').format(price);
 
 type CartItem = { name: string; price: number; qty: number };
+
+/* ------------------------------------------------------------------ */
+/*  Theme Configuration                                                */
+/* ------------------------------------------------------------------ */
+const THEME_MAP: Record<string, Record<string, string>> = {
+  amber: {
+    '--t-50': '#fffbeb', '--t-100': '#fef3c7', '--t-200': '#fde68a', '--t-300': '#fcd34d',
+    '--t-400': '#fbbf24', '--t-500': '#f59e0b', '--t-600': '#d97706', '--t-700': '#b45309',
+    '--t-800': '#92400e',
+    '--t-rgb': '245, 158, 11',
+    '--t-bg': 'linear-gradient(180deg, #fffbeb 0%, #fff7ed 30%, #fffbeb 60%, #fff7ed 100%)',
+    '--t-blob-a': 'rgba(251, 191, 36, 0.5) 0%, rgba(245, 158, 11, 0.2) 40%, transparent 70%',
+    '--t-blob-b': 'rgba(249, 115, 22, 0.25) 0%, rgba(234, 88, 12, 0.1) 50%, transparent 70%',
+    '--t-blob-c': 'rgba(252, 211, 77, 0.3) 0%, transparent 70%',
+    '--t-sticky-bg': 'rgba(255, 251, 235, 0.85)',
+    '--t-icon-fallback': 'text-amber-300', '--t-img-fallback': 'from-orange-50 via-amber-50 to-rose-50',
+  },
+  green: {
+    '--t-50': '#f0fdf4', '--t-100': '#dcfce7', '--t-200': '#bbf7d0', '--t-300': '#86efac',
+    '--t-400': '#4ade80', '--t-500': '#22c55e', '--t-600': '#16a34a', '--t-700': '#15803d',
+    '--t-800': '#166534',
+    '--t-rgb': '34, 197, 94',
+    '--t-bg': 'linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 30%, #f0fdf4 60%, #ecfdf5 100%)',
+    '--t-blob-a': 'rgba(74, 222, 128, 0.5) 0%, rgba(34, 197, 94, 0.2) 40%, transparent 70%',
+    '--t-blob-b': 'rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.1) 50%, transparent 70%',
+    '--t-blob-c': 'rgba(134, 239, 172, 0.3) 0%, transparent 70%',
+    '--t-sticky-bg': 'rgba(240, 253, 244, 0.85)',
+    '--t-icon-fallback': 'text-green-300', '--t-img-fallback': 'from-green-50 via-emerald-50 to-teal-50',
+  },
+  blue: {
+    '--t-50': '#eff6ff', '--t-100': '#dbeafe', '--t-200': '#bfdbfe', '--t-300': '#93c5fd',
+    '--t-400': '#60a5fa', '--t-500': '#3b82f6', '--t-600': '#2563eb', '--t-700': '#1d4ed8',
+    '--t-800': '#1e40af',
+    '--t-rgb': '59, 130, 246',
+    '--t-bg': 'linear-gradient(180deg, #eff6ff 0%, #eef2ff 30%, #eff6ff 60%, #eef2ff 100%)',
+    '--t-blob-a': 'rgba(96, 165, 250, 0.5) 0%, rgba(59, 130, 246, 0.2) 40%, transparent 70%',
+    '--t-blob-b': 'rgba(37, 99, 235, 0.25) 0%, rgba(29, 78, 216, 0.1) 50%, transparent 70%',
+    '--t-blob-c': 'rgba(147, 197, 253, 0.3) 0%, transparent 70%',
+    '--t-sticky-bg': 'rgba(239, 246, 255, 0.85)',
+    '--t-icon-fallback': 'text-blue-300', '--t-img-fallback': 'from-blue-50 via-indigo-50 to-violet-50',
+  },
+  red: {
+    '--t-50': '#fef2f2', '--t-100': '#fee2e2', '--t-200': '#fecaca', '--t-300': '#fca5a5',
+    '--t-400': '#f87171', '--t-500': '#ef4444', '--t-600': '#dc2626', '--t-700': '#b91c1c',
+    '--t-800': '#991b1b',
+    '--t-rgb': '239, 68, 68',
+    '--t-bg': 'linear-gradient(180deg, #fef2f2 0%, #fff1f2 30%, #fef2f2 60%, #fff1f2 100%)',
+    '--t-blob-a': 'rgba(248, 113, 113, 0.5) 0%, rgba(239, 68, 68, 0.2) 40%, transparent 70%',
+    '--t-blob-b': 'rgba(220, 38, 38, 0.25) 0%, rgba(185, 28, 28, 0.1) 50%, transparent 70%',
+    '--t-blob-c': 'rgba(252, 165, 165, 0.3) 0%, transparent 70%',
+    '--t-sticky-bg': 'rgba(254, 242, 242, 0.85)',
+    '--t-icon-fallback': 'text-red-300', '--t-img-fallback': 'from-red-50 via-rose-50 to-pink-50',
+  },
+  dark: {
+    '--t-50': '#f8fafc', '--t-100': '#f1f5f9', '--t-200': '#e2e8f0', '--t-300': '#cbd5e1',
+    '--t-400': '#94a3b8', '--t-500': '#64748b', '--t-600': '#475569', '--t-700': '#334155',
+    '--t-800': '#1e293b',
+    '--t-rgb': '100, 116, 139',
+    '--t-bg': 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 30%, #f8fafc 60%, #f1f5f9 100%)',
+    '--t-blob-a': 'rgba(148, 163, 184, 0.4) 0%, rgba(100, 116, 139, 0.2) 40%, transparent 70%',
+    '--t-blob-b': 'rgba(71, 85, 105, 0.25) 0%, rgba(51, 65, 85, 0.1) 50%, transparent 70%',
+    '--t-blob-c': 'rgba(203, 213, 225, 0.3) 0%, transparent 70%',
+    '--t-sticky-bg': 'rgba(248, 250, 252, 0.85)',
+    '--t-icon-fallback': 'text-slate-400', '--t-img-fallback': 'from-slate-50 via-gray-50 to-zinc-50',
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton Loader                                                    */

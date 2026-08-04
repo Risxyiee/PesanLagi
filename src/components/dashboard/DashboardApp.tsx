@@ -254,6 +254,10 @@ export default function DashboardApp() {
   const [settingsDays, setSettingsDays] = useState<boolean[]>([true,true,true,true,true,true,false]);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
 
+  // Digital menu appearance
+  const [menuTheme, setMenuTheme] = useState("amber");
+  const [menuLayout, setMenuLayout] = useState("grid");
+
   // Modal form
   const [modalName, setModalName] = useState("");
   const [modalCategory, setModalCategory] = useState("Makanan");
@@ -304,14 +308,19 @@ export default function DashboardApp() {
           setSettingsAddress(storeRes.address ?? "");
           setSettingsSlug(storeRes.slug ?? "");
           setSettingsCategory(storeRes.category ?? "Makanan Indonesia");
-          if (storeRes.open_time) setSettingsOpenTime(storeRes.open_time);
-          if (storeRes.close_time) setSettingsCloseTime(storeRes.close_time);
-          if (storeRes.days && Array.isArray(storeRes.days)) {
-            const days = [false, false, false, false, false, false, false];
-            storeRes.days.forEach((d: number) => {
-              if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
-            });
-            setSettingsDays(days);
+          if (storeRes.hours && typeof storeRes.hours === "object") {
+            const h = storeRes.hours as Record<string, any>;
+            if (h.open_time) setSettingsOpenTime(h.open_time);
+            if (h.close_time) setSettingsCloseTime(h.close_time);
+            if (Array.isArray(h.days)) {
+              const days = [false, false, false, false, false, false, false];
+              h.days.forEach((d: number) => {
+                if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
+              });
+              setSettingsDays(days);
+            }
+            if (h.menu_theme) setMenuTheme(h.menu_theme);
+            if (h.menu_layout) setMenuLayout(h.menu_layout);
           }
         }
         if (Array.isArray(menusRes)) setMenus(menusRes);
@@ -414,20 +423,22 @@ export default function DashboardApp() {
 
   const handleSaveSettings = useCallback(async () => {
     try {
+      const hoursData = {
+        open_time: settingsOpenTime,
+        close_time: settingsCloseTime,
+        days: settingsDays.map((d, i) => (d ? i + 1 : 0)).filter(Boolean),
+        menu_theme: menuTheme,
+        menu_layout: menuLayout,
+      };
       const res = await fetch("/api/store", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: settingsName,
           slug: settingsSlug,
-          category: settingsCategory,
           description: settingsDesc,
-          phone: settingsPhone,
-          email: settingsEmail,
           address: settingsAddress,
-          open_time: settingsOpenTime,
-          close_time: settingsCloseTime,
-          days: settingsDays.map((d, i) => (d ? i + 1 : 0)).filter(Boolean),
+          hours: hoursData,
         }),
       });
       if (res.ok) {
@@ -438,25 +449,35 @@ export default function DashboardApp() {
     } catch {
       showToast("Gagal menyimpan perubahan");
     }
-  }, [settingsName, settingsSlug, settingsCategory, settingsDesc, settingsPhone, settingsEmail, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, showToast]);
+  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, showToast]);
 
   const handleCancelSettings = useCallback(() => {
     if (store) {
       setSettingsName(store.name ?? "");
       setSettingsDesc(store.description ?? "");
-      setSettingsPhone(store.phone ?? "");
-      setSettingsEmail(store.email ?? "");
       setSettingsAddress(store.address ?? "");
       setSettingsSlug(store.slug ?? "");
-      setSettingsCategory(store.category ?? "Makanan Indonesia");
-      if (store.open_time) setSettingsOpenTime(store.open_time);
-      if (store.close_time) setSettingsCloseTime(store.close_time);
-      if (store.days && Array.isArray(store.days)) {
-        const days = [false, false, false, false, false, false, false];
-        store.days.forEach((d: number) => {
-          if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
-        });
-        setSettingsDays(days);
+      if (store.hours && typeof store.hours === "object") {
+        const h = store.hours as Record<string, any>;
+        if (h.open_time) setSettingsOpenTime(h.open_time);
+        else setSettingsOpenTime("08:00");
+        if (h.close_time) setSettingsCloseTime(h.close_time);
+        else setSettingsCloseTime("22:00");
+        if (Array.isArray(h.days)) {
+          const days = [false, false, false, false, false, false, false];
+          h.days.forEach((d: number) => {
+            if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
+          });
+          setSettingsDays(days);
+        }
+        setMenuTheme(h.menu_theme || "amber");
+        setMenuLayout(h.menu_layout || "grid");
+      } else {
+        setSettingsOpenTime("08:00");
+        setSettingsCloseTime("22:00");
+        setSettingsDays([true,true,true,true,true,true,false]);
+        setMenuTheme("amber");
+        setMenuLayout("grid");
       }
     }
     showToast("Perubahan dibatalkan");
@@ -1962,32 +1983,49 @@ export default function DashboardApp() {
 
               {/* Appearance */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><Palette className="w-4 h-4 text-purple-600" /></div>
-                  <h3 className="text-sm font-bold text-slate-900">Tampilan Menu Digital</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><Palette className="w-4 h-4 text-purple-600" /></div>
+                    <h3 className="text-sm font-bold text-slate-900">Tampilan Menu Digital</h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (settingsSlug) window.open(`/menu/${settingsSlug}`, "_blank");
+                      else showToast("Slug toko belum diatur");
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-bold hover:bg-amber-100 transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Preview
+                  </button>
                 </div>
                 <label className="block text-xs font-semibold text-slate-700 mb-2">Warna Tema</label>
                 <div className="flex gap-2.5 mb-4">
-                  {["from-amber-400 to-amber-600","from-green-400 to-green-600","from-blue-400 to-blue-600","from-red-400 to-red-600","from-slate-700 to-slate-900"].map((g, i) => (
+                  {([
+                    { id: "amber", gradient: "from-amber-400 to-amber-600", ring: "ring-amber-500", bg: "bg-amber-100", text: "text-amber-600" },
+                    { id: "green", gradient: "from-green-400 to-green-600", ring: "ring-green-500", bg: "bg-green-100", text: "text-green-600" },
+                    { id: "blue", gradient: "from-blue-400 to-blue-600", ring: "ring-blue-500", bg: "bg-blue-100", text: "text-blue-600" },
+                    { id: "red", gradient: "from-red-400 to-red-600", ring: "ring-red-500", bg: "bg-red-100", text: "text-red-600" },
+                    { id: "dark", gradient: "from-slate-700 to-slate-900", ring: "ring-slate-500", bg: "bg-slate-200", text: "text-slate-600" },
+                  ] as const).map((t) => (
                     <button
-                      key={g}
-                      onClick={() => showToast("Tema warna dipilih")}
-                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g} ${i === 0 ? "ring-2 ring-amber-500 ring-offset-2" : "hover:ring-2 hover:ring-slate-300 hover:ring-offset-1"} transition-all`}
+                      key={t.id}
+                      onClick={() => setMenuTheme(t.id)}
+                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${t.gradient} ${menuTheme === t.id ? `ring-2 ${t.ring} ring-offset-2` : "hover:ring-2 hover:ring-slate-300 hover:ring-offset-1"} transition-all`}
                     />
                   ))}
                 </div>
                 <label className="block text-xs font-semibold text-slate-700 mb-2">Template Layout</label>
                 <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => showToast("Layout Grid dipilih")} className="p-2 border-2 border-amber-500 rounded-xl bg-amber-50/50 hover:border-amber-500 transition-colors">
-                    <div className="w-full h-12 bg-amber-100 rounded-lg flex items-center justify-center"><LayoutGrid className="w-5 h-5 text-amber-600" /></div>
+                  <button onClick={() => setMenuLayout("grid")} className={`p-2 border-2 ${menuLayout === "grid" ? "border-amber-500 bg-amber-50/50" : "border-slate-200 hover:border-amber-300"} rounded-xl transition-colors`}>
+                    <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "grid" ? "bg-amber-100" : "bg-slate-100"}`}><LayoutGrid className={`w-5 h-5 ${menuLayout === "grid" ? "text-amber-600" : "text-slate-500"}`} /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Grid</p>
                   </button>
-                  <button onClick={() => showToast("Layout List dipilih")} className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300 transition-colors">
-                    <div className="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><List className="w-5 h-5 text-slate-500" /></div>
+                  <button onClick={() => setMenuLayout("list")} className={`p-2 border-2 ${menuLayout === "list" ? "border-green-500 bg-green-50/50" : "border-slate-200 hover:border-green-300"} rounded-xl transition-colors`}>
+                    <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "list" ? "bg-green-100" : "bg-slate-100"}`}><List className={`w-5 h-5 ${menuLayout === "list" ? "text-green-600" : "text-slate-500"}`} /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">List</p>
                   </button>
-                  <button onClick={() => showToast("Layout Kategori dipilih")} className="p-2 border-2 border-slate-200 rounded-xl hover:border-amber-300 transition-colors">
-                    <div className="w-full h-12 bg-slate-100 rounded-lg flex items-center justify-center"><Columns2 className="w-5 h-5 text-slate-500" /></div>
+                  <button onClick={() => setMenuLayout("category")} className={`p-2 border-2 ${menuLayout === "category" ? "border-blue-500 bg-blue-50/50" : "border-slate-200 hover:border-blue-300"} rounded-xl transition-colors`}>
+                    <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "category" ? "bg-blue-100" : "bg-slate-100"}`}><Columns2 className={`w-5 h-5 ${menuLayout === "category" ? "text-blue-600" : "text-slate-500"}`} /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Kategori</p>
                   </button>
                 </div>
