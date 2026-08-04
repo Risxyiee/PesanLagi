@@ -47,7 +47,6 @@ export default function LoginView({
   const [loginPwd, setLoginPwd] = useState("");
   const [showLoginPwd, setShowLoginPwd] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
 
   // Register state
   const [regName, setRegName] = useState("");
@@ -57,11 +56,7 @@ export default function LoginView({
   const [regTerms, setRegTerms] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState("");
-  const [pwdStrength, setPwdStrength] = useState({
-    score: 0,
-    label: "",
-    color: "",
-  });
+  // pwdStrength is derived via IIFE below
 
   // Forgot password state
   const [showForgot, setShowForgot] = useState(false);
