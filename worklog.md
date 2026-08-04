@@ -725,3 +725,30 @@ Stage Summary:
 - 3 layout modes: grid (card with image), list (compact no image), category (grouped by category)
 - CSS module updated to use CSS custom properties for all theme-dependent colors
 - No database schema changes needed - uses existing `hours` JSONB column
+---
+Task ID: 1
+Agent: Main
+Task: Audit all dashboard buttons for missing loading spinners and notifications, fix slow login→dashboard transition
+
+Work Log:
+- Audited DashboardApp.tsx (2276 lines) for all async button handlers
+- Found 9 buttons/actions missing loading spinners or proper error handling
+- Added 7 new loading state variables: savingSettings, savingMenu, togglingStore, uploadingLogo, addingCat, deletingCatId, exportingQr
+- Fixed handleLogout: added await, success toast, error toast
+- Fixed handleToggleStore: added togglingStore loading, error rollback, moved toast inside try
+- Fixed handleSaveSettings: added savingSettings loading spinner, added !res.ok error toast
+- Fixed handleSaveMenu: added savingMenu loading spinner, added !res.ok error toast
+- Fixed handleUploadLogo: added uploadingLogo loading, disabled state, better error handling
+- Fixed handleAddCategory: added addingCat loading spinner on check button
+- Fixed handleDeleteCategory: added deletingCatId spinner on × icon
+- Fixed handleQrExport: added exportingQr loading, disabled state on both export buttons
+- Added Loader2 import from lucide-react
+- Updated all 9 button JSX elements with disabled state + spinner + text change
+- Merged auth/me + data fetching into single parallel Promise.all (was sequential)
+- Reduced login/register success dialog delay from 1200ms to 400ms in LoginView.tsx
+- Verified: lint passes (0 errors), dev server compiles without errors, pages render correctly
+
+Stage Summary:
+- All 9 dashboard buttons now have loading spinners, disabled states, and proper error toasts
+- Dashboard loads ~800ms faster after login (parallel API calls + reduced delay)
+- No regression in rendering or compilation

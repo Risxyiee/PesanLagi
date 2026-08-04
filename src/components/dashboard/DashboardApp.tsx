@@ -48,6 +48,7 @@ import {
   Rocket,
   Wand2,
   Lock,
+  Loader2,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -274,31 +275,20 @@ export default function DashboardApp() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* ---------- auth check ---------- */
+  /* ---------- auth check + fetch data (parallel) ---------- */
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (!res.ok) throw new Error("not auth");
-        const userData = await res.json();
-        setUser(userData);
-      } catch {
-        window.location.hash = "#login";
-      }
-    })();
-  }, []);
-
-  /* ---------- fetch data ---------- */
-  useEffect(() => {
-    if (!user) return;
     (async () => {
       setLoading(true);
       try {
-        const [storeRes, menusRes, catsRes] = await Promise.all([
+        const [meRes, storeRes, menusRes, catsRes] = await Promise.all([
+          fetch("/api/auth/me"),
           fetch("/api/store").then((r) => r.json()).catch(() => null),
           fetch("/api/menus").then((r) => r.json()).catch(() => []),
           fetch("/api/categories").then((r) => r.json()).catch(() => []),
         ]);
+        if (!meRes.ok) throw new Error("not auth");
+        const userData = await meRes.json();
+        setUser(userData);
         if (storeRes) {
           setStore(storeRes);
           setStoreOpen(storeRes.is_open ?? true);
@@ -326,11 +316,13 @@ export default function DashboardApp() {
         }
         if (Array.isArray(menusRes)) setMenus(menusRes);
         if (Array.isArray(catsRes)) setCategories(catsRes);
+      } catch {
+        window.location.hash = "#login";
       } finally {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, []);
 
   /* ---------- toast ---------- */
   const showToast = useCallback((msg: string) => {
@@ -367,22 +359,39 @@ export default function DashboardApp() {
   }, [orderTab]);
 
   /* ---------- handlers ---------- */
-  const handleLogout = useCallback(() => {
-    fetch("/api/auth/sign-out", { method: "POST" }).catch(() => {});
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+      showToast("Berhasil keluar");
+    } catch {
+      showToast("Gagal keluar, coba lagi");
+      return;
+    }
     window.location.hash = "#login";
-  }, []);
+  }, [showToast]);
 
   const handleToggleStore = useCallback(async () => {
     const next = !storeOpen;
+    setTogglingStore(true);
     setStoreOpen(next);
     try {
-      await fetch("/api/store", {
+      const res = await fetch("/api/store", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_open: next }),
       });
-    } catch {}
-    showToast(next ? "Toko dibuka" : "Toko ditutup");
+      if (res.ok) {
+        showToast(next ? "Toko dibuka" : "Toko ditutup");
+      } else {
+        setStoreOpen(!next);
+        showToast("Gagal mengubah status toko");
+      }
+    } catch {
+      setStoreOpen(!next);
+      showToast("Gagal mengubah status toko");
+    } finally {
+      setTogglingStore(false);
+    }
   }, [storeOpen, showToast]);
 
   const handleToggleStock = useCallback(async (menuId?: string) => {
@@ -408,6 +417,13 @@ export default function DashboardApp() {
   }, [menus, showToast]);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savingMenu, setSavingMenu] = useState(false);
+  const [togglingStore, setTogglingStore] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [addingCat, setAddingCat] = useState(false);
+  const [deletingCatId, setDeletingCatId] = useState<string | null>(null);
+  const [exportingQr, setExportingQr] = useState(false);
 
   const handleDeleteMenu = useCallback(async (menuId?: string) => {
     if (!menuId) return;
@@ -432,6 +448,7 @@ export default function DashboardApp() {
   }, [showToast]);
 
   const handleSaveSettings = useCallback(async () => {
+    setSavingSettings(true);
     try {
       const hoursData = {
         open_time: settingsOpenTime,
@@ -455,9 +472,14 @@ export default function DashboardApp() {
         const updated = await res.json();
         setStore(updated);
         showToast("Perubahan berhasil disimpan!");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Gagal menyimpan perubahan");
       }
     } catch {
       showToast("Gagal menyimpan perubahan");
+    } finally {
+      setSavingSettings(false);
     }
   }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, showToast]);
 
@@ -512,6 +534,7 @@ export default function DashboardApp() {
   }, [showToast]);
 
   const handleUploadLogo = useCallback(async (file: File) => {
+    setUploadingLogo(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -522,20 +545,29 @@ export default function DashboardApp() {
         const url = data.url ?? data.publicUrl;
         if (url) {
           setStore((prev) => (prev ? { ...prev, logo_url: url } : prev));
-          await fetch("/api/store", {
+          const storeRes = await fetch("/api/store", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ logo_url: url }),
           });
-          showToast("Logo berhasil diperbarui!");
+          if (storeRes.ok) {
+            showToast("Logo berhasil diperbarui!");
+          } else {
+            showToast("Logo diupload tapi gagal disimpan");
+          }
         }
+      } else {
+        showToast("Gagal mengunggah logo");
       }
     } catch {
       showToast("Gagal mengunggah logo");
+    } finally {
+      setUploadingLogo(false);
     }
   }, [showToast]);
 
   const handleSaveMenu = useCallback(async () => {
+    setSavingMenu(true);
     try {
       const body: Record<string, unknown> = {
         name: modalName,
@@ -559,9 +591,14 @@ export default function DashboardApp() {
         setModalDesc("");
         setModalImage(null);
         showToast("Menu baru berhasil ditambahkan!");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Gagal menambah menu");
       }
     } catch {
       showToast("Gagal menambah menu");
+    } finally {
+      setSavingMenu(false);
     }
   }, [modalName, modalCategory, modalPrice, modalDesc, modalAvailable, modalImage, showToast]);
 
@@ -578,6 +615,7 @@ export default function DashboardApp() {
 
   const handleAddCategory = useCallback(async () => {
     if (!newCatName.trim()) return;
+    setAddingCat(true);
     try {
       const res = await fetch("/api/categories", {
         method: "POST",
@@ -590,30 +628,41 @@ export default function DashboardApp() {
         setNewCatName("");
         setShowAddCat(false);
         showToast("Kategori berhasil ditambahkan!");
+      } else {
+        showToast("Gagal menambah kategori");
       }
     } catch {
       showToast("Gagal menambah kategori");
+    } finally {
+      setAddingCat(false);
     }
   }, [newCatName, showToast]);
 
   const handleDeleteCategory = useCallback(async (catId?: string) => {
     if (!catId) return;
+    setDeletingCatId(catId);
     try {
-      await fetch("/api/categories", {
+      const res = await fetch("/api/categories", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: catId }),
       });
-      setCategories((prev) => prev.filter((c) => c.id !== catId));
-      if (activeCategoryChip !== "all") {
-        const remaining = categories.filter((c) => c.id !== catId);
-        if (!remaining.some((c) => c.name === activeCategoryChip)) {
-          setActiveCategoryChip("all");
+      if (res.ok) {
+        setCategories((prev) => prev.filter((c) => c.id !== catId));
+        if (activeCategoryChip !== "all") {
+          const remaining = categories.filter((c) => c.id !== catId);
+          if (!remaining.some((c) => c.name === activeCategoryChip)) {
+            setActiveCategoryChip("all");
+          }
         }
+        showToast("Kategori berhasil dihapus");
+      } else {
+        showToast("Gagal menghapus kategori");
       }
-      showToast("Kategori berhasil dihapus");
     } catch {
       showToast("Gagal menghapus kategori");
+    } finally {
+      setDeletingCatId(null);
     }
   }, [categories, activeCategoryChip, showToast]);
 
@@ -665,6 +714,7 @@ export default function DashboardApp() {
   const handleQrExport = useCallback(async (format: "PNG" | "PDF") => {
     if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
     if (!qrExportRef.current) return;
+    setExportingQr(true);
     showToast("Menyiapkan file download...");
     try {
       const canvas = await html2canvas(qrExportRef.current, {
@@ -689,6 +739,8 @@ export default function DashboardApp() {
       showToast(`Berhasil di-download sebagai ${format}!`);
     } catch {
       showToast("Gagal mengunduh file.");
+    } finally {
+      setExportingQr(false);
     }
   }, [user, showToast]);
 
@@ -1085,7 +1137,7 @@ export default function DashboardApp() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><Store className="w-5 h-5 text-green-600" /></div>
                   <div
-                    className={`${styles.toggle} ${storeOpen ? styles.toggleOn : ""}`}
+                    className={`${styles.toggle} ${storeOpen ? styles.toggleOn : ""} ${togglingStore ? "opacity-50 pointer-events-none" : ""}`}
                     onClick={handleToggleStore}
                   />
                 </div>
@@ -1272,7 +1324,7 @@ export default function DashboardApp() {
                       className="ml-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => { e.stopPropagation(); handleDeleteCategory(c.catId); }}
                     >
-                      ×
+                      {deletingCatId === c.catId ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin inline-block" /> : "×"}
                     </span>
                   )}
                 </button>
@@ -1288,8 +1340,8 @@ export default function DashboardApp() {
                     className="px-2 py-1 border border-amber-300 rounded-lg text-xs outline-none w-32"
                     autoFocus
                   />
-                  <button onClick={handleAddCategory} className="px-2 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors">
-                    <Check className="w-3 h-3" />
+                  <button onClick={handleAddCategory} disabled={addingCat} className="px-2 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors disabled:opacity-50">
+                    {addingCat ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check className="w-3 h-3" />}
                   </button>
                   <button onClick={() => { setShowAddCat(false); setNewCatName(""); }} className="px-2 py-1 bg-slate-200 rounded-lg text-xs hover:bg-slate-300 transition-colors">
                     <X className="w-3 h-3" />
@@ -1420,11 +1472,11 @@ export default function DashboardApp() {
                   </div>
                   {/* Export Buttons */}
                   <div className="mt-5 space-y-2">
-                    <button onClick={() => handleQrExport("PDF")} className={`${styles.ctaBtn} w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2`}>
-                      <Download className="w-4 h-4" /> Unduh PDF (A6)
+                    <button onClick={() => handleQrExport("PDF")} disabled={exportingQr} className={`${styles.ctaBtn} w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50`}>
+                      {exportingQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Unduh PDF (A6)
                     </button>
-                    <button onClick={() => handleQrExport("PNG")} className="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-amber-300 transition-colors">
-                      <Download className="w-4 h-4" /> Unduh PNG HD
+                    <button onClick={() => handleQrExport("PNG")} disabled={exportingQr} className="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-amber-300 transition-colors disabled:opacity-50">
+                      {exportingQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Unduh PNG HD
                     </button>
                   </div>
                 </div>
@@ -1860,10 +1912,10 @@ export default function DashboardApp() {
                       </div>
                     )}
                     <button
-                      className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30"
-                      onClick={() => logoInputRef.current?.click()}
+                      className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 ${uploadingLogo ? "opacity-50" : ""}`}
+                      onClick={() => { if (!uploadingLogo) logoInputRef.current?.click(); }}
                     >
-                      <Camera className="w-3 h-3" />
+                      {uploadingLogo ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Camera className="w-3 h-3" />}
                     </button>
                     <input
                       ref={logoInputRef}
@@ -1879,7 +1931,9 @@ export default function DashboardApp() {
                   <div>
                     <p className="text-sm font-bold text-slate-900">Logo Warung</p>
                     <p className="text-[11px] text-slate-500 mt-0.5">JPG/PNG, maks 1MB</p>
-                    <button onClick={() => logoInputRef.current?.click()} className="text-xs font-semibold text-amber-600 mt-1 hover:underline">Ganti Logo</button>
+                    <button onClick={() => { if (!uploadingLogo) logoInputRef.current?.click(); }} disabled={uploadingLogo} className="text-xs font-semibold text-amber-600 mt-1 hover:underline disabled:opacity-50">
+                      {uploadingLogo ? "Mengunggah..." : "Ganti Logo"}
+                    </button>
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -2050,9 +2104,10 @@ export default function DashboardApp() {
               <div className="flex gap-3">
                 <button
                   onClick={handleSaveSettings}
-                  className={`${styles.ctaBtn} flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2`}
+                  disabled={savingSettings}
+                  className={`${styles.ctaBtn} flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50`}
                 >
-                  <Save className="w-4 h-4" /> Simpan Perubahan
+                  {savingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {savingSettings ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
                 <button
                   onClick={handleCancelSettings}
@@ -2184,9 +2239,10 @@ export default function DashboardApp() {
                 </button>
                 <button
                   onClick={handleSaveMenu}
-                  className={`${styles.ctaBtn} flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2`}
+                  disabled={savingMenu}
+                  className={`${styles.ctaBtn} flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50`}
                 >
-                  <Check className="w-4 h-4" /> Simpan Menu
+                  {savingMenu ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} {savingMenu ? "Menyimpan..." : "Simpan Menu"}
                 </button>
               </div>
             </div>

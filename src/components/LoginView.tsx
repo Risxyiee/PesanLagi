@@ -138,7 +138,7 @@ export default function LoginView({
           setSuccessTitle("Login Berhasil!");
           setSuccessMsg("Mengarahkan ke dashboard...");
           setShowSuccess(true);
-          setTimeout(() => onNavigate("#dashboard"), 1200);
+          setTimeout(() => onNavigate("#dashboard"), 400);
         }
       } catch {
         setLoginError("Terjadi kesalahan jaringan.");
@@ -182,7 +182,7 @@ export default function LoginView({
           setSuccessTitle("Pendaftaran Berhasil!");
           setSuccessMsg("Mengarahkan ke dashboard...");
           setShowSuccess(true);
-          setTimeout(() => onNavigate("#dashboard"), 1200);
+          setTimeout(() => onNavigate("#dashboard"), 400);
         }
       } catch {
         setRegError("Terjadi kesalahan jaringan.");
