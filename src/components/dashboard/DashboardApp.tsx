@@ -46,7 +46,11 @@ import {
   Columns2,
   ArrowRight,
   Rocket,
+  Wand2,
+  Lock,
 } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import styles from "./DashboardApp.module.css";
 
 /* ------------------------------------------------------------------ */
@@ -148,17 +152,6 @@ const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: strin
 const DAYS_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 /* ------------------------------------------------------------------ */
-/*  QR Templates                                                       */
-/* ------------------------------------------------------------------ */
-
-const QR_TEMPLATES = [
-  { name: "Gold Elegan", bg: "#FFFBEB", cardBg: "bg-amber-50", qr: "#0F172A", accent: "from-amber-400 to-amber-600", border: "border-amber-200/50", iconBg: "from-amber-400 to-amber-600" },
-  { name: "Dark Premium", bg: "#1E293B", cardBg: "bg-slate-800", qr: "#F8FAFC", accent: "from-slate-400 to-slate-600", border: "border-slate-600/50", iconBg: "from-slate-400 to-slate-600" },
-  { name: "Fresh Green", bg: "#F0FDF4", cardBg: "bg-green-50", qr: "#14532D", accent: "from-green-400 to-green-600", border: "border-green-200/50", iconBg: "from-green-400 to-green-600" },
-  { name: "Ocean Blue", bg: "#EFF6FF", cardBg: "bg-blue-50", qr: "#1E3A5F", accent: "from-blue-400 to-blue-600", border: "border-blue-200/50", iconBg: "from-blue-400 to-blue-600" },
-];
-
-/* ------------------------------------------------------------------ */
 /*  QR SVG Generation                                                  */
 /* ------------------------------------------------------------------ */
 function generateQRSVG(fgColor: string = "#0F172A"): string {
@@ -234,8 +227,19 @@ export default function DashboardApp() {
   const [newCatName, setNewCatName] = useState("");
   const [showAddCat, setShowAddCat] = useState(false);
 
-  // QR template selection
-  const [qrTemplateIdx, setQrTemplateIdx] = useState(0);
+  // QR Designer states
+  const [qrActiveTab, setQrActiveTab] = useState("ai");
+  const [qrShowUpgrade, setQrShowUpgrade] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [qrBgColor, setQrBgColor] = useState("#FFFFFF");
+  const [qrFgColor, setQrFgColor] = useState("#0F172A");
+  const [qrTextColor, setQrTextColor] = useState("#0F172A");
+  const [qrAccentColor, setQrAccentColor] = useState("#F59E0B");
+  const [qrActiveTemplate, setQrActiveTemplate] = useState("minimalist");
+  const [qrCustomBgImage, setQrCustomBgImage] = useState<string | null>(null);
+  const qrExportRef = useRef<HTMLDivElement>(null);
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
 
   // Settings form
   const [settingsName, setSettingsName] = useState("");
@@ -582,6 +586,130 @@ export default function DashboardApp() {
     }
   }, [categories, activeCategoryChip, showToast]);
 
+  /* ---------- QR Designer handlers ---------- */
+  const QR_PRESETS = [
+    { name: "Kopi Susu", bg: "#F5F1EB", qr: "#4B3621", text: "#4B3621", acc: "#C8825A" },
+    { name: "Sage Segar", bg: "#F0FDF4", qr: "#166534", text: "#166534", acc: "#22C55E" },
+    { name: "Midnight Slate", bg: "#0F172A", qr: "#F1F5F9", text: "#F1F5F9", acc: "#64748B" },
+    { name: "Terracotta", bg: "#FFF7ED", qr: "#9A3412", text: "#9A3412", acc: "#EA580C" },
+  ];
+
+  const handleQrTabClick = useCallback((tab: string) => {
+    if (!(user?.is_pro) && (tab === "ai" || tab === "custom")) {
+      setQrShowUpgrade(true);
+      return;
+    }
+    setQrActiveTab(tab);
+  }, [user]);
+
+  const handleAiGenerate = useCallback(async () => {
+    if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
+    if (!aiPrompt.trim()) { showToast("Tulis deskripsi warungmu dulu!"); return; }
+    setIsAiGenerating(true);
+    try {
+      const res = await fetch("/api/ai/generate-theme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Gagal generate desain");
+      }
+      const data = await res.json();
+      setQrBgColor(data.bgColor);
+      setQrFgColor(data.qrColor);
+      setQrTextColor(data.textColor);
+      setQrAccentColor(data.accentColor);
+      setQrActiveTemplate(data.template);
+      setQrActiveTab("templates");
+      showToast(data.reason || "Desain AI berhasil digenerate!");
+    } catch (err: any) {
+      showToast(err.message || "Gagal generate desain");
+    } finally {
+      setIsAiGenerating(false);
+    }
+  }, [user, aiPrompt, showToast]);
+
+  const handleQrExport = useCallback(async (format: "PNG" | "PDF") => {
+    if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
+    if (!qrExportRef.current) return;
+    showToast("Menyiapkan file download...");
+    try {
+      const canvas = await html2canvas(qrExportRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+      });
+      if (format === "PNG") {
+        const link = document.createElement("a");
+        link.download = "qr-pesanlagi.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } else {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a6");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save("qr-pesanlagi.pdf");
+      }
+      showToast(`Berhasil di-download sebagai ${format}!`);
+    } catch {
+      showToast("Gagal mengunduh file.");
+    }
+  }, [user, showToast]);
+
+  const handleQrApplyPreset = useCallback((preset: typeof QR_PRESETS[0]) => {
+    setQrBgColor(preset.bg);
+    setQrFgColor(preset.qr);
+    setQrTextColor(preset.text);
+    setQrAccentColor(preset.acc);
+    setQrActiveTemplate("minimalist");
+    setQrActiveTab("templates");
+  }, []);
+
+  const handleQrImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setQrCustomBgImage(event.target?.result as string);
+        setQrActiveTemplate("custom");
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const getQrTemplateClass = () => {
+    switch (qrActiveTemplate) {
+      case "rustic": return "rounded-3xl shadow-lg border border-amber-100";
+      case "dark_gold": return "rounded-3xl shadow-2xl";
+      case "acrylic": return "rounded-3xl shadow-2xl border-t-8 border-b-8 border-slate-100 overflow-hidden";
+      case "custom": return "rounded-3xl shadow-lg";
+      default: return "rounded-3xl shadow-lg border border-slate-200";
+    }
+  };
+
+  const getQrTemplateStyle = (): React.CSSProperties => {
+    switch (qrActiveTemplate) {
+      case "rustic":
+        return {
+          backgroundColor: qrBgColor,
+          backgroundImage: `repeating-linear-gradient(45deg, rgba(139, 90, 43, 0.05) 0px, rgba(139, 90, 43, 0.05) 2px, transparent 2px, transparent 10px), repeating-linear-gradient(-45deg, rgba(139, 90, 43, 0.05) 0px, rgba(139, 90, 43, 0.05) 2px, transparent 2px, transparent 10px)`,
+        };
+      case "custom":
+        return qrCustomBgImage ? {
+          backgroundImage: `url(${qrCustomBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        } : { backgroundColor: qrBgColor };
+      default:
+        return { backgroundColor: qrBgColor };
+    }
+  };
+
   const handleSlugChange = useCallback((val: string) => {
     const slug = val.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     setSettingsSlug(slug);
@@ -652,8 +780,6 @@ export default function DashboardApp() {
   }
 
   /* ---------- render ---------- */
-  const qrTemplate = QR_TEMPLATES[qrTemplateIdx];
-
   return (
     <div style={{ background: "#F8FAFC", color: "#0F172A", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", WebkitFontSmoothing: "antialiased" }} className="min-h-screen overflow-x-hidden">
       {/* Background decorations */}
@@ -1214,101 +1340,222 @@ export default function DashboardApp() {
               <p className="text-sm text-slate-500 mt-0.5">Desain dan cetak kartu QR menu digital Anda</p>
             </div>
             <div className="grid lg:grid-cols-5 gap-5">
-              {/* Preview */}
-              <div className="lg:col-span-3 flex items-center justify-center">
-                <div
-                  className={`${styles.qrCardPreview} w-full max-w-sm p-6 sm:p-8 relative`}
-                  style={{ backgroundColor: qrTemplate.bg }}
-                >
-                  <div className="absolute inset-0 border-4 rounded-3xl m-2" style={{ borderColor: qrTemplate.qr + "33" }} />
-                  <div className="relative text-center">
-                    <div className="inline-flex items-center gap-2 mb-4">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${qrTemplate.iconBg} flex items-center justify-center shadow-lg`}
-                        style={{ boxShadow: `0 10px 15px -3px ${qrTemplate.qr}33` }}
-                      >
-                        <Utensils className="w-5 h-5 text-white" strokeWidth={2.5} />
+              {/* Left: Live Preview */}
+              <div className="lg:col-span-2">
+                <div className="sticky top-8">
+                  <h3 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Live Preview</h3>
+                  <div
+                    ref={qrExportRef}
+                    style={getQrTemplateStyle()}
+                    className={`relative w-full aspect-[105/148] flex flex-col items-center justify-center p-6 sm:p-8 ${getQrTemplateClass()}`}
+                  >
+                    {/* Watermark for Free — horizontal at bottom */}
+                    {!isPro && (
+                      <div className="absolute bottom-2.5 left-0 right-0 flex justify-center pointer-events-none z-10">
+                        <span className="text-[10px] font-semibold tracking-wide" style={{ color: qrTextColor + "55" }}>
+                          Dibuat dengan PesanLagi.com
+                        </span>
                       </div>
-                      <span className={`text-lg font-extrabold`} style={{ color: qrTemplate.qr }}>Pesan<span className="text-amber-500">Lagi</span></span>
-                    </div>
-                    <h3 className="text-xl font-extrabold mb-1" style={{ color: qrTemplate.qr }}>{storeName}</h3>
-                    <p className="text-xs mb-4" style={{ color: qrTemplate.qr + "99" }}>Scan QR untuk lihat menu & pesan langsung</p>
-                    <div className="relative inline-block p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm mb-4">
-                      <svg viewBox="0 0 25 25" className="w-40 h-40" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG(qrTemplate.qr) }} />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm">
-                        <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${qrTemplate.iconBg} flex items-center justify-center`}>
-                          <Utensils className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+                    )}
+
+                    <div className="w-14 h-14 rounded-2xl bg-white p-0.5 shadow-md mb-3 z-0">
+                      {storeLogo ? (
+                        <img src={storeLogo} crossOrigin="anonymous" className="w-full h-full rounded-2xl object-cover" alt="Logo" />
+                      ) : (
+                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                          <Utensils className="w-5 h-5 text-white" strokeWidth={2.5} />
                         </div>
-                      </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 mb-3">
-                      <Globe className="w-3.5 h-3.5" style={{ color: qrTemplate.qr + "88" }} />
-                      <span className={`${styles.urlPill} text-xs font-medium`} style={{ color: qrTemplate.qr }}>pesanlagi.web.id/menu/{storeSlug}</span>
+                    <h3 style={{ color: qrTextColor }} className="text-lg font-extrabold mb-0.5 text-center z-0">
+                      {storeName}
+                    </h3>
+                    <p style={{ color: qrTextColor + "AA" }} className="text-[11px] mb-4 z-0">Scan untuk lihat menu & pesan</p>
+                    <div className={`p-2.5 bg-white shadow-sm z-0 ${qrActiveTemplate === "dark_gold" ? "border-[3px] rounded-xl" : "rounded-xl"}`} style={qrActiveTemplate === "dark_gold" ? { borderColor: qrAccentColor } : {}}>
+                      <svg viewBox="0 0 25 25" className="w-36 h-36" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG(qrFgColor) }} />
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-[11px]" style={{ color: qrTemplate.qr + "88" }}>
-                      <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Resmi PesanLagi</span>
-                      <span>•</span>
-                      <span>A6 Siap Cetak</span>
+                    <div className="flex items-center justify-center gap-1.5 mt-3 mb-1 z-0">
+                      <Globe className="w-3 h-3" style={{ color: qrTextColor + "88" }} />
+                      <span className="text-[11px] font-medium" style={{ color: qrTextColor }}>pesanlagi.web.id/menu/{storeSlug}</span>
                     </div>
+                    <div style={{ color: qrAccentColor }} className="text-[11px] font-bold z-0 flex items-center gap-1">
+                      <Sparkles size={11} /> Powered by PesanLagi
+                    </div>
+                  </div>
+                  {/* Export Buttons */}
+                  <div className="mt-5 space-y-2">
+                    <button onClick={() => handleQrExport("PDF")} className={`${styles.ctaBtn} w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2`}>
+                      <Download className="w-4 h-4" /> Unduh PDF (A6)
+                    </button>
+                    <button onClick={() => handleQrExport("PNG")} className="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-amber-300 transition-colors">
+                      <Download className="w-4 h-4" /> Unduh PNG HD
+                    </button>
                   </div>
                 </div>
               </div>
-              {/* Customization */}
-              <div className="lg:col-span-2 space-y-4">
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <h4 className="text-sm font-bold text-slate-900 mb-3">Pilih Template</h4>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {QR_TEMPLATES.map((t, idx) => (
-                      <button
-                        key={t.name}
-                        onClick={() => setQrTemplateIdx(idx)}
-                        className={`p-3 border-2 ${qrTemplateIdx === idx ? "border-amber-500 bg-amber-50/50" : "border-slate-200 hover:border-amber-300"} rounded-xl text-left transition-all`}
-                      >
-                        <div className={`w-full h-12 bg-gradient-to-br ${t.accent} rounded-lg mb-1.5`} />
-                        <p className="text-[11px] font-bold text-slate-900">{t.name}</p>
-                      </button>
-                    ))}
-                  </div>
+              {/* Right: Controls */}
+              <div className="lg:col-span-3">
+                {/* Tabs */}
+                <div className="flex space-x-1 bg-white border border-slate-100 p-1 rounded-xl mb-5 shadow-sm">
+                  {[{ id: "ai", icon: Sparkles, label: "AI Theme" }, { id: "presets", icon: Palette, label: "Presets" }, { id: "custom", icon: Palette, label: "Custom" }, { id: "templates", icon: ImageIcon, label: "Templates" }].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleQrTabClick(tab.id)}
+                      className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        qrActiveTab === tab.id ? "bg-amber-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <tab.icon size={14} />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      {!isPro && (tab.id === "ai" || tab.id === "custom") && <Lock size={10} className="text-amber-300" />}
+                    </button>
+                  ))}
                 </div>
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <h4 className="text-sm font-bold text-slate-900 mb-3">Ukuran Cetak</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3 p-2.5 rounded-xl border border-amber-500 bg-amber-50/50 cursor-pointer">
-                      <input type="radio" name="size" defaultChecked className="text-amber-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">A6 (105×148mm)</p>
-                        <p className="text-[11px] text-slate-500">Ukuran standar meja</p>
+                {/* Tab Content */}
+                <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm min-h-[380px] relative">
+                  {/* AI Theme Tab */}
+                  {qrActiveTab === "ai" && (
+                    <div className="relative">
+                      {!isPro && (
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-xl">
+                          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-2">
+                            <Lock className="w-6 h-6 text-amber-600" />
+                          </div>
+                          <p className="text-sm font-bold text-slate-900">Khusus Pengguna Pro</p>
+                          <button onClick={() => setQrShowUpgrade(true)} className="mt-2 text-xs font-bold text-amber-600">Upgrade Sekarang</button>
+                        </div>
+                      )}
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-300/20 rounded-full blur-3xl"></div>
+                        <div className="relative">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/30">
+                              <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900">AI QR Theme Generator</h3>
+                          </div>
+                          <p className="text-xs text-slate-500 mb-3">Deskripsikan konsep warungmu, AI akan otomatis memilih warna & template terbaik.</p>
+                          <textarea
+                            className="w-full p-3 rounded-xl border border-amber-200 bg-white/80 focus:ring-2 focus:ring-amber-400 outline-none text-sm text-slate-700 resize-none"
+                            rows={3}
+                            placeholder="Contoh: Kafe matcha kekinian nuansa kayu estetik"
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                          />
+                          <button
+                            onClick={handleAiGenerate}
+                            disabled={isAiGenerating}
+                            className="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform disabled:opacity-50"
+                          >
+                            {isAiGenerating ? (
+                              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Generasi Desain...</span></>
+                            ) : (
+                              <><Wand2 className="w-4 h-4" /><span>Generasi Desain & Warna via AI</span></>
+                            )}
+                          </button>
+                        </div>
                       </div>
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">RECOMMENDED</span>
-                    </label>
-                    <label className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:border-amber-300">
-                      <input type="radio" name="size" className="text-amber-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">A4 (210×297mm)</p>
-                        <p className="text-[11px] text-slate-500">Poster dinding</p>
+                    </div>
+                  )}
+                  {/* Presets Tab */}
+                  {qrActiveTab === "presets" && (
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 mb-3">Pilih Preset Warna Standar</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {QR_PRESETS.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => handleQrApplyPreset(preset)}
+                            className="p-4 border border-slate-200 rounded-xl hover:border-amber-400 transition-all text-left"
+                          >
+                            <div className="flex gap-1 mb-3">
+                              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: preset.bg, border: "1px solid #E2E8F0" }}></div>
+                              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: preset.qr }}></div>
+                              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: preset.acc }}></div>
+                            </div>
+                            <span className="text-xs font-bold text-slate-900">{preset.name}</span>
+                          </button>
+                        ))}
                       </div>
-                    </label>
-                    <label className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:border-amber-300">
-                      <input type="radio" name="size" className="text-amber-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">Stiker (5×5cm)</p>
-                        <p className="text-[11px] text-slate-500">Tempel di meja</p>
+                    </div>
+                  )}
+                  {/* Custom Color Tab */}
+                  {qrActiveTab === "custom" && (
+                    <div className="relative">
+                      {!isPro && (
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-xl">
+                          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-2">
+                            <Lock className="w-6 h-6 text-amber-600" />
+                          </div>
+                          <p className="text-sm font-bold text-slate-900">Khusus Pengguna Pro</p>
+                          <button onClick={() => setQrShowUpgrade(true)} className="mt-2 text-xs font-bold text-amber-600">Upgrade Sekarang</button>
+                        </div>
+                      )}
+                      <h3 className="text-sm font-bold text-slate-900 mb-4">Custom Color Pickers</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-slate-700">Warna Background Card</label>
+                          <input type="color" value={qrBgColor} onChange={(e) => setQrBgColor(e.target.value)} className="w-12 h-8 rounded cursor-pointer border border-slate-200" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-slate-700">Warna Modul QR</label>
+                          <input type="color" value={qrFgColor} onChange={(e) => setQrFgColor(e.target.value)} className="w-12 h-8 rounded cursor-pointer border border-slate-200" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-slate-700">Warna Teks / Judul</label>
+                          <input type="color" value={qrTextColor} onChange={(e) => setQrTextColor(e.target.value)} className="w-12 h-8 rounded cursor-pointer border border-slate-200" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-slate-700">Warna Aksen</label>
+                          <input type="color" value={qrAccentColor} onChange={(e) => setQrAccentColor(e.target.value)} className="w-12 h-8 rounded cursor-pointer border border-slate-200" />
+                        </div>
                       </div>
-                    </label>
-                  </div>
-                </div>
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <h4 className="text-sm font-bold text-slate-900 mb-3">Unduh & Cetak</h4>
-                  <div className="space-y-2">
-                    <button onClick={() => showToast("QR Code PDF berhasil diunduh!")} className={`${styles.ctaBtn} w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2`}>
-                      <Download className="w-4 h-4" /> Unduh PDF Cetak A6
-                    </button>
-                    <button onClick={() => showToast("QR Code PNG berhasil diunduh!")} className="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-amber-300 transition-colors">
-                      <ImageIcon className="w-4 h-4" /> Unduh PNG HD
-                    </button>
-                    <button onClick={() => showToast("Mengarahkan ke percetakan mitra...")} className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors">
-                      <Printer className="w-4 h-4" /> Cetak ke Percetakan
-                    </button>
-                  </div>
+                    </div>
+                  )}
+                  {/* Templates Tab */}
+                  {qrActiveTab === "templates" && (
+                    <div className="relative">
+                      <input type="file" accept="image/*" ref={qrFileInputRef} onChange={handleQrImageUpload} className="hidden" />
+                      <h3 className="text-sm font-bold text-slate-900 mb-1">Background & Frame Templates</h3>
+                      <p className="text-xs text-slate-400 mb-4">Pilih tampilan kartu QR Anda</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setQrActiveTemplate("minimalist")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "minimalist" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                          <div className="w-full h-12 bg-white border border-slate-200 rounded mb-2"></div>
+                          <span className="text-xs font-bold text-slate-900">Modern Minimalist</span>
+                        </button>
+                        <button onClick={() => setQrActiveTemplate("rustic")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "rustic" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                          <div className="w-full h-12 bg-[#FDFBF7] rounded mb-2" style={{ backgroundImage: "repeating-linear-gradient(45deg, rgba(139, 90, 43, 0.1) 0px, rgba(139, 90, 43, 0.1) 2px, transparent 2px, transparent 6px)" }}></div>
+                          <span className="text-xs font-bold text-slate-900">Rustic Wood Grain</span>
+                        </button>
+                        <button onClick={() => setQrActiveTemplate("dark_gold")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "dark_gold" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                          <div className="w-full h-12 bg-slate-900 rounded mb-2 border-2 border-amber-500"></div>
+                          <span className="text-xs font-bold text-slate-900">Dark Gold Elegance</span>
+                        </button>
+                        <button onClick={() => setQrActiveTemplate("acrylic")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "acrylic" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                          <div className="w-full h-12 bg-white rounded mb-2 border-t-4 border-b-4 border-slate-100"></div>
+                          <span className="text-xs font-bold text-slate-900">Acrylic Table Stand</span>
+                        </button>
+                        {/* Upload Custom — PRO only */}
+                        <button
+                          onClick={() => {
+                            if (!isPro) { setQrShowUpgrade(true); return; }
+                            qrFileInputRef.current?.click();
+                          }}
+                          className={`p-4 border rounded-xl text-left transition-all relative ${qrActiveTemplate === "custom" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="w-full h-12 bg-slate-100 rounded mb-2 flex items-center justify-center">
+                            <ImageIcon className="w-5 h-5 text-slate-400" />
+                          </div>
+                          <span className="text-xs font-bold text-slate-900">Upload Custom</span>
+                          {!isPro && (
+                            <span className="absolute top-2 right-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                              <Lock size={8} /> PRO
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1892,6 +2139,25 @@ export default function DashboardApp() {
             </div>
           </div>
         </>
+      )}
+
+      {/* ==================== QR UPGRADE MODAL ==================== */}
+      {qrShowUpgrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center relative shadow-2xl border border-amber-200">
+            <button onClick={() => setQrShowUpgrade(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+              <X size={20} />
+            </button>
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <Lock className="text-white" size={32} />
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-900">Upgrade ke Pro</h3>
+            <p className="text-slate-500 mt-2 text-sm">Fitur AI QR Designer dan Custom Background hanya tersedia untuk pengguna Pro.</p>
+            <button onClick={() => setQrShowUpgrade(false)} className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform">
+              Upgrade Sekarang
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ==================== TOAST ==================== */}
