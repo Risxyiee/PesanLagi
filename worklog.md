@@ -696,3 +696,32 @@ Stage Summary:
 - Server compiles and returns 200
 - Pushed to GitHub: 83978dc
 
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Tampilan Menu Digital settings in profile page + add dynamic theme/layout to public menu
+
+Work Log:
+- Analyzed DashboardApp.tsx: Found the "Tampilan Menu Digital" section (lines 1963-1993) had non-functional buttons that only showed toasts
+- Added `menuTheme` and `menuLayout` state variables to DashboardApp.tsx
+- Wired 5 color theme buttons (amber, green, blue, red, dark) to `setMenuTheme()` with visual selection feedback
+- Wired 3 layout template buttons (grid, list, kategori) to `setMenuLayout()` with visual selection feedback
+- Added "Preview" button to open the digital menu page in new tab
+- Updated `handleSaveSettings` to persist theme/layout via `hours` JSONB field (no schema changes needed)
+- Updated `handleCancelSettings` to restore theme/layout from store data
+- Updated store data loading to read theme/layout from `store.hours`
+- Updated page.module.css to use CSS custom properties (var(--t-*)) instead of hardcoded amber colors
+- Added THEME_MAP configuration with 5 complete color themes (amber, green, blue, red, dark)
+- Rewrote /menu/[slug]/page.tsx to: apply CSS variables from theme, support 3 layouts (grid, list, category), show dynamic hours from store data
+- Added tw() helper function for dynamic Tailwind class mapping per theme
+- Lint passes with 0 errors
+- Dev server starts and renders correctly
+- Committed as cb68dec but cannot push (no SSH/GitHub token in environment)
+
+Stage Summary:
+- Digital menu appearance settings now fully functional: theme selection, layout selection, visual feedback, save/cancel, persistence via hours JSONB
+- Public menu page reads store.hours.menu_theme and store.hours.menu_layout and applies them dynamically
+- 5 color themes: amber (default), green, blue, red, dark/slate
+- 3 layout modes: grid (card with image), list (compact no image), category (grouped by category)
+- CSS module updated to use CSS custom properties for all theme-dependent colors
+- No database schema changes needed - uses existing `hours` JSONB column
