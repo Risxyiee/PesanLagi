@@ -238,7 +238,7 @@ export default function DashboardApp() {
   const [qrFgColor, setQrFgColor] = useState("#0F172A");
   const [qrTextColor, setQrTextColor] = useState("#0F172A");
   const [qrAccentColor, setQrAccentColor] = useState("#F59E0B");
-  const [qrActiveTemplate, setQrActiveTemplate] = useState("minimalist");
+  const [qrActiveTemplate, setQrActiveTemplate] = useState("pesanlagi");
   const [qrCustomBgImage, setQrCustomBgImage] = useState<string | null>(null);
   const qrExportRef = useRef<HTMLDivElement>(null);
   const qrFileInputRef = useRef<HTMLInputElement>(null);
@@ -712,16 +712,47 @@ export default function DashboardApp() {
   }, [user, aiPrompt, showToast]);
 
   const handleQrExport = useCallback(async (format: "PNG" | "PDF") => {
-    if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
     if (!qrExportRef.current) return;
     setExportingQr(true);
     showToast("Menyiapkan file download...");
     try {
-      const canvas = await html2canvas(qrExportRef.current, {
+      const container = qrExportRef.current;
+      // Convert SVGs to images for html2canvas compatibility
+      const svgs = container.querySelectorAll("svg");
+      const backups: { svg: SVGElement; parent: HTMLElement; next: ChildNode | null; img: HTMLImageElement }[] = [];
+      await Promise.all(
+        Array.from(svgs).map(async (svg) => {
+          const w = svg.getBoundingClientRect().width;
+          const h = svg.getBoundingClientRect().height;
+          const clone = svg.cloneNode(true) as SVGElement;
+          clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+          const svgStr = new XMLSerializer().serializeToString(clone);
+          const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const img = document.createElement("img");
+          img.crossOrigin = "anonymous";
+          await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = url; });
+          img.style.width = w + "px";
+          img.style.height = h + "px";
+          img.style.display = "block";
+          const parent = svg.parentElement!;
+          const next = svg.nextSibling;
+          parent.replaceChild(img, svg);
+          backups.push({ svg, parent, next, img });
+          URL.revokeObjectURL(url);
+        })
+      );
+      const canvas = await html2canvas(container, {
         scale: 3,
         useCORS: true,
-        backgroundColor: null,
+        backgroundColor: qrActiveTemplate === "pesanlagi" ? "#14100B" : "#FFFFFF",
         logging: false,
+      });
+      // Restore SVGs
+      backups.forEach(({ svg, parent, next, img }) => {
+        if (next) parent.insertBefore(svg, next);
+        else parent.appendChild(svg);
+        img.remove();
       });
       if (format === "PNG") {
         const link = document.createElement("a");
@@ -737,12 +768,13 @@ export default function DashboardApp() {
         pdf.save("qr-pesanlagi.pdf");
       }
       showToast(`Berhasil di-download sebagai ${format}!`);
-    } catch {
-      showToast("Gagal mengunduh file.");
+    } catch (err) {
+      console.error("QR export error:", err);
+      showToast("Gagal mengunduh file. Coba lagi.");
     } finally {
       setExportingQr(false);
     }
-  }, [user, showToast]);
+  }, [user, showToast, qrActiveTemplate]);
 
   const handleQrApplyPreset = useCallback((preset: typeof QR_PRESETS[0]) => {
     setQrBgColor(preset.bg);
@@ -767,6 +799,7 @@ export default function DashboardApp() {
 
   const getQrTemplateClass = () => {
     switch (qrActiveTemplate) {
+      case "pesanlagi": return "rounded-3xl shadow-2xl";
       case "rustic": return "rounded-3xl shadow-lg border border-amber-100";
       case "dark_gold": return "rounded-3xl shadow-2xl";
       case "acrylic": return "rounded-3xl shadow-2xl border-t-8 border-b-8 border-slate-100 overflow-hidden";
@@ -777,6 +810,11 @@ export default function DashboardApp() {
 
   const getQrTemplateStyle = (): React.CSSProperties => {
     switch (qrActiveTemplate) {
+      case "pesanlagi":
+        return {
+          backgroundColor: "#14100B",
+          backgroundImage: "linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,88,12,0.08) 50%, transparent 100%)",
+        };
       case "rustic":
         return {
           backgroundColor: qrBgColor,
@@ -812,6 +850,9 @@ export default function DashboardApp() {
   }, []);
 
   /* ---------- derived ---------- */
+  const isDarkQr = qrActiveTemplate === "pesanlagi" || qrActiveTemplate === "dark_gold";
+  const qrDisplayText = isDarkQr ? "#FFFFFF" : qrTextColor;
+  const qrDisplayAccent = qrActiveTemplate === "pesanlagi" ? "#F97316" : qrAccentColor;
   const storeName = store?.name ?? user?.name ?? "Warung Saya";
   const storeSlug = (store?.slug ?? settingsSlug) || "warung-saya";
   const storeLogo = store?.logo_url ?? "";
@@ -1440,7 +1481,7 @@ export default function DashboardApp() {
                     {/* Watermark for Free — horizontal at bottom */}
                     {!isPro && (
                       <div className="absolute bottom-2.5 left-0 right-0 flex justify-center pointer-events-none z-10">
-                        <span className="text-[10px] font-semibold tracking-wide" style={{ color: qrTextColor + "55" }}>
+                        <span className="text-[10px] font-semibold tracking-wide" style={{ color: qrDisplayText + "55" }}>
                           Dibuat dengan PesanLagi.com
                         </span>
                       </div>
@@ -1450,23 +1491,23 @@ export default function DashboardApp() {
                       {storeLogo ? (
                         <img src={storeLogo} crossOrigin="anonymous" className="w-full h-full rounded-2xl object-cover" alt="Logo" />
                       ) : (
-                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center">
                           <Utensils className="w-5 h-5 text-white" strokeWidth={2.5} />
                         </div>
                       )}
                     </div>
-                    <h3 style={{ color: qrTextColor }} className="text-lg font-extrabold mb-0.5 text-center z-0">
+                    <h3 style={{ color: qrDisplayText }} className="text-lg font-extrabold mb-0.5 text-center z-0">
                       {storeName}
                     </h3>
-                    <p style={{ color: qrTextColor + "AA" }} className="text-[11px] mb-4 z-0">Scan untuk lihat menu & pesan</p>
-                    <div className={`p-2.5 bg-white shadow-sm z-0 ${qrActiveTemplate === "dark_gold" ? "border-[3px] rounded-xl" : "rounded-xl"}`} style={qrActiveTemplate === "dark_gold" ? { borderColor: qrAccentColor } : {}}>
+                    <p style={{ color: qrDisplayText + "AA" }} className="text-[11px] mb-4 z-0">Scan untuk lihat menu & pesan</p>
+                    <div className={`p-2.5 bg-white shadow-sm z-0 ${qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? "border-[3px] rounded-xl" : "rounded-xl"}`} style={qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? { borderColor: qrDisplayAccent } : {}}>
                       <svg viewBox="0 0 25 25" className="w-36 h-36" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG(qrFgColor) }} />
                     </div>
                     <div className="flex items-center justify-center gap-1.5 mt-3 mb-1 z-0">
-                      <Globe className="w-3 h-3" style={{ color: qrTextColor + "88" }} />
-                      <span className="text-[11px] font-medium" style={{ color: qrTextColor }}>pesanlagi.web.id/menu/{storeSlug}</span>
+                      <Globe className="w-3 h-3" style={{ color: qrDisplayText + "88" }} />
+                      <span className="text-[11px] font-medium" style={{ color: qrDisplayText }}>pesanlagi.web.id/menu/{storeSlug}</span>
                     </div>
-                    <div style={{ color: qrAccentColor }} className="text-[11px] font-bold z-0 flex items-center gap-1">
+                    <div style={{ color: qrDisplayAccent }} className="text-[11px] font-bold z-0 flex items-center gap-1">
                       <Sparkles size={11} /> Powered by PesanLagi
                     </div>
                   </div>
@@ -1607,6 +1648,11 @@ export default function DashboardApp() {
                       <h3 className="text-sm font-bold text-slate-900 mb-1">Background & Frame Templates</h3>
                       <p className="text-xs text-slate-400 mb-4">Pilih tampilan kartu QR Anda</p>
                       <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setQrActiveTemplate("pesanlagi")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "pesanlagi" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                          <div className="w-full h-12 bg-[#14100B] rounded mb-2" style={{ backgroundImage: "linear-gradient(135deg, rgba(249,115,22,0.3) 0%, transparent 100%)" }}></div>
+                          <span className="text-xs font-bold text-slate-900">PesanLagi</span>
+                          <span className="text-[9px] text-amber-500 font-bold ml-1">Default</span>
+                        </button>
                         <button onClick={() => setQrActiveTemplate("minimalist")} className={`p-4 border rounded-xl text-left transition-all ${qrActiveTemplate === "minimalist" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
                           <div className="w-full h-12 bg-white border border-slate-200 rounded mb-2"></div>
                           <span className="text-xs font-bold text-slate-900">Modern Minimalist</span>
