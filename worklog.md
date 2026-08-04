@@ -548,3 +548,24 @@ Stage Summary:
 - User confirmed env vars are now set ("udah kuset")
 - Hardened all server-side Supabase calls to gracefully handle missing env vars
 - 14 API routes now return 503 with clear error message instead of unhandled exception
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix dashboard "tombol ga berfungsi" by replacing innerHTML architecture with React createRoot
+
+Work Log:
+- Assessed project state: LoginView.tsx ✅ already existed, DashboardApp.tsx ✅ already existed (53KB React component)
+- Identified root cause: page.tsx still used `dashDiv.innerHTML = dashboardBodyHtml` (JSON HTML) + vanilla JS event binding = buttons not working
+- Replaced `import dashboardBodyHtml` with `import DashboardApp` in page.tsx
+- Removed innerHTML injection for dashboard div (now empty, React fills it)
+- Added createRoot mounting for DashboardApp in switchView (same pattern as LoginView)
+- Replaced 400+ line initDashboard() vanilla JS function with stub (initDashboardReact)
+- Removed dashboardStyles injection (DashboardApp uses proper Tailwind classes directly; old styles had !important overrides that would conflict)
+- Cleaned up unused variables (loginInited, dashInited)
+- Lint passes: 0 errors, 1 warning (unrelated font warning)
+- Dev server compiles successfully
+
+Stage Summary:
+- page.tsx reduced from 600 lines to 192 lines
+- Dashboard now fully React-rendered with proper state management and event handling
+- This fixes the core user complaint: "tombol ga berfungsi" (buttons not working)
