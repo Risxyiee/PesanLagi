@@ -376,53 +376,64 @@ export default function DashboardApp() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* ---------- auth check + fetch data (parallel) ---------- */
+  /* ---------- auth check + fetch data (single request) ---------- */
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const [meRes, storeRes, menusRes, catsRes] = await Promise.all([
-          fetch("/api/auth/me"),
-          fetch("/api/store").then((r) => r.json()).catch(() => null),
-          fetch("/api/menus").then((r) => r.json()).catch(() => []),
-          fetch("/api/categories").then((r) => r.json()).catch(() => []),
-        ]);
-        if (!meRes.ok) throw new Error("not auth");
-        const userData = await meRes.json();
-        setUser(userData);
-        if (storeRes) {
-          setStore(storeRes);
-          setStoreOpen(storeRes.is_open ?? true);
-          setSettingsName(storeRes.name ?? "");
-          setSettingsDesc(storeRes.description ?? "");
-          setSettingsPhone(storeRes.whatsapp ?? "");
-          setSettingsEmail("");
-          setSettingsAddress(storeRes.address ?? "");
-          setSettingsSlug(storeRes.slug ?? "");
-          setSettingsCategory(storeRes.category ?? "Makanan Indonesia");
-          if (storeRes.hours && typeof storeRes.hours === "object") {
-            const h = storeRes.hours as Record<string, any>;
-            if (h.open_time) setSettingsOpenTime(h.open_time);
-            if (h.close_time) setSettingsCloseTime(h.close_time);
-            if (Array.isArray(h.days)) {
-              const days = [false, false, false, false, false, false, false];
-              h.days.forEach((d: number) => {
-                if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
-              });
-              setSettingsDays(days);
-            }
-            if (h.menu_theme) setMenuTheme(h.menu_theme);
-            if (h.menu_layout) setMenuLayout(h.menu_layout);
+        const res = await fetch("/api/dashboard/init");
+        if (!res.ok) {
+          // 409 = session conflict, retry once after brief delay
+          if (res.status === 409) {
+            await new Promise((r) => setTimeout(r, 500));
+            const retry = await fetch("/api/dashboard/init");
+            if (!retry.ok) throw new Error("not auth");
+            const retryData = await retry.json();
+            applyInitData(retryData);
+          } else {
+            throw new Error("not auth");
           }
+        } else {
+          const data = await res.json();
+          applyInitData(data);
         }
-        if (Array.isArray(menusRes)) setMenus(menusRes);
-        if (Array.isArray(catsRes)) setCategories(catsRes);
       } catch {
         window.location.hash = "#login";
       } finally {
         setLoading(false);
       }
     })();
+  }, []);
+
+  const applyInitData = useCallback((data: { user: any; store: any; menus: any[]; categories: any[] }) => {
+    if (data.user) setUser(data.user);
+    if (data.store) {
+      setStore(data.store);
+      setStoreOpen(data.store.is_open ?? true);
+      setSettingsName(data.store.name ?? "");
+      setSettingsDesc(data.store.description ?? "");
+      setSettingsPhone(data.store.whatsapp ?? "");
+      setSettingsEmail("");
+      setSettingsAddress(data.store.address ?? "");
+      setSettingsSlug(data.store.slug ?? "");
+      setSettingsCategory(data.store.category ?? "Makanan Indonesia");
+      if (data.store.hours && typeof data.store.hours === "object") {
+        const h = data.store.hours as Record<string, any>;
+        if (h.open_time) setSettingsOpenTime(h.open_time);
+        if (h.close_time) setSettingsCloseTime(h.close_time);
+        if (Array.isArray(h.days)) {
+          const days = [false, false, false, false, false, false, false];
+          h.days.forEach((d: number) => {
+            if (typeof d === "number" && d >= 1 && d <= 7) days[d - 1] = true;
+          });
+          setSettingsDays(days);
+        }
+        if (h.menu_theme) setMenuTheme(h.menu_theme);
+        if (h.menu_layout) setMenuLayout(h.menu_layout);
+      }
+    }
+    if (Array.isArray(data.menus)) setMenus(data.menus);
+    if (Array.isArray(data.categories)) setCategories(data.categories);
   }, []);
 
   /* ---------- toast ---------- */
