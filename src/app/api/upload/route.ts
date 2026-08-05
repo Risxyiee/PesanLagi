@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,9 +32,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tipe file tidak didukung. Gunakan JPG, PNG, WebP, atau GIF." }, { status: 400 });
     }
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: "Ukuran file maksimal 2MB" }, { status: 400 });
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "Ukuran file maksimal 5MB" }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

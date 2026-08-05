@@ -54,6 +54,47 @@ import jsPDF from "jspdf";
 import styles from "./DashboardApp.module.css";
 
 /* ------------------------------------------------------------------ */
+/*  Image compression helper                                            */
+/* ------------------------------------------------------------------ */
+
+function compressImage(file: File, maxSize = 800, quality = 0.75): Promise<File> {
+  return new Promise((resolve, reject) => {
+    // Skip compression for small files or GIFs
+    if (file.size < 500_000 || file.type === 'image/gif') {
+      resolve(file);
+      return;
+    }
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      // Scale down if larger than maxSize
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round((h / w) * maxSize); w = maxSize; }
+        else { w = Math.round((w / h) * maxSize); h = maxSize; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(file); return; }
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+          resolve(compressed);
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -568,13 +609,17 @@ export default function DashboardApp() {
   const handleUploadImage = useCallback(async (file: File) => {
     setUploading(true);
     try {
+      const compressed = await compressImage(file, 1024, 0.8);
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", compressed);
       fd.append("bucket", "menus");
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const data = await res.json();
         setModalImage(data.url ?? data.publicUrl ?? URL.createObjectURL(file));
+      } else {
+        const err = await res.json().catch(() => null);
+        showToast(err?.error || "Gagal mengunggah gambar");
       }
     } catch {
       showToast("Gagal mengunggah gambar");
@@ -586,8 +631,9 @@ export default function DashboardApp() {
   const handleUploadLogo = useCallback(async (file: File) => {
     setUploadingLogo(true);
     try {
+      const compressed = await compressImage(file, 800, 0.8);
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", compressed);
       fd.append("bucket", "logos");
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
@@ -603,11 +649,13 @@ export default function DashboardApp() {
           if (storeRes.ok) {
             showToast("Logo berhasil diperbarui!");
           } else {
-            showToast("Logo diupload tapi gagal disimpan");
+            const err = await storeRes.json().catch(() => null);
+            showToast(err?.error || "Logo diupload tapi gagal disimpan");
           }
         }
       } else {
-        showToast("Gagal mengunggah logo");
+        const err = await res.json().catch(() => null);
+        showToast(err?.error || "Gagal mengunggah logo");
       }
     } catch {
       showToast("Gagal mengunggah logo");
@@ -1462,10 +1510,10 @@ export default function DashboardApp() {
                   {c.label}
                   {c.catId && (
                     <span
-                      className="ml-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="ml-1 text-red-300 hover:text-red-600 transition-colors"
                       onClick={(e) => { e.stopPropagation(); handleDeleteCategory(c.catId); }}
                     >
-                      {deletingCatId === c.catId ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin inline-block" /> : "×"}
+                      {deletingCatId === c.catId ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin inline-block" /> : <Trash2 className="w-3 h-3 inline-block" />}
                     </span>
                   )}
                 </button>
@@ -2076,7 +2124,7 @@ export default function DashboardApp() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">Logo Warung</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">JPG/PNG, maks 1MB</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">JPG/PNG, otomatis dikompres (maks 5MB)</p>
                     <button onClick={() => { if (!uploadingLogo) logoInputRef.current?.click(); }} disabled={uploadingLogo} className="text-xs font-semibold text-amber-600 mt-1 hover:underline disabled:opacity-50">
                       {uploadingLogo ? "Mengunggah..." : "Ganti Logo"}
                     </button>
@@ -2338,7 +2386,7 @@ export default function DashboardApp() {
                         <ImagePlus className="w-6 h-6 text-amber-600" />
                       </div>
                       <p className="text-sm font-semibold text-slate-700">{uploading ? "Mengunggah..." : "Klik atau drag foto menu ke sini"}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">JPG/PNG, maks 2MB</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">JPG/PNG, otomatis dikompres (maks 5MB)</p>
                     </>
                   )}
                 </div>

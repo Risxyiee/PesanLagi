@@ -31,3 +31,18 @@ Stage Summary:
 - 6 fitur placeholder kosong (pesanan, laporan, ulasan, payment, notifikasi, blog)
 - 7 masalah UI/UX, 4 masalah keamanan, 5 masalah arsitektur
 - Rekomendasi prioritas P1/P2/P3 disusun
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix 3 bugs - hapus background logo transparan, tombol hapus kategori, upload foto profil toko
+
+Work Log:
+- Hapus background putih dari pesanlagi-logo.png & logo.png menggunakan PIL (threshold 220, alpha set to 0)
+- Fix tombol hapus kategori: sebelumnya opacity-0 group-hover:opacity-100 (tidak terlihat di mobile). Diubah jadi selalu visible dengan icon Trash2 dari lucide-react
+- Fix upload foto profil toko gagal: tambah compressImage() helper yang kompres gambar client-side sebelum upload (max 800px untuk logo, 1024px untuk menu, quality 0.8 JPEG). Tingkatkan limit server dari 2MB ke 5MB. Tambah error message dari API response di frontend. Tambah export runtime='nodejs' di upload route.
+
+Stage Summary:
+- Logo sekarang background transparan (RGBA, white pixels dihapus)
+- Tombol hapus kategori selalu terlihat (icon Trash2 merah, bukan × yang tersembunyi)
+- Upload gambar: kompres otomatis di client, limit 5MB, error message spesifik ditampilkan
