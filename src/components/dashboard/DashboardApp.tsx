@@ -861,12 +861,12 @@ export default function DashboardApp() {
       const textCol = isDark ? "#FFFFFF" : qrTextColor;
       const accentCol = qrActiveTemplate === "pesanlagi" ? "#F97316" : qrAccentColor;
 
-      const W = 630; const H = 891;
+      const W = 630; const H = 720;
       const cvs = document.createElement("canvas");
       cvs.width = W * 2; cvs.height = H * 2;
       const ctx = cvs.getContext("2d")!;
       ctx.scale(2, 2);
-      const pad = 36;
+      const pad = 30;
 
       if (qrActiveTemplate === "pesanlagi") {
         ctx.fillStyle = "#14100B"; ctx.fillRect(0, 0, W, H);
@@ -896,9 +896,9 @@ export default function DashboardApp() {
       }
 
       const cx = W / 2;
-      let cy = pad + 24;
+      let cy = pad + 16;
 
-      const logoS = 56; const logoX = cx - logoS / 2;
+      const logoS = 60; const logoX = cx - logoS / 2;
       if (storeLogo) {
         try {
           const lImg = await loadImg(storeLogo);
@@ -911,17 +911,17 @@ export default function DashboardApp() {
           ctx.shadowColor = "transparent";
         } catch { drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2); }
       } else { drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2); }
-      cy += logoS + 14;
+      cy += logoS + 12;
 
       ctx.fillStyle = textCol;
-      ctx.font = "bold 20px system-ui,-apple-system,sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(storeName, cx, cy); cy += 20;
+      ctx.font = "bold 22px system-ui,-apple-system,sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(storeName, cx, cy); cy += 16;
 
       ctx.fillStyle = textCol + "AA";
-      ctx.font = "12px system-ui,sans-serif";
-      ctx.fillText("Scan untuk lihat menu & pesan", cx, cy); cy += 22;
+      ctx.font = "13px system-ui,sans-serif";
+      ctx.fillText("Scan untuk lihat menu & pesan", cx, cy); cy += 18;
 
-      const qrPx = 200; const qrPad = 12;
+      const qrPx = 340; const qrPad = 14;
       const qrW = qrPx + qrPad * 2;
       const qrX = cx - qrW / 2;
       ctx.fillStyle = "#FFFFFF";
@@ -938,17 +938,18 @@ export default function DashboardApp() {
       cy += qrW + 16;
 
       ctx.fillStyle = textCol + "88";
-      ctx.font = "11px system-ui,sans-serif";
-      ctx.fillText(`pesanlagi.web.id/menu/${storeSlug}`, cx, cy); cy += 20;
+      ctx.font = "12px system-ui,sans-serif";
+      ctx.fillText(`pesanlagi.web.id/menu/${storeSlug}`, cx, cy); cy += 18;
 
       ctx.fillStyle = accentCol;
-      ctx.font = "bold 11px system-ui,sans-serif";
-      ctx.fillText("Powered by PesanLagi", cx, cy); cy += 14;
+      ctx.font = "bold 12px system-ui,sans-serif";
+      ctx.fillText("Powered by PesanLagi", cx, cy);
 
       if (!isPro) {
         ctx.fillStyle = textCol + "44";
         ctx.font = "10px system-ui,sans-serif";
-        ctx.fillText("Dibuat dengan PesanLagi.com", cx, H - pad + 4);
+        ctx.textAlign = "center";
+        ctx.fillText("Dibuat dengan PesanLagi.com", cx, H - 14);
       }
 
       if (format === "PNG") {
