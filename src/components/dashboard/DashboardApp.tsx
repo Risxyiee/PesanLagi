@@ -154,40 +154,87 @@ const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: strin
 const DAYS_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 /* ------------------------------------------------------------------ */
-/*  QR SVG Generation                                                  */
+/*  QR Grid Generation (for SVG preview + Canvas export)                */
 /* ------------------------------------------------------------------ */
-function generateQRSVG(fgColor: string = "#0F172A"): string {
+function generateQRGrid(): number[][] {
   const size = 25;
-  let rects = "";
-  const add = (x: number, y: number, w: number, h: number, fill: string) => {
-    rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`;
+  const grid: number[][] = Array.from({ length: size }, () => new Array(size).fill(0));
+  const fill = (fx: number, fy: number) => {
+    for (let y = fy; y < fy + 7; y++)
+      for (let x = fx; x < fx + 7; x++)
+        if (x === fx || x === fx + 6 || y === fy || y === fy + 6 || (x >= fx + 2 && x <= fx + 4 && y >= fy + 2 && y <= fy + 4))
+          grid[y][x] = 1;
   };
-  [[0,0],[18,0],[0,18]].forEach(([fx,fy]) => {
-    add(fx, fy, 7, 7, fgColor);
-    add(fx+1, fy+1, 5, 5, "white");
-    add(fx+2, fy+2, 3, 3, fgColor);
-  });
-  add(16, 16, 5, 5, fgColor);
-  add(17, 17, 3, 3, "white");
-  add(18, 18, 1, 1, fgColor);
-  for (let i = 8; i < 17; i++) {
-    if (i % 2 === 0) {
-      add(i, 6, 1, 1, fgColor);
-      add(6, i, 1, 1, fgColor);
-    }
-  }
-  for (let y = 0; y < size; y++) {
+  fill(0, 0); fill(18, 0); fill(0, 18);
+  for (let i = 0; i <= 4; i++) { grid[16 + i][16 + i] = 1; grid[20 - i][16 + i] = 1; }
+  for (let i = 8; i < 17; i++) { if (i % 2 === 0) { grid[i][6] = 1; grid[6][i] = 1; } }
+  for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
-      const inFinder = (x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16);
-      const inAlign = (x>=16&&x<=20&&y>=16&&y<=20);
-      const inCenter = (x>=10&&x<=14&&y>=10&&y<=14);
-      const inTiming = (y===6||x===6);
-      if (inFinder||inAlign||inCenter||inTiming) continue;
-      const hash = (x*7+y*13+x*y*3) % 7;
-      if (hash < 3) add(x, y, 1, 1, fgColor);
+      const inFinder = (x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16);
+      const inAlign = x >= 16 && x <= 20 && y >= 16 && y <= 20;
+      const inCenter = x >= 10 && x <= 14 && y >= 10 && y <= 14;
+      const inTiming = y === 6 || x === 6;
+      if (inFinder || inAlign || inCenter || inTiming) continue;
+      if ((x * 7 + y * 13 + x * y * 3) % 7 < 3) grid[y][x] = 1;
     }
-  }
+  return grid;
+}
+const QR_GRID = generateQRGrid();
+
+function generateQRSVG(fgColor: string = "#0F172A"): string {
+  let rects = "";
+  for (let y = 0; y < 25; y++)
+    for (let x = 0; x < 25; x++)
+      if (QR_GRID[y][x]) rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${fgColor}"/>`;
   return rects;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Canvas helpers for QR export                                       */
+/* ------------------------------------------------------------------ */
+function canvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function canvasDrawQR(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
+  const cell = size / 25;
+  ctx.fillStyle = color;
+  for (let row = 0; row < 25; row++)
+    for (let col = 0; col < 25; col++)
+      if (QR_GRID[row][col]) ctx.fillRect(x + col * cell, y + row * cell, cell + 0.5, cell + 0.5);
+}
+
+function loadImg(src: string): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
+
+function drawFallbackLogo(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+  g.addColorStop(0, "#FB923C"); g.addColorStop(0.5, "#F97316"); g.addColorStop(1, "#EA580C");
+  ctx.fillStyle = g;
+  canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2;
+  canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.stroke();
+  ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(cx - 8, cy - 6); ctx.lineTo(cx + 8, cy - 6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 10, cy - 4); ctx.quadraticCurveTo(cx, cy + 14, cx + 10, cy - 4); ctx.stroke();
 }
 
 /* ------------------------------------------------------------------ */
@@ -716,66 +763,129 @@ export default function DashboardApp() {
     setExportingQr(true);
     showToast("Menyiapkan file download...");
     try {
-      const container = qrExportRef.current;
-      // Convert all inline SVGs to PNG images for html2canvas compatibility
-      const svgs = Array.from(container.querySelectorAll("svg")) as SVGSVGElement[];
-      const backups: { svg: SVGSVGElement; parent: Node; next: ChildNode | null; img: HTMLImageElement }[] = [];
-      for (const svg of svgs) {
-        const rect = svg.getBoundingClientRect();
-        const w = rect.width || 144;
-        const h = rect.height || 144;
-        const clone = svg.cloneNode(true) as SVGSVGElement;
-        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        const svgData = new XMLSerializer().serializeToString(clone);
-        const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-        const blobUrl = URL.createObjectURL(blob);
-        const tmpImg = document.createElement("img");
-        tmpImg.crossOrigin = "anonymous";
-        await new Promise<void>((res, rej) => { tmpImg.onload = () => res(); tmpImg.onerror = rej; tmpImg.src = blobUrl; });
-        // Draw SVG to canvas, then export as PNG data URL (self-contained, no blob ref)
-        const cvs = document.createElement("canvas");
-        cvs.width = w * 2;
-        cvs.height = h * 2;
-        const ctx = cvs.getContext("2d");
-        if (ctx) {
-          ctx.fillStyle = "#FFFFFF";
-          ctx.fillRect(0, 0, cvs.width, cvs.height);
-          ctx.drawImage(tmpImg, 0, 0, cvs.width, cvs.height);
+      const isDark = qrActiveTemplate === "pesanlagi" || qrActiveTemplate === "dark_gold";
+      const textCol = isDark ? "#FFFFFF" : qrTextColor;
+      const accentCol = qrActiveTemplate === "pesanlagi" ? "#F97316" : qrAccentColor;
+
+      const W = 630; const H = 891;
+      const cvs = document.createElement("canvas");
+      cvs.width = W * 2; cvs.height = H * 2;
+      const ctx = cvs.getContext("2d")!;
+      ctx.scale(2, 2);
+      const pad = 36;
+
+      // ---- background ----
+      if (qrActiveTemplate === "pesanlagi") {
+        ctx.fillStyle = "#14100B"; ctx.fillRect(0, 0, W, H);
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, "rgba(249,115,22,0.18)"); g.addColorStop(0.5, "rgba(234,88,12,0.08)"); g.addColorStop(1, "transparent");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      } else if (qrActiveTemplate === "dark_gold") {
+        ctx.fillStyle = "#0F172A"; ctx.fillRect(0, 0, W, H);
+      } else if (qrActiveTemplate === "rustic") {
+        ctx.fillStyle = qrBgColor || "#FDFBF7"; ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = "rgba(139,90,43,0.06)"; ctx.lineWidth = 1;
+        for (let i = -H; i < W + H; i += 6) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i + H, 0); ctx.lineTo(i, H); ctx.stroke(); }
+      } else if (qrActiveTemplate === "custom") {
+        ctx.fillStyle = qrBgColor || "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+        if (qrCustomBgImage) {
+          try {
+            const bgImg = await loadImg(qrCustomBgImage);
+            ctx.drawImage(bgImg, 0, 0, W, H);
+          } catch {}
         }
-        URL.revokeObjectURL(blobUrl);
-        const img = document.createElement("img");
-        img.style.width = w + "px";
-        img.style.height = h + "px";
-        img.style.display = "block";
-        img.src = cvs.toDataURL("image/png");
-        const parent = svg.parentNode!;
-        const next = svg.nextSibling;
-        parent.replaceChild(img, svg);
-        backups.push({ svg, parent, next, img });
-      }
-      const canvas = await html2canvas(container, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: qrActiveTemplate === "pesanlagi" ? "#14100B" : "#FFFFFF",
-        logging: false,
-      });
-      // Restore SVGs
-      backups.forEach(({ svg, parent, next, img }) => {
-        if (next) parent.insertBefore(svg, next);
-        else parent.appendChild(svg);
-        img.remove();
-      });
-      if (format === "PNG") {
-        const link = document.createElement("a");
-        link.download = "qr-pesanlagi.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
       } else {
-        const imgData = canvas.toDataURL("image/png");
+        ctx.fillStyle = qrBgColor || "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+      }
+
+      // ---- acrylic borders ----
+      if (qrActiveTemplate === "acrylic") {
+        ctx.fillStyle = "#F1F5F9"; ctx.fillRect(0, 0, W, 18); ctx.fillRect(0, H - 18, W, 18);
+      }
+
+      // ---- dark border ----
+      if (isDark) {
+        ctx.strokeStyle = accentCol; ctx.lineWidth = 3;
+        canvasRoundRect(ctx, pad / 2, pad / 2, W - pad, H - pad, 14);
+        ctx.stroke();
+      }
+
+      const cx = W / 2;
+      let cy = pad + 24;
+
+      // ---- logo ----
+      const logoS = 56; const logoX = cx - logoS / 2;
+      if (storeLogo) {
+        try {
+          const lImg = await loadImg(storeLogo);
+          ctx.save(); canvasRoundRect(ctx, logoX, cy, logoS, logoS, 14); ctx.clip();
+          ctx.drawImage(lImg, logoX, cy, logoS, logoS);
+          ctx.restore();
+          ctx.shadowColor = "rgba(0,0,0,0.15)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
+          ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2;
+          canvasRoundRect(ctx, logoX, cy, logoS, logoS, 14); ctx.stroke();
+          ctx.shadowColor = "transparent";
+        } catch {
+          drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2);
+        }
+      } else {
+        drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2);
+      }
+      cy += logoS + 14;
+
+      // ---- store name ----
+      ctx.fillStyle = textCol;
+      ctx.font = "bold 20px system-ui,-apple-system,sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(storeName, cx, cy); cy += 20;
+
+      // ---- subtitle ----
+      ctx.fillStyle = textCol + "AA";
+      ctx.font = "12px system-ui,sans-serif";
+      ctx.fillText("Scan untuk lihat menu & pesan", cx, cy); cy += 22;
+
+      // ---- QR code ----
+      const qrPx = 200; const qrPad = 12;
+      const qrW = qrPx + qrPad * 2;
+      const qrX = cx - qrW / 2;
+      ctx.fillStyle = "#FFFFFF";
+      canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.fill();
+      if (isDark) {
+        ctx.strokeStyle = accentCol; ctx.lineWidth = 3;
+        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.stroke();
+      } else {
+        ctx.shadowColor = "rgba(0,0,0,0.06)"; ctx.shadowBlur = 6;
+        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.fill();
+        ctx.shadowColor = "transparent";
+      }
+      canvasDrawQR(ctx, qrX + qrPad, cy + qrPad, qrPx, qrFgColor);
+      cy += qrW + 16;
+
+      // ---- url ----
+      ctx.fillStyle = textCol + "88";
+      ctx.font = "11px system-ui,sans-serif";
+      ctx.fillText(`pesanlagi.web.id/menu/${storeSlug}`, cx, cy); cy += 20;
+
+      // ---- powered by ----
+      ctx.fillStyle = accentCol;
+      ctx.font = "bold 11px system-ui,sans-serif";
+      ctx.fillText("Powered by PesanLagi", cx, cy); cy += 14;
+
+      // ---- watermark ----
+      if (!isPro) {
+        ctx.fillStyle = textCol + "44";
+        ctx.font = "10px system-ui,sans-serif";
+        ctx.fillText("Dibuat dengan PesanLagi.com", cx, H - pad + 4);
+      }
+
+      // ---- download ----
+      if (format === "PNG") {
+        const a = document.createElement("a");
+        a.download = "qr-pesanlagi.png"; a.href = cvs.toDataURL("image/png"); a.click();
+      } else {
         const pdf = new jsPDF("p", "mm", "a6");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = (cvs.height * pw) / cvs.width;
+        pdf.addImage(cvs.toDataURL("image/png"), "PNG", 0, 0, pw, ph);
         pdf.save("qr-pesanlagi.pdf");
       }
       showToast(`Berhasil di-download sebagai ${format}!`);
@@ -785,7 +895,7 @@ export default function DashboardApp() {
     } finally {
       setExportingQr(false);
     }
-  }, [user, showToast, qrActiveTemplate]);
+  }, [storeName, storeSlug, storeLogo, isPro, qrFgColor, qrBgColor, qrAccentColor, qrTextColor, qrActiveTemplate, qrCustomBgImage, showToast]);
 
   const handleQrApplyPreset = useCallback((preset: typeof QR_PRESETS[0]) => {
     setQrBgColor(preset.bg);
