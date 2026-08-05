@@ -395,8 +395,8 @@ export default function DashboardApp() {
           setStoreOpen(storeRes.is_open ?? true);
           setSettingsName(storeRes.name ?? "");
           setSettingsDesc(storeRes.description ?? "");
-          setSettingsPhone(storeRes.phone ?? "");
-          setSettingsEmail(storeRes.email ?? "");
+          setSettingsPhone(storeRes.whatsapp ?? "");
+          setSettingsEmail("");
           setSettingsAddress(storeRes.address ?? "");
           setSettingsSlug(storeRes.slug ?? "");
           setSettingsCategory(storeRes.category ?? "Makanan Indonesia");
@@ -572,8 +572,7 @@ export default function DashboardApp() {
           slug: settingsSlug,
           description: settingsDesc,
           address: settingsAddress,
-          phone: settingsPhone,
-          email: settingsEmail,
+          whatsapp: settingsPhone,
           hours: hoursData,
         }),
       });
@@ -2472,13 +2471,9 @@ export default function DashboardApp() {
                   <h3 className="text-sm font-bold text-slate-900">Kontak & Lokasi</h3>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nomor WhatsApp</label>
                     <input type="text" value={settingsPhone} onChange={(e) => setSettingsPhone(e.target.value)} className={styles.settingsInput} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email</label>
-                    <input type="email" value={settingsEmail} onChange={(e) => setSettingsEmail(e.target.value)} className={styles.settingsInput} />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Alamat Lengkap</label>

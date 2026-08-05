@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await admin
       .from("stores")
       .select(
-        "id, user_id, name, slug, logo_url, bg_color, qr_color, description, whatsapp, phone, email, address, maps_url, hours, is_open, created_at"
+        "id, user_id, name, slug, logo_url, bg_color, qr_color, description, whatsapp, address, maps_url, hours, is_open, created_at"
       )
       .eq("user_id", user.id)
       .single();
@@ -62,8 +62,6 @@ export async function PUT(req: NextRequest) {
       "qr_color",
       "description",
       "whatsapp",
-      "phone",
-      "email",
       "address",
       "maps_url",
       "hours",

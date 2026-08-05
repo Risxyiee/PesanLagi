@@ -8,15 +8,13 @@ export async function middleware(request: NextRequest) {
   // If Supabase not configured (build time), skip auth
   if (!supabase) return response;
 
-  // Refresh Supabase session for all matched routes
-  await supabase.auth.getUser();
+  // Single getUser() call to refresh session and get user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Protect /dashboard/* paths
   if (pathname.startsWith("/dashboard")) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) {
       const loginUrl = new URL("/#login", request.url);
       return NextResponse.redirect(loginUrl);
