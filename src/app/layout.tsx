@@ -5,6 +5,9 @@ import { Providers } from "@/components/providers";
 export const metadata: Metadata = {
   title: "Pesanlagi — QR Menu Digital untuk UMKM Kuliner Indonesia",
   description: "Solusi menu digital praktis tanpa biaya cetak ulang. Tampil keren, rapi, dan mudah di-scan pelanggan dari smartphone.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

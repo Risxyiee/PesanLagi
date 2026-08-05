@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Utensils,
   UtensilsCrossed,
   LayoutDashboard,
   QrCode,
@@ -63,7 +62,7 @@ interface UserData {
   name?: string;
   email?: string;
   is_pro?: boolean;
-  pro_ends_at?: string;
+  pro_expiry_date?: string;
 }
 
 interface StoreData {
@@ -224,17 +223,19 @@ function loadImg(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function drawFallbackLogo(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
-  g.addColorStop(0, "#FB923C"); g.addColorStop(0.5, "#F97316"); g.addColorStop(1, "#EA580C");
-  ctx.fillStyle = g;
-  canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2;
-  canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.stroke();
-  ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(cx - 8, cy - 6); ctx.lineTo(cx + 8, cy - 6); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 10); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx - 10, cy - 4); ctx.quadraticCurveTo(cx, cy + 14, cx + 10, cy - 4); ctx.stroke();
+async function drawFallbackLogo(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  try {
+    const logo = await loadImg('/pesanlagi-logo.png');
+    ctx.save();
+    canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.clip();
+    ctx.drawImage(logo, cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+  } catch {
+    const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+    g.addColorStop(0, "#FB923C"); g.addColorStop(0.5, "#F97316"); g.addColorStop(1, "#EA580C");
+    ctx.fillStyle = g;
+    canvasRoundRect(ctx, cx - r, cy - r, r * 2, r * 2, 12); ctx.fill();
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -309,7 +310,7 @@ export default function DashboardApp() {
 
   // Modal form
   const [modalName, setModalName] = useState("");
-  const [modalCategory, setModalCategory] = useState("Makanan");
+  const [modalCategory, setModalCategory] = useState("");
   const [modalPrice, setModalPrice] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAvailable, setModalAvailable] = useState(true);
@@ -512,6 +513,8 @@ export default function DashboardApp() {
           slug: settingsSlug,
           description: settingsDesc,
           address: settingsAddress,
+          phone: settingsPhone,
+          email: settingsEmail,
           hours: hoursData,
         }),
       });
@@ -528,7 +531,7 @@ export default function DashboardApp() {
     } finally {
       setSavingSettings(false);
     }
-  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, showToast]);
+  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsPhone, settingsEmail, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, showToast]);
 
   const handleCancelSettings = useCallback(() => {
     if (store) {
@@ -618,7 +621,7 @@ export default function DashboardApp() {
     try {
       const body: Record<string, unknown> = {
         name: modalName,
-        category: modalCategory,
+        category_id: modalCategory || null,
         price: Number(modalPrice) || 0,
         description: modalDesc,
         is_available: modalAvailable,
@@ -845,8 +848,8 @@ export default function DashboardApp() {
 
   // Pro days remaining
   const proDaysLeft = (() => {
-    if (!user?.pro_ends_at) return null;
-    const end = new Date(user.pro_ends_at);
+    if (!user?.pro_expiry_date) return null;
+    const end = new Date(user.pro_expiry_date);
     const now = new Date();
     const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return diff > 0 ? diff : 0;
@@ -975,14 +978,14 @@ export default function DashboardApp() {
     { id: "all", label: `Semua (${menuCount})`, catId: undefined as string | undefined },
     ...categories.map((c) => ({
       id: c.name,
-      label: `${c.name} (${menus.filter((m) => m.category === c.name).length})`,
+      label: `${c.name} (${menus.filter((m) => m.category_name === c.name).length})`,
       catId: c.id,
     })),
   ];
 
   const filteredMenus = menus.filter((m) => {
     const matchSearch = m.name.toLowerCase().includes(menuSearch.toLowerCase());
-    const matchCat = activeCategoryChip === "all" || m.category === activeCategoryChip;
+    const matchCat = activeCategoryChip === "all" || m.category_name === activeCategoryChip;
     return matchSearch && matchCat;
   });
 
@@ -1032,9 +1035,7 @@ export default function DashboardApp() {
       >
         {/* Header */}
         <div className={`${styles.sidebarHeader} px-5 pt-6 pb-4 flex items-center gap-2.5`}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
-            <Utensils className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
-          </div>
+          <img src="/pesanlagi-logo.png" alt="PesanLagi" className="w-9 h-9 rounded-xl object-contain shrink-0" />
           <span className={`${styles.sidebarHeaderText} text-xl font-extrabold tracking-tight text-slate-900 flex-1`}>
             Pesan<span className="text-amber-500">Lagi</span>
           </span>
@@ -1154,9 +1155,7 @@ export default function DashboardApp() {
               <Menu className="w-5 h-5 text-slate-700" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/30">
-                <Utensils className="w-4 h-4 text-white" strokeWidth={2.5} />
-              </div>
+              <img src="/pesanlagi-logo.png" alt="PesanLagi" className="w-8 h-8 rounded-lg object-contain" />
               <span className="text-lg font-extrabold tracking-tight text-slate-900">
                 Pesan<span className="text-amber-500">Lagi</span>
               </span>
@@ -1307,7 +1306,7 @@ export default function DashboardApp() {
                   <>
                     <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none">{proDaysLeft ?? 0}<span className="text-base text-slate-400 font-bold ml-1">Hari</span></p>
                     <p className="text-xs text-slate-500 mt-1.5 font-medium">Masa Aktif Pro</p>
-                    <p className="text-[10px] text-orange-600 font-semibold mt-1">{user?.pro_ends_at ? new Date(user.pro_ends_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : ""}</p>
+                    <p className="text-[10px] text-orange-600 font-semibold mt-1">{user?.pro_expiry_date ? new Date(user.pro_expiry_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : ""}</p>
                   </>
                 ) : (
                   <>
@@ -1387,7 +1386,7 @@ export default function DashboardApp() {
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-sm font-bold text-amber-600">Rp {m.price.toLocaleString("id-ID")}</span>
                             <span className="text-[10px] text-slate-400">•</span>
-                            <span className="text-[11px] text-slate-500">{m.category ?? "Makanan"}</span>
+                            <span className="text-[11px] text-slate-500">{m.category_name ?? "Makanan"}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1501,7 +1500,7 @@ export default function DashboardApp() {
             {filteredMenus.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 stagger">
                 {filteredMenus.map((m, i) => {
-                  const catColor = m.category === "Minuman" ? "text-blue-700" : m.category === "Snack" ? "text-purple-700" : "text-amber-700";
+                  const catColor = m.category_name === "Minuman" ? "text-blue-700" : m.category_name === "Snack" ? "text-purple-700" : "text-amber-700";
                   const avail = m.is_available !== false;
                   return (
                     <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm card-hover">
@@ -1514,7 +1513,7 @@ export default function DashboardApp() {
                           </div>
                         )}
                         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-slate-700">
-                          <span className={catColor}>{m.category ?? "Makanan"}</span>
+                          <span className={catColor}>{m.category_name ?? "Makanan"}</span>
                         </span>
                         <button
                           className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors disabled:opacity-50"
@@ -1592,8 +1591,8 @@ export default function DashboardApp() {
                       {storeLogo ? (
                         <img src={storeLogo} crossOrigin="anonymous" className="w-full h-full rounded-2xl object-cover" alt="Logo" />
                       ) : (
-                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center">
-                          <Utensils className="w-5 h-5 text-white" strokeWidth={2.5} />
+                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center p-2">
+                          <img src="/pesanlagi-logo.png" alt="" className="w-full h-full object-contain" />
                         </div>
                       )}
                     </div>
@@ -2352,8 +2351,8 @@ export default function DashboardApp() {
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Kategori</label>
                     <select value={modalCategory} onChange={(e) => setModalCategory(e.target.value)} className={styles.settingsInput}>
                       {categories.length > 0
-                        ? categories.map((c) => <option key={c.id ?? c.name}>{c.name}</option>)
-                        : <><option>Makanan</option><option>Minuman</option><option>Snack</option></>
+                        ? categories.map((c) => <option key={c.id ?? c.name} value={c.id}>{c.name}</option>)
+                        : <><option value="">Tanpa Kategori</option></>
                       }
                     </select>
                   </div>

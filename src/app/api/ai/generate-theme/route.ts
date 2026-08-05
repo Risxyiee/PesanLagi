@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import ZAI from 'z-ai-web-dev-sdk';
 
 const SYSTEM_PROMPT = `Kamu adalah AI desainer QR menu untuk restoran/warung di Indonesia. Tugasmu: menerima deskripsi warung, lalu pilih kombinasi warna & template yang paling cocok.
@@ -32,6 +33,16 @@ Contoh:
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth check
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { prompt } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3) {

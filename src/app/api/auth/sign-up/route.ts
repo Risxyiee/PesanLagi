@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { name, email, password } = await req.json();
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email dan password wajib diisi" },
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       if (!admin) {
         return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
       }
-      const storeName = normalizedEmail.split("@")[0];
+      const storeName = (name && name.trim()) || normalizedEmail.split("@")[0];
       let slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
       const { data: dup } = await admin

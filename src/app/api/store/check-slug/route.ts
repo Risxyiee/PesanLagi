@@ -17,10 +17,10 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (!data) {
-      return NextResponse.json({ exists: false });
+      return NextResponse.json({ available: true });
     }
 
-    return NextResponse.json({ exists: true, id: data.id });
+    return NextResponse.json({ available: false, id: data.id });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

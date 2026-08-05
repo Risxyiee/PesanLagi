@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, type FormEvent, type ChangeEvent } from "react";
 import {
-  UtensilsCrossed,
   Mail,
   Lock,
   Eye,
@@ -169,7 +168,7 @@ export default function LoginView({
         const res = await fetch("/api/auth/sign-up", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: regEmail, password: regPwd }),
+          body: JSON.stringify({ name: regName, email: regEmail, password: regPwd }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -423,21 +422,7 @@ export default function LoginView({
                 marginBottom: 28,
               }}
             >
-              <div
-                className={s.logoMark}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  background: "linear-gradient(135deg, #FBBF24, #D97706)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                }}
-              >
-                <UtensilsCrossed size={20} strokeWidth={2.5} />
-              </div>
+              <img src="/pesanlagi-logo.png" alt="PesanLagi" style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'contain' }} />
               <span
                 style={{
                   fontSize: 24,
