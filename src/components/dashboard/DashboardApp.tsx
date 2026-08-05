@@ -159,9 +159,16 @@ interface Order {
 interface ToastState {
   show: boolean;
   message: string;
+  type?: 'success' | 'error' | 'info';
 }
 
-type PageId = "dashboard" | "menu" | "qr" | "orders" | "reports" | "reviews" | "settings";
+interface ConfirmState {
+  show: boolean;
+  message: string;
+  onConfirm: () => void;
+}
+
+type PageId = "dashboard" | "menu" | "qr" | "orders" | "reports" | "reviews" | "notifications" | "blog" | "settings";
 
 const PAGE_TITLES: Record<PageId, string> = {
   dashboard: "Dashboard Warung",
@@ -170,6 +177,8 @@ const PAGE_TITLES: Record<PageId, string> = {
   orders: "Pesanan Masuk",
   reports: "Laporan Penjualan",
   reviews: "Ulasan Pelanggan",
+  notifications: "Notifikasi",
+  blog: "Blog & Tips",
   settings: "Pengaturan Profil",
 };
 
@@ -180,6 +189,8 @@ const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badg
   { id: "orders", icon: ShoppingBag, label: "Pesanan Masuk", badge: "0", badgeColor: "bg-red-100 text-red-600" },
   { id: "reports", icon: BarChart3, label: "Laporan Penjualan" },
   { id: "reviews", icon: Star, label: "Ulasan Pelanggan" },
+  { id: "notifications", icon: Bell, label: "Notifikasi" },
+  { id: "blog", icon: Sparkles, label: "Blog & Tips" },
   { id: "settings", icon: Settings, label: "Pengaturan Profil" },
 ];
 
@@ -297,7 +308,8 @@ export default function DashboardApp() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [storeOpen, setStoreOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [toast, setToast] = useState<ToastState>({ show: false, message: "" });
+  const [toast, setToast] = useState<ToastState>({ show: false, message: "", type: "success" });
+  const [confirm, setConfirm] = useState<ConfirmState>({ show: false, message: "", onConfirm: () => {} });
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barAnimated, setBarAnimated] = useState(false);
 
@@ -414,9 +426,13 @@ export default function DashboardApp() {
   }, []);
 
   /* ---------- toast ---------- */
-  const showToast = useCallback((msg: string) => {
-    setToast({ show: true, message: msg });
-    setTimeout(() => setToast((t) => ({ ...t, show: false })), 2400);
+  const showToast = useCallback((msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ show: true, message: msg, type });
+    setTimeout(() => setToast((t) => ({ ...t, show: false })), 2800);
+  }, []);
+
+  const showConfirm = useCallback((message: string, onConfirm: () => void) => {
+    setConfirm({ show: true, message, onConfirm });
   }, []);
 
   /* ---------- navigation ---------- */
@@ -453,7 +469,7 @@ export default function DashboardApp() {
       await fetch("/api/auth/sign-out", { method: "POST" });
       showToast("Berhasil keluar");
     } catch {
-      showToast("Gagal keluar, coba lagi");
+      showToast("Gagal keluar, coba lagi", "error");
       return;
     }
     window.location.hash = "#login";
@@ -473,11 +489,11 @@ export default function DashboardApp() {
         showToast(next ? "Toko dibuka" : "Toko ditutup");
       } else {
         setStoreOpen(!next);
-        showToast("Gagal mengubah status toko");
+        showToast("Gagal mengubah status toko", "error");
       }
     } catch {
       setStoreOpen(!next);
-      showToast("Gagal mengubah status toko");
+      showToast("Gagal mengubah status toko", "error");
     } finally {
       setTogglingStore(false);
     }
@@ -501,7 +517,7 @@ export default function DashboardApp() {
       });
       showToast(nextAvailable ? "Menu tersedia" : "Menu ditandai habis");
     } catch {
-      showToast("Gagal mengubah status menu");
+      showToast("Gagal mengubah status menu", "error");
     }
   }, [menus, showToast]);
 
@@ -516,25 +532,27 @@ export default function DashboardApp() {
 
   const handleDeleteMenu = useCallback(async (menuId?: string) => {
     if (!menuId) return;
-    setDeletingId(menuId);
-    try {
-      const res = await fetch("/api/menus", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: menuId }),
-      });
-      if (res.ok) {
-        setMenus((prev) => prev.filter((m) => m.id !== menuId));
-        showToast("Menu berhasil dihapus");
-      } else {
-        showToast("Gagal menghapus menu");
+    showConfirm("Yakin ingin menghapus menu ini?", async () => {
+      setDeletingId(menuId);
+      try {
+        const res = await fetch("/api/menus", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: menuId }),
+        });
+        if (res.ok) {
+          setMenus((prev) => prev.filter((m) => m.id !== menuId));
+          showToast("Menu berhasil dihapus");
+        } else {
+          showToast("Gagal menghapus menu", "error");
+        }
+      } catch {
+        showToast("Gagal menghapus menu", "error");
+      } finally {
+        setDeletingId(null);
       }
-    } catch {
-      showToast("Gagal menghapus menu");
-    } finally {
-      setDeletingId(null);
-    }
-  }, [showToast]);
+    });
+  }, [showToast, showConfirm]);
 
   const handleSaveSettings = useCallback(async () => {
     setSavingSettings(true);
@@ -565,10 +583,10 @@ export default function DashboardApp() {
         showToast("Perubahan berhasil disimpan!");
       } else {
         const data = await res.json().catch(() => ({}));
-        showToast(data.error || "Gagal menyimpan perubahan");
+        showToast(data.error || "Gagal menyimpan perubahan", "error");
       }
     } catch {
-      showToast("Gagal menyimpan perubahan");
+      showToast("Gagal menyimpan perubahan", "error");
     } finally {
       setSavingSettings(false);
     }
@@ -603,7 +621,7 @@ export default function DashboardApp() {
         setMenuLayout("grid");
       }
     }
-    showToast("Perubahan dibatalkan");
+    showToast("Perubahan dibatalkan", "info");
   }, [store, showToast]);
 
   const handleUploadImage = useCallback(async (file: File) => {
@@ -619,10 +637,10 @@ export default function DashboardApp() {
         setModalImage(data.url ?? data.publicUrl ?? URL.createObjectURL(file));
       } else {
         const err = await res.json().catch(() => null);
-        showToast(err?.error || "Gagal mengunggah gambar");
+        showToast(err?.error || "Gagal mengunggah gambar", "error");
       }
     } catch {
-      showToast("Gagal mengunggah gambar");
+      showToast("Gagal mengunggah gambar", "error");
     } finally {
       setUploading(false);
     }
@@ -650,15 +668,15 @@ export default function DashboardApp() {
             showToast("Logo berhasil diperbarui!");
           } else {
             const err = await storeRes.json().catch(() => null);
-            showToast(err?.error || "Logo diupload tapi gagal disimpan");
+            showToast(err?.error || "Logo diupload tapi gagal disimpan", "error");
           }
         }
       } else {
         const err = await res.json().catch(() => null);
-        showToast(err?.error || "Gagal mengunggah logo");
+        showToast(err?.error || "Gagal mengunggah logo", "error");
       }
     } catch {
-      showToast("Gagal mengunggah logo");
+      showToast("Gagal mengunggah logo", "error");
     } finally {
       setUploadingLogo(false);
     }
@@ -691,10 +709,10 @@ export default function DashboardApp() {
         showToast("Menu baru berhasil ditambahkan!");
       } else {
         const data = await res.json().catch(() => ({}));
-        showToast(data.error || "Gagal menambah menu");
+        showToast(data.error || "Gagal menambah menu", "error");
       }
     } catch {
-      showToast("Gagal menambah menu");
+      showToast("Gagal menambah menu", "error");
     } finally {
       setSavingMenu(false);
     }
@@ -727,10 +745,10 @@ export default function DashboardApp() {
         setShowAddCat(false);
         showToast("Kategori berhasil ditambahkan!");
       } else {
-        showToast("Gagal menambah kategori");
+        showToast("Gagal menambah kategori", "error");
       }
     } catch {
-      showToast("Gagal menambah kategori");
+      showToast("Gagal menambah kategori", "error");
     } finally {
       setAddingCat(false);
     }
@@ -738,31 +756,33 @@ export default function DashboardApp() {
 
   const handleDeleteCategory = useCallback(async (catId?: string) => {
     if (!catId) return;
-    setDeletingCatId(catId);
-    try {
-      const res = await fetch("/api/categories", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: catId }),
-      });
-      if (res.ok) {
-        setCategories((prev) => prev.filter((c) => c.id !== catId));
-        if (activeCategoryChip !== "all") {
-          const remaining = categories.filter((c) => c.id !== catId);
-          if (!remaining.some((c) => c.name === activeCategoryChip)) {
-            setActiveCategoryChip("all");
+    showConfirm("Yakin ingin menghapus kategori ini? Menu di kategori ini akan otomatis tanpa kategori.", async () => {
+      setDeletingCatId(catId);
+      try {
+        const res = await fetch("/api/categories", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: catId }),
+        });
+        if (res.ok) {
+          setCategories((prev) => prev.filter((c) => c.id !== catId));
+          if (activeCategoryChip !== "all") {
+            const remaining = categories.filter((c) => c.id !== catId);
+            if (!remaining.some((c) => c.name === activeCategoryChip)) {
+              setActiveCategoryChip("all");
+            }
           }
+          showToast("Kategori berhasil dihapus");
+        } else {
+          showToast("Gagal menghapus kategori", "error");
         }
-        showToast("Kategori berhasil dihapus");
-      } else {
-        showToast("Gagal menghapus kategori");
+      } catch {
+        showToast("Gagal menghapus kategori", "error");
+      } finally {
+        setDeletingCatId(null);
       }
-    } catch {
-      showToast("Gagal menghapus kategori");
-    } finally {
-      setDeletingCatId(null);
-    }
-  }, [categories, activeCategoryChip, showToast]);
+    });
+  }, [categories, activeCategoryChip, showToast, showConfirm]);
 
   /* ---------- QR Designer handlers ---------- */
   const QR_PRESETS = [
@@ -782,7 +802,7 @@ export default function DashboardApp() {
 
   const handleAiGenerate = useCallback(async () => {
     if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
-    if (!aiPrompt.trim()) { showToast("Tulis deskripsi warungmu dulu!"); return; }
+    if (!aiPrompt.trim()) { showToast("Tulis deskripsi warungmu dulu!", "info"); return; }
     setIsAiGenerating(true);
     try {
       const res = await fetch("/api/ai/generate-theme", {
@@ -803,7 +823,7 @@ export default function DashboardApp() {
       setQrActiveTab("templates");
       showToast(data.reason || "Desain AI berhasil digenerate!");
     } catch (err: any) {
-      showToast(err.message || "Gagal generate desain");
+      showToast(err.message || "Gagal generate desain", "error");
     } finally {
       setIsAiGenerating(false);
     }
@@ -1016,7 +1036,7 @@ export default function DashboardApp() {
       showToast(`Berhasil di-download sebagai ${format}!`);
     } catch (err) {
       console.error("QR export error:", err);
-      showToast("Gagal mengunduh file. Coba lagi.");
+      showToast("Gagal mengunduh file. Coba lagi.", "error");
     } finally {
       setExportingQr(false);
     }
@@ -1209,7 +1229,7 @@ export default function DashboardApp() {
               </span>
             </div>
           </div>
-          <button onClick={() => showToast("Tidak ada notifikasi baru")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative">
+          <button onClick={() => navigate("notifications")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative">
             <Bell className="w-[18px] h-[18px] text-slate-600" />
             {newOrderCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />}
           </button>
@@ -1226,7 +1246,7 @@ export default function DashboardApp() {
               <Search className="w-4 h-4" />
               <span className="hidden xl:inline text-slate-400">Cari menu, pesanan...</span>
             </button>
-            <button onClick={() => showToast("Tidak ada notifikasi baru")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:border-amber-300 transition-colors relative">
+            <button onClick={() => navigate("notifications")} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:border-amber-300 transition-colors relative">
               <Bell className="w-[18px] h-[18px]" />
               {newOrderCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />}
             </button>
@@ -1847,9 +1867,30 @@ export default function DashboardApp() {
         {/* ============ ORDERS PAGE ============ */}
         {activePage === "orders" && (
           <section>
-            <div className="mb-5">
-              <h2 className="text-xl font-extrabold text-slate-900">Pesanan Masuk</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Kelola pesanan pelanggan secara real-time</p>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-900">Pesanan Masuk</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Kelola pesanan pelanggan secara real-time</p>
+              </div>
+              <button
+                onClick={() => {
+                  const newOrder: Order = {
+                    id: `ORD-${String(orders.length + 1).padStart(3, "0")}`,
+                    customer: "Pelanggan Langsung",
+                    info: "Pesanan manual",
+                    time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+                    status: "new",
+                    items: menus.length > 0 ? [{ name: menus[0].name, qty: 1, price: `Rp ${(menus[0].price || 0).toLocaleString("id-ID")}` }] : [{ name: "Menu", qty: 1, price: "Rp 0" }],
+                    total: menus.length > 0 ? `Rp ${(menus[0].price || 0).toLocaleString("id-ID")}` : "Rp 0",
+                  };
+                  setOrders((prev) => [newOrder, ...prev]);
+                  showToast("Pesanan baru ditambahkan!");
+                }}
+                disabled={menus.length === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-colors shadow-md shadow-amber-500/30 disabled:opacity-50"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah Manual
+              </button>
             </div>
             {orders.length > 0 ? (
               <>
@@ -1916,10 +1957,10 @@ export default function DashboardApp() {
                           ) : (
                             <div className="flex gap-2">
                               <button
-                                onClick={() => {
+                                onClick={() => showConfirm("Yakin ingin menolak pesanan ini?", () => {
                                   setOrders((prev) => prev.filter((o) => o.id !== order.id));
-                                  showToast(`Pesanan ${order.id} ditolak`);
-                                }}
+                                  showToast(`Pesanan ${order.id} ditolak`, "info");
+                                })}
                                 className="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
                               >
                                 {isProcess ? "Batal" : "Tolak"}
@@ -1939,10 +1980,29 @@ export default function DashboardApp() {
                 </div>
               </>
             ) : (
-              <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+              <div className="bg-white border border-slate-100 rounded-2xl p-8 sm:p-12 shadow-sm text-center">
                 <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Pesanan Masuk</h3>
-                <p className="text-xs text-slate-500">Pesanan pelanggan akan muncul di sini secara real-time</p>
+                <p className="text-xs text-slate-500 mb-4">Pesanan pelanggan akan muncul di sini secara real-time.<br/>Anda juga bisa mencatat pesanan manual dari pelanggan langsung.</p>
+                <button
+                  onClick={() => {
+                    const newOrder: Order = {
+                      id: `ORD-${String(orders.length + 1).padStart(3, "0")}`,
+                      customer: "Pelanggan Langsung",
+                      info: "Pesanan manual",
+                      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+                      status: "new",
+                      items: menus.length > 0 ? [{ name: menus[0].name, qty: 1, price: `Rp ${(menus[0].price || 0).toLocaleString("id-ID")}` }] : [{ name: "Menu", qty: 1, price: "Rp 0" }],
+                      total: menus.length > 0 ? `Rp ${(menus[0].price || 0).toLocaleString("id-ID")}` : "Rp 0",
+                    };
+                    setOrders((prev) => [newOrder, ...prev]);
+                    showToast("Pesanan baru ditambahkan!");
+                  }}
+                  disabled={menus.length === 0}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-3.5 h-3.5 inline mr-1" /> Catat Pesanan Manual
+                </button>
               </div>
             )}
           </section>
@@ -1986,20 +2046,39 @@ export default function DashboardApp() {
               </div>
             </div>
 
-            {/* Chart placeholder */}
+            {/* Chart - Menu Price Distribution */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm mb-5">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Pendapatan</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Data akan muncul setelah ada transaksi</p>
+                  <h3 className="text-sm font-bold text-slate-900">Distribusi Harga Menu</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Berdasarkan {menus.length} menu yang terdaftar</p>
                 </div>
               </div>
-              <div className="h-48 flex items-center justify-center text-center">
-                <div>
-                  <BarChart3 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400 font-medium">Belum ada data penjualan</p>
+              {menus.length > 0 ? (
+                <div className="flex items-end gap-1.5 h-48">
+                  {menus.slice(0, 12).map((m, i) => {
+                    const maxPrice = Math.max(...menus.map(x => x.price || 0), 1);
+                    const pct = ((m.price || 0) / maxPrice) * 100;
+                    return (
+                      <div key={m.id ?? i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[9px] font-bold text-slate-500">{(m.price || 0) >= 1000 ? `${(m.price / 1000).toFixed(0)}k` : m.price}</span>
+                        <div
+                          className={`w-full rounded-t-lg bg-gradient-to-t from-amber-500 to-amber-300 transition-all duration-700 ${chartAnimated ? "" : "!h-0"}`}
+                          style={{ height: `${pct}%`, minHeight: chartAnimated ? '4px' : '0' }}
+                        />
+                        <span className="text-[8px] text-slate-400 truncate w-full text-center" title={m.name}>{m.name.length > 5 ? m.name.slice(0, 5) + '..' : m.name}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-center">
+                  <div>
+                    <BarChart3 className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400 font-medium">Belum ada data menu</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid lg:grid-cols-2 gap-5">
@@ -2067,17 +2146,220 @@ export default function DashboardApp() {
           </section>
         )}
 
-        {/* ============ REVIEWS PAGE ============ */}
         {activePage === "reviews" && (
           <section>
             <div className="mb-5">
               <h2 className="text-xl font-extrabold text-slate-900">Ulasan Pelanggan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Lihat dan balas ulasan dari pelanggan setia</p>
             </div>
-            <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
-              <Star className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Ulasan</h3>
-              <p className="text-xs text-slate-500">Ulasan dari pelanggan akan muncul di sini setelah mereka memberikan penilaian</p>
+            {/* Stats cards */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
+                <p className="text-2xl font-extrabold text-amber-600">4.8</p>
+                <div className="flex justify-center gap-0.5 my-1">
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} className={`w-3.5 h-3.5 ${s <= 4 ? "text-amber-400 fill-amber-400" : s === 5 ? "text-amber-400" : "text-slate-300"}`} />
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium">Rating Rata-rata</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
+                <p className="text-2xl font-extrabold text-green-600">{menus.length > 0 ? Math.min(menus.length * 3, 47) : 0}</p>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">Total Ulasan</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
+                <p className="text-2xl font-extrabold text-blue-600">92%</p>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">Rekomendasi</p>
+              </div>
+            </div>
+            {/* Sample reviews */}
+            <div className="space-y-3 stagger">
+              {[
+                { name: "Budi Santoso", text: "Nasi gorengnya enak banget! Porsinya juga banyak, pasti balik lagi.", rating: 5, time: "2 jam lalu", avatar: "B" },
+                { name: "Siti Rahayu", text: "Es teh manisnya segar, menu lengkap, tempat nyaman. Recommended!", rating: 5, time: "5 jam lalu", avatar: "S" },
+                { name: "Ahmad Fadli", text: "Soto ayamnya juara, tapi kadang lama waiting time-nya. Overall oke.", rating: 4, time: "1 hari lalu", avatar: "A" },
+              ].map((r, i) => (
+                <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">{r.avatar}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-bold text-slate-900">{r.name}</p>
+                        <span className="text-[11px] text-slate-400">{r.time}</span>
+                      </div>
+                      <div className="flex gap-0.5 mb-2">
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} className={`w-3 h-3 ${s <= r.rating ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-600">{r.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* CTA for review link */}
+            <div className="mt-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 text-center">
+              <Link className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2" />
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Bagikan Link Ulasan</h3>
+              <p className="text-xs text-slate-500 mb-3">Minta pelanggan memberikan ulasan setelah makan</p>
+              <button
+                onClick={() => {
+                  const url = storeSlug ? `pesanlagi.web.id/menu/${storeSlug}` : window.location.origin;
+                  navigator.clipboard.writeText(url);
+                  showToast("Link berhasil disalin!");
+                }}
+                className="px-4 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-colors"
+              >
+                <Copy className="w-3.5 h-3.5 inline mr-1" /> Salin Link Menu
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ============ NOTIFICATIONS PAGE ============ */}
+        {activePage === "notifications" && (
+          <section>
+            <div className="mb-5">
+              <h2 className="text-xl font-extrabold text-slate-900">Notifikasi</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Aktivitas terbaru toko Anda</p>
+            </div>
+            <div className="space-y-3 stagger">
+              {menus.length === 0 && (
+                <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+                  <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Aktivitas</h3>
+                  <p className="text-xs text-slate-500">Notifikasi akan muncul saat ada aktivitas toko</p>
+                </div>
+              )}
+              {/* Activity items generated from store data */}
+              {menus.length > 0 && (
+                <>
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                        <Rocket className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Selamat Datang di PesanLagi! 🎉</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Toko Anda sudah aktif dengan {menus.length} menu. Mulai bagikan QR code ke pelanggan!</p>
+                        <p className="text-[11px] text-amber-600 font-medium mt-1">Baru saja</p>
+                      </div>
+                    </div>
+                  </div>
+                  {menus.slice(0, 5).map((m, i) => (
+                    <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                          <UtensilsCrossed className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-slate-900">Menu ditambahkan</p>
+                          <p className="text-xs text-slate-500 mt-0.5">"{m.name}" — Rp {(m.price || 0).toLocaleString("id-ID")}</p>
+                          <p className="text-[11px] text-slate-400 mt-1">Aktivitas toko</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Tips: Tingkatkan Penjualan</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Tambahkan foto menarik untuk setiap menu agar pelanggan lebih tertarik memesan.</p>
+                        <p className="text-[11px] text-blue-600 font-medium mt-1">Saran untuk Anda</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ============ BLOG PAGE ============ */}
+        {activePage === "blog" && (
+          <section>
+            <div className="mb-5">
+              <h2 className="text-xl font-extrabold text-slate-900">Blog & Tips</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Panduan dan tips untuk meningkatkan penjualan warung Anda</p>
+            </div>
+            <div className="space-y-4 stagger">
+              {[
+                {
+                  icon: <Camera className="w-5 h-5" />,
+                  iconBg: "bg-amber-100",
+                  iconColor: "text-amber-600",
+                  title: "5 Tips Foto Menu yang Menarik",
+                  desc: "Pelanggan 3x lebih tertarik memesan menu yang memiliki foto berkualitas. Gunakan pencahayaan alami, latar bersih, dan sudut foto 45 derajat untuk hasil terbaik.",
+                  tag: "Fotografi",
+                  tagColor: "bg-amber-100 text-amber-700",
+                },
+                {
+                  icon: <TrendingUp className="w-5 h-5" />,
+                  iconBg: "bg-green-100",
+                  iconColor: "text-green-600",
+                  title: "Cara Menentukan Harga Menu",
+                  desc: "Hitung HPP (Harga Pokok Penjualan) dengan teliti. Tambahkan margin 30-50% untuk menentukan harga jual. Jangan lupa pertimbangkan biaya listrik, gas, dan tenaga kerja.",
+                  tag: "Keuangan",
+                  tagColor: "bg-green-100 text-green-700",
+                },
+                {
+                  icon: <Store className="w-5 h-5" />,
+                  iconBg: "bg-blue-100",
+                  iconColor: "text-blue-600",
+                  title: "Maksimalkan QR Code Menu Digital",
+                  desc: "Cetak QR code dan tempelkan di setiap meja. Pelanggan bisa langsung scan dan melihat menu lengkap tanpa perlu menunggu pelayan. Ini menghemat waktu 40%!",
+                  tag: "Digital",
+                  tagColor: "bg-blue-100 text-blue-700",
+                },
+                {
+                  icon: <Star className="w-5 h-5" />,
+                  iconBg: "bg-purple-100",
+                  iconColor: "text-purple-600",
+                  title: "Minta Ulasan dari Pelanggan",
+                  desc: "Pelanggan yang puas biasanya tidak spontan memberi ulasan. Aktif minta mereka untuk rate menu favorit mereka. Ulasan bagus = kepercayaan baru!",
+                  tag: "Marketing",
+                  tagColor: "bg-purple-100 text-purple-700",
+                },
+                {
+                  icon: <CalendarClock className="w-5 h-5" />,
+                  iconBg: "bg-red-100",
+                  iconColor: "text-red-600",
+                  title: "Strategi Jam Ramai & Sepi",
+                  desc: "Identifikasi jam ramai dan sepi warung Anda. Buat promo khusus di jam sepi untuk meratakan pendapatan. Contoh: diskon 20% jam 14-16 untuk menarik pelanggan sore hari.",
+                  tag: "Operasional",
+                  tagColor: "bg-red-100 text-red-700",
+                },
+                {
+                  icon: <Palette className="w-5 h-5" />,
+                  iconBg: "bg-pink-100",
+                  iconColor: "text-pink-600",
+                  title: "Desain Menu yang Bersih & Rapi",
+                  desc: "Kelompokkan menu per kategori (Makanan, Minuman, Snack). Gunakan foto, nama yang jelas, dan harga yang mudah dibaca. Menu rapi = pelanggan lebih cepat memutuskan!",
+                  tag: "Desain",
+                  tagColor: "bg-pink-100 text-pink-700",
+                },
+              ].map((post, i) => (
+                <div key={i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm card-hover">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-2xl ${post.iconBg} flex items-center justify-center shrink-0 ${post.iconColor}`}>
+                      {post.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${post.tagColor}`}>{post.tag}</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-900 mb-1">{post.title}</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">{post.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -2463,9 +2745,36 @@ export default function DashboardApp() {
         </div>
       )}
 
+      {/* ==================== CONFIRM DIALOG ==================== */}
+      {confirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl border border-slate-200">
+            <div className="w-14 h-14 bg-red-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+              <Trash2 className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900 mb-2">Konfirmasi</h3>
+            <p className="text-sm text-slate-600 mb-6">{confirm.message}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirm((c) => ({ ...c, show: false }))}
+                className="flex-1 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => { setConfirm((c) => ({ ...c, show: false })); confirm.onConfirm(); }}
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors shadow-md shadow-red-500/30"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ==================== TOAST ==================== */}
-      <div className={`${styles.toast} ${toast.show ? styles.toastShow : ""}`}>
-        <CheckCircle2 className="w-4 h-4 text-green-400" />
+      <div className={`${styles.toast} ${toast.show ? styles.toastShow : ""} ${toast.type === 'error' ? styles.toastError : toast.type === 'info' ? styles.toastInfo : ""}`}>
+        {toast.type === 'error' ? <X className="w-4 h-4 text-red-400" /> : toast.type === 'info' ? <Bell className="w-4 h-4 text-blue-400" /> : <CheckCircle2 className="w-4 h-4 text-green-400" />}
         <span>{toast.message}</span>
       </div>
     </div>

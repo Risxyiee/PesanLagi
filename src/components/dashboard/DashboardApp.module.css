@@ -330,6 +330,12 @@
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+.toastError {
+  background: #991B1B;
+}
+.toastInfo {
+  background: #1E40AF;
+}
 .urlPill {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 }

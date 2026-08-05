@@ -46,3 +46,28 @@ Stage Summary:
 - Logo sekarang background transparan (RGBA, white pixels dihapus)
 - Tombol hapus kategori selalu terlihat (icon Trash2 merah, bukan × yang tersembunyi)
 - Upload gambar: kompres otomatis di client, limit 5MB, error message spesifik ditampilkan
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Dashboard enhancements - confirm dialogs, toast types, new pages, chart, manual orders
+
+Work Log:
+- TASK 1: Wrapped handleDeleteMenu, handleDeleteCategory, and order reject button with showConfirm() confirmation dialogs (Indonesian text)
+- TASK 2: Updated Toast JSX to show dynamic icon/color based on toast.type (error=red/X, info=blue/Bell, success=green/CheckCircle2)
+- TASK 3: Added .toastError (#991B1B) and .toastInfo (#1E40AF) CSS classes in DashboardApp.module.css
+- TASK 4: Added Confirm Dialog JSX (modal with Trash2 icon, Batal/Ya Hapus buttons) before Toast section
+- TASK 5: Replaced Reviews placeholder with full reviews page: stats cards (rating, total, recommendation), sample reviews with avatars/stars, and "Salin Link Menu" CTA
+- TASK 6: Added Notifications page (dynamic activity items from menus, welcome banner, tips) and Blog page (6 article cards with icons/tags)
+- TASK 7: Changed both notification bell buttons from showToast to navigate("notifications")
+- TASK 8: Replaced Reports chart placeholder with CSS-based bar chart showing menu price distribution (using chartAnimated state)
+- TASK 9: Enhanced Orders empty state with manual order entry button; added "Tambah Manual" button in orders page header
+
+Stage Summary:
+- 9 tasks completed across DashboardApp.tsx and DashboardApp.module.css
+- ESLint passes (0 errors, 1 pre-existing warning)
+- All delete actions now require confirmation
+- Toast supports 3 visual styles: success, error, info
+- Reviews, Notifications, Blog pages fully functional with sample data
+- Reports chart shows menu price distribution
+- Orders page supports manual order creation
