@@ -717,31 +717,42 @@ export default function DashboardApp() {
     showToast("Menyiapkan file download...");
     try {
       const container = qrExportRef.current;
-      // Convert SVGs to images for html2canvas compatibility
-      const svgs = container.querySelectorAll("svg");
-      const backups: { svg: SVGElement; parent: HTMLElement; next: ChildNode | null; img: HTMLImageElement }[] = [];
-      await Promise.all(
-        Array.from(svgs).map(async (svg) => {
-          const w = svg.getBoundingClientRect().width;
-          const h = svg.getBoundingClientRect().height;
-          const clone = svg.cloneNode(true) as SVGElement;
-          clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          const svgStr = new XMLSerializer().serializeToString(clone);
-          const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-          const img = document.createElement("img");
-          img.crossOrigin = "anonymous";
-          await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = url; });
-          img.style.width = w + "px";
-          img.style.height = h + "px";
-          img.style.display = "block";
-          const parent = svg.parentElement!;
-          const next = svg.nextSibling;
-          parent.replaceChild(img, svg);
-          backups.push({ svg, parent, next, img });
-          URL.revokeObjectURL(url);
-        })
-      );
+      // Convert all inline SVGs to PNG images for html2canvas compatibility
+      const svgs = Array.from(container.querySelectorAll("svg")) as SVGSVGElement[];
+      const backups: { svg: SVGSVGElement; parent: Node; next: ChildNode | null; img: HTMLImageElement }[] = [];
+      for (const svg of svgs) {
+        const rect = svg.getBoundingClientRect();
+        const w = rect.width || 144;
+        const h = rect.height || 144;
+        const clone = svg.cloneNode(true) as SVGSVGElement;
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        const svgData = new XMLSerializer().serializeToString(clone);
+        const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const blobUrl = URL.createObjectURL(blob);
+        const tmpImg = document.createElement("img");
+        tmpImg.crossOrigin = "anonymous";
+        await new Promise<void>((res, rej) => { tmpImg.onload = () => res(); tmpImg.onerror = rej; tmpImg.src = blobUrl; });
+        // Draw SVG to canvas, then export as PNG data URL (self-contained, no blob ref)
+        const cvs = document.createElement("canvas");
+        cvs.width = w * 2;
+        cvs.height = h * 2;
+        const ctx = cvs.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, cvs.width, cvs.height);
+          ctx.drawImage(tmpImg, 0, 0, cvs.width, cvs.height);
+        }
+        URL.revokeObjectURL(blobUrl);
+        const img = document.createElement("img");
+        img.style.width = w + "px";
+        img.style.height = h + "px";
+        img.style.display = "block";
+        img.src = cvs.toDataURL("image/png");
+        const parent = svg.parentNode!;
+        const next = svg.nextSibling;
+        parent.replaceChild(img, svg);
+        backups.push({ svg, parent, next, img });
+      }
       const canvas = await html2canvas(container, {
         scale: 3,
         useCORS: true,
