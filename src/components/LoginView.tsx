@@ -71,6 +71,14 @@ export default function LoginView({
 
   /* ---- Mount / auth check ---- */
   useEffect(() => {
+    // If user just logged out, do NOT auto-redirect to dashboard.
+    // Clear the flag so subsequent page loads work normally.
+    if (sessionStorage.getItem('pl_just_logged_out') === '1') {
+      sessionStorage.removeItem('pl_just_logged_out');
+      const id = requestAnimationFrame(() => setIsMounted(true));
+      return () => cancelAnimationFrame(id);
+    }
+
     // Check if already logged in
     fetch("/api/auth/me")
       .then((r) => {

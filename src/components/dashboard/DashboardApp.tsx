@@ -217,18 +217,18 @@ const DAYS_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 function getQrDataUrl(text: string, fgColor: string, bgColor: string): Promise<string> {
   return QRCode.toDataURL(text, {
     width: 680,
-    margin: 0,
+    margin: 2,
     color: { dark: fgColor, light: bgColor },
-    errorCorrectionLevel: "M",
+    errorCorrectionLevel: "H",
   });
 }
 
 function getQrSvgString(text: string, fgColor: string): Promise<string> {
   return QRCode.toString(text, {
     type: "svg",
-    margin: 0,
+    margin: 2,
     color: { dark: fgColor, light: "#FFFFFF" },
-    errorCorrectionLevel: "M",
+    errorCorrectionLevel: "H",
   });
 }
 
@@ -474,9 +474,15 @@ export default function DashboardApp() {
       // Continue even if server sign-out fails
     }
     // Client-side sign-out clears in-memory session & cookies
-    const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    try {
+      const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Continue even if client sign-out fails
+    }
+    // Set flag so LoginView won't auto-redirect back to dashboard
+    sessionStorage.setItem('pl_just_logged_out', '1');
     // Full page reload to clear all React state
     window.location.href = "/#login";
   }, [showToast]);
@@ -1394,7 +1400,16 @@ export default function DashboardApp() {
                     <span>Salin Link</span>
                   </button>
                   <button
-                    onClick={() => window.open(`/menu/${storeSlug}`, "_blank")}
+                    onClick={() => {
+                      const slug = store?.slug;
+                      if (!slug || slug === 'warung-saya') {
+                        showToast('Slug toko belum tersedia. Atur nama toko di Pengaturan terlebih dahulu.', 'error');
+                        return;
+                      }
+                      const fullUrl = `${window.location.origin}/menu/${slug}`;
+                      const w = window.open(fullUrl, '_blank');
+                      if (!w) showToast('Popup diblokir browser. Izinkan popup untuk PesanLagi.', 'error');
+                    }}
                     className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-amber-300 hover:bg-amber-50/50 transition-all"
                   >
                     <Eye className="w-4 h-4" />
@@ -2546,8 +2561,13 @@ export default function DashboardApp() {
                   </div>
                   <button
                     onClick={() => {
-                      if (settingsSlug) window.open(`/menu/${settingsSlug}`, "_blank");
-                      else showToast("Slug toko belum diatur");
+                      if (!settingsSlug || settingsSlug === 'warung-saya') {
+                        showToast("Slug toko belum diatur", 'error');
+                        return;
+                      }
+                      const fullUrl = `${window.location.origin}/menu/${settingsSlug}`;
+                      const w = window.open(fullUrl, '_blank');
+                      if (!w) showToast('Popup diblokir browser. Izinkan popup untuk PesanLagi.', 'error');
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-bold hover:bg-amber-100 transition-colors"
                   >
