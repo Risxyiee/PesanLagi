@@ -25,6 +25,12 @@
       "skillPath": "skills/image-to-code-skill/SKILL.md",
       "computedHash": "58517b03b2a01f4c9ba65861559d03df931400871bbc200978c975b24bb92c73"
     },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "66e8a50c83c3c724fcfe0769701b665c56cec220cc4f49cc1aee8bdfc07de94a"
+    },
     "supabase-postgres-best-practices": {
       "source": "supabase/agent-skills",
       "sourceType": "github",
