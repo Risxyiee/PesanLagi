@@ -21,8 +21,8 @@ export async function GET() {
 
     return withCookies(res, data || null);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Store GET unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -36,6 +36,7 @@ export async function PUT(req: NextRequest) {
     const allowed = [
       "name",
       "slug",
+      "category",
       "logo_url",
       "bg_color",
       "qr_color",
@@ -64,12 +65,13 @@ export async function PUT(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Store PUT error:", error);
+      return NextResponse.json({ error: "Gagal menyimpan pengaturan toko" }, { status: 500 });
     }
 
     return withCookies(res, data);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Store PUT unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }

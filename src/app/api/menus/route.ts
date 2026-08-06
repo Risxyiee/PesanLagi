@@ -34,7 +34,10 @@ export async function GET(req: NextRequest) {
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Menus GET error:", error);
+      return NextResponse.json({ error: "Gagal memuat menu" }, { status: 500 });
+    }
 
     // Flatten category name
     const menus = (data || []).map((m: Record<string, unknown>) => ({
@@ -45,8 +48,8 @@ export async function GET(req: NextRequest) {
 
     return withCookies(res, menus);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Menus GET unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -108,12 +111,14 @@ export async function POST(req: NextRequest) {
       result = { data, error };
     }
 
-    if (result.error)
-      return NextResponse.json({ error: result.error.message }, { status: 500 });
+    if (result.error) {
+      console.error("Menus POST error:", result.error);
+      return NextResponse.json({ error: "Gagal menyimpan menu" }, { status: 500 });
+    }
     return withCookies(res, result.data);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Menus POST unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -151,11 +156,14 @@ export async function PATCH(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Menus PATCH error:", error);
+      return NextResponse.json({ error: "Gagal mengupdate menu" }, { status: 500 });
+    }
     return withCookies(res, data);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Menus PATCH unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -181,10 +189,13 @@ export async function DELETE(req: NextRequest) {
       .eq("id", id)
       .eq("store_id", storeId);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Menus DELETE error:", error);
+      return NextResponse.json({ error: "Gagal menghapus menu" }, { status: 500 });
+    }
     return withCookies(res, { success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Menus DELETE unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }

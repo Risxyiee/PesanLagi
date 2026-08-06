@@ -17,11 +17,14 @@ export async function GET() {
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Categories GET error:", error);
+      return NextResponse.json({ error: "Gagal memuat kategori" }, { status: 500 });
+    }
     return withCookies(res, data || []);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Categories GET unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -48,11 +51,14 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Categories POST error:", error);
+      return NextResponse.json({ error: "Gagal membuat kategori" }, { status: 500 });
+    }
     return withCookies(res, data);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Categories POST unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
 
@@ -85,10 +91,13 @@ export async function DELETE(req: NextRequest) {
       .eq("id", id)
       .eq("store_id", storeId);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Categories DELETE error:", error);
+      return NextResponse.json({ error: "Gagal menghapus kategori" }, { status: 500 });
+    }
     return withCookies(res, { success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Categories DELETE unexpected:", err);
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }

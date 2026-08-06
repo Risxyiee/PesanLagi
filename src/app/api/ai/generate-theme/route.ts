@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/auth-helper';
 import ZAI from 'z-ai-web-dev-sdk';
+import { rateLimit } from '@/lib/rate-limit';
 
 const SYSTEM_PROMPT = `Kamu adalah AI desainer QR menu untuk restoran/warung di Indonesia. Tugasmu: menerima deskripsi warung, lalu pilih kombinasi warna & template yang paling cocok.
 
@@ -32,6 +33,10 @@ Contoh:
 - "bakso pedas mangga" → bg:#FEF2F2, qr:#991B1B, text:#1C1917, accent:#EF4444, template:minimalist`;
 
 export async function POST(req: NextRequest) {
+  // Rate limit: max 5 per minute per IP (prevents AI credit drain)
+  const limited = rateLimit(req, { maxRequests: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const auth = await authenticateRequest();
     if ('error' in auth) return auth.error;
@@ -90,7 +95,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ bgColor, qrColor, textColor, accentColor, template, reason });
   } catch (err: unknown) {
     console.error('AI generate theme error:', err);
-    const message = err instanceof Error ? err.message : 'Terjadi kesalahan';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal membuat tema AI. Coba lagi.' }, { status: 500 });
   }
 }

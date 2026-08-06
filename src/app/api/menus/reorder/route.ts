@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     return withCookies(res, { success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Menus reorder error:", err);
+    return NextResponse.json({ error: "Gagal mengubah urutan menu" }, { status: 500 });
   }
 }

@@ -591,6 +591,7 @@ export default function DashboardApp() {
         body: JSON.stringify({
           name: settingsName,
           slug: settingsSlug,
+          category: settingsCategory,
           description: settingsDesc,
           address: settingsAddress,
           whatsapp: settingsPhone,
@@ -612,7 +613,7 @@ export default function DashboardApp() {
     } finally {
       setSavingSettings(false);
     }
-  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsPhone, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, qrBgColor, qrFgColor, showToast]);
+  }, [settingsName, settingsSlug, settingsCategory, settingsDesc, settingsAddress, settingsPhone, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, qrBgColor, qrFgColor, showToast]);
 
   const handleCancelSettings = useCallback(() => {
     if (store) {
@@ -685,6 +686,7 @@ export default function DashboardApp() {
         const data = await res.json();
         const url = data.url ?? data.publicUrl;
         if (url) {
+          const prevLogo = store?.logo_url;
           setStore((prev) => (prev ? { ...prev, logo_url: url } : prev));
           const storeRes = await fetch("/api/store", {
             method: "PUT",
@@ -694,6 +696,8 @@ export default function DashboardApp() {
           if (storeRes.ok) {
             showToast("Logo berhasil diperbarui!");
           } else {
+            // Rollback to previous logo on server failure
+            setStore((prev) => (prev ? { ...prev, logo_url: prevLogo } : prev));
             const err = await storeRes.json().catch(() => null);
             showToast(err?.error || "Logo diupload tapi gagal disimpan", "error");
           }

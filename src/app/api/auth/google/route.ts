@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("Google OAuth error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: "Gagal memulai login Google" }, { status: 400 });
     }
 
     return NextResponse.redirect(data.url!);

@@ -35,10 +35,14 @@ export default function LoginView({
   const [tab, setTab] = useState<"login" | "register">(initialTab);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Derived from props — no effect needed
-  const loginErrorInit = typeof window !== 'undefined' && errorParam
-    ? decodeURIComponent(errorParam)
-    : '';
+  // Derived from props — no effect needed (try-catch prevents crash on malformed % in URL)
+  const loginErrorInit = (() => {
+    try {
+      return typeof window !== 'undefined' && errorParam
+        ? decodeURIComponent(errorParam)
+        : '';
+    } catch { return ''; }
+  })();
   const [loginError, setLoginError] = useState(loginErrorInit);
 
   // Login state

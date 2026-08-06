@@ -96,7 +96,6 @@ export async function GET() {
       return NextResponse.json({ error: "Session refresh conflict, please retry" }, { status: 409 });
     }
     console.error("Dashboard init error:", err);
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Terjadi kesalahan server" }, { status: 500 });
   }
 }

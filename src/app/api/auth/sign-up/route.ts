@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
       if (error.message.includes("already registered") || error.message.includes("already been registered")) {
         return NextResponse.json({ error: "Email sudah terdaftar. Silakan masuk." }, { status: 409 });
       }
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      console.error("Sign-up error:", error);
+      return NextResponse.json({ error: "Pendaftaran gagal. Periksa kembali data Anda." }, { status: 400 });
     }
 
     // If email confirmation is required (no session returned)
