@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import QRCode from "qrcode";
 import styles from "./DashboardApp.module.css";
 
 /* ------------------------------------------------------------------ */
@@ -205,39 +206,24 @@ const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: strin
 const DAYS_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 /* ------------------------------------------------------------------ */
-/*  QR Grid Generation (for SVG preview + Canvas export)                */
+/*  QR Code helpers — uses real `qrcode` library                       */
 /* ------------------------------------------------------------------ */
-function generateQRGrid(): number[][] {
-  const size = 25;
-  const grid: number[][] = Array.from({ length: size }, () => new Array(size).fill(0));
-  const fill = (fx: number, fy: number) => {
-    for (let y = fy; y < fy + 7; y++)
-      for (let x = fx; x < fx + 7; x++)
-        if (x === fx || x === fx + 6 || y === fy || y === fy + 6 || (x >= fx + 2 && x <= fx + 4 && y >= fy + 2 && y <= fy + 4))
-          grid[y][x] = 1;
-  };
-  fill(0, 0); fill(18, 0); fill(0, 18);
-  for (let i = 0; i <= 4; i++) { grid[16 + i][16 + i] = 1; grid[20 - i][16 + i] = 1; }
-  for (let i = 8; i < 17; i++) { if (i % 2 === 0) { grid[i][6] = 1; grid[6][i] = 1; } }
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) {
-      const inFinder = (x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16);
-      const inAlign = x >= 16 && x <= 20 && y >= 16 && y <= 20;
-      const inCenter = x >= 10 && x <= 14 && y >= 10 && y <= 14;
-      const inTiming = y === 6 || x === 6;
-      if (inFinder || inAlign || inCenter || inTiming) continue;
-      if ((x * 7 + y * 13 + x * y * 3) % 7 < 3) grid[y][x] = 1;
-    }
-  return grid;
+function getQrDataUrl(text: string, fgColor: string, bgColor: string): Promise<string> {
+  return QRCode.toDataURL(text, {
+    width: 680,
+    margin: 0,
+    color: { dark: fgColor, light: bgColor },
+    errorCorrectionLevel: "M",
+  });
 }
-const QR_GRID = generateQRGrid();
 
-function generateQRSVG(fgColor: string = "#0F172A"): string {
-  let rects = "";
-  for (let y = 0; y < 25; y++)
-    for (let x = 0; x < 25; x++)
-      if (QR_GRID[y][x]) rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${fgColor}"/>`;
-  return rects;
+function getQrSvgString(text: string, fgColor: string): Promise<string> {
+  return QRCode.toString(text, {
+    type: "svg",
+    margin: 0,
+    color: { dark: fgColor, light: "#FFFFFF" },
+    errorCorrectionLevel: "M",
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -257,12 +243,13 @@ function canvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
-function canvasDrawQR(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
-  const cell = size / 25;
-  ctx.fillStyle = color;
-  for (let row = 0; row < 25; row++)
-    for (let col = 0; col < 25; col++)
-      if (QR_GRID[row][col]) ctx.fillRect(x + col * cell, y + row * cell, cell + 0.5, cell + 0.5);
+function canvasDrawQrFromUrl(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, dataUrl: string) {
+  return new Promise<void>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => { ctx.drawImage(img, x, y, size, size); resolve(); };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
 }
 
 function loadImg(src: string): Promise<HTMLImageElement> {
@@ -538,6 +525,8 @@ export default function DashboardApp() {
   const [addingCat, setAddingCat] = useState(false);
   const [deletingCatId, setDeletingCatId] = useState<string | null>(null);
   const [exportingQr, setExportingQr] = useState(false);
+  const [qrSvgHtml, setQrSvgHtml] = useState("");
+  const qrDataUrlRef = useRef<string>("");
 
   const handleDeleteMenu = useCallback(async (menuId?: string) => {
     if (!menuId) return;
@@ -940,6 +929,26 @@ export default function DashboardApp() {
     return diff > 0 ? diff : 0;
   })();
 
+  // Generate real QR code (SVG for preview, data URL for canvas export)
+  useEffect(() => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pesanlagi.web.id";
+    const url = `${baseUrl}/menu/${storeSlug}`;
+    let cancelled = false;
+    (async () => {
+      try {
+        const svg = await getQrSvgString(url, qrFgColor);
+        const dataUrl = await getQrDataUrl(url, qrFgColor, "#FFFFFF");
+        if (!cancelled) {
+          setQrSvgHtml(svg);
+          qrDataUrlRef.current = dataUrl;
+        }
+      } catch (err) {
+        console.error("QR generation error:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [storeSlug, qrFgColor]);
+
   const handleQrExport = useCallback(async (format: "PNG" | "PDF") => {
     if (!qrExportRef.current) return;
     setExportingQr(true);
@@ -1022,7 +1031,12 @@ export default function DashboardApp() {
         canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.fill();
         ctx.shadowColor = "transparent";
       }
-      canvasDrawQR(ctx, qrX + qrPad, cy + qrPad, qrPx, qrFgColor);
+      const qrDataUrl = qrDataUrlRef.current || await getQrDataUrl(
+        `${process.env.NEXT_PUBLIC_APP_URL || "https://pesanlagi.web.id"}/menu/${storeSlug}`,
+        qrFgColor,
+        "#FFFFFF",
+      );
+      await canvasDrawQrFromUrl(ctx, qrX + qrPad, cy + qrPad, qrPx, qrDataUrl);
       cy += qrW + 16;
 
       ctx.fillStyle = textCol + "88";
@@ -1688,7 +1702,7 @@ export default function DashboardApp() {
                     </h3>
                     <p style={{ color: qrDisplayText + "AA" }} className="text-[11px] mb-4 z-0">Scan untuk lihat menu & pesan</p>
                     <div className={`p-2.5 bg-white shadow-sm z-0 ${qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? "border-[3px] rounded-xl" : "rounded-xl"}`} style={qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? { borderColor: qrDisplayAccent } : {}}>
-                      <svg viewBox="0 0 25 25" className="w-36 h-36" shapeRendering="crispEdges" dangerouslySetInnerHTML={{ __html: generateQRSVG(qrFgColor) }} />
+                      <div className="w-36 h-36 [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: qrSvgHtml }} />
                     </div>
                     <div className="flex items-center justify-center gap-1.5 mt-3 mb-1 z-0">
                       <Globe className="w-3 h-3" style={{ color: qrDisplayText + "88" }} />

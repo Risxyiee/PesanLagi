@@ -116,3 +116,28 @@ Stage Summary:
 - PostgREST injection di-search ditutup
 - ESLint: 0 errors, 1 pre-existing warning
 - Commit b7674ec pushed ke origin/main (force push)
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: (1) Remove store.id from public API response (2) Fix fake QR code generation
+
+Work Log:
+- BAGIAN 1: src/app/api/public/menu/[slug]/route.ts — destructured rawStore to keep id server-side only, spread rest into `store` object sent to client
+- BAGIAN 2: Installed `qrcode` npm library + @types/qrcode
+- Removed fake generateQRGrid() (pseudo-random formula), QR_GRID constant, generateQRSVG(), canvasDrawQR()
+- Added getQrDataUrl() and getQrSvgString() using real `qrcode` library with errorCorrectionLevel: M
+- Added canvasDrawQrFromUrl() that draws QR from data URL onto canvas (for PNG/PDF export)
+- Added useEffect that generates real QR SVG + data URL whenever storeSlug or qrFgColor changes
+- Updated JSX preview: replaced fake <svg viewBox="0 0 25 25"> with <div> rendering real SVG output
+- Updated handleQrExport: replaced canvasDrawQR with canvasDrawQrFromUrl using qrDataUrlRef
+- Added NEXT_PUBLIC_APP_URL=https://pesanlagi.web.id to .env
+- Verified QR encodes correct URL (version 3, 29x29 modules) via Node.js self-test
+
+Stage Summary:
+- QR codes now encode real URL: {NEXT_PUBLIC_APP_URL}/menu/{store.slug}
+- SVG preview + canvas export (PNG/PDF) both use valid, scannable QR codes
+- Custom fg color (qrFgColor) still works — applied via qrcode library color.dark option
+- 6 preset templates, styling, and layout completely untouched
+- Files changed: .env, src/app/api/public/menu/[slug]/route.ts, src/components/dashboard/DashboardApp.tsx, package.json, bun.lockb
+- ESLint: 0 errors, 1 pre-existing warning (font in layout.tsx)

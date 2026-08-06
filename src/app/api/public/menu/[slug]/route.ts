@@ -12,29 +12,32 @@ export async function GET(
       return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
     }
 
-    // 1. Find store by slug
-    const { data: store, error: storeErr } = await admin
+    // 1. Find store by slug — keep id for internal queries only
+    const { data: rawStore, error: storeErr } = await admin
       .from("stores")
       .select("id, name, slug, description, logo_url, whatsapp, address, bg_color, qr_color, hours, is_open")
       .eq("slug", slug)
       .single();
 
-    if (storeErr || !store) {
+    if (storeErr || !rawStore) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
     }
+
+    const storeId = rawStore.id;
+    const { id: _id, ...store } = rawStore;
 
     // 2. Get categories for this store
     const { data: categories } = await admin
       .from("categories")
       .select("*")
-      .eq("store_id", store.id)
+      .eq("store_id", storeId)
       .order("name", { ascending: true });
 
     // 3. Get available menus joined with category name
     const { data: menus } = await admin
       .from("menus")
       .select("*, categories(name)")
-      .eq("store_id", store.id)
+      .eq("store_id", storeId)
       .eq("is_available", true)
       .order("name", { ascending: true });
 
