@@ -1,35 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
-
-async function getAuthUser(req: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-async function getStoreId(userId: string) {
-  const admin = createSupabaseAdminClient();
-  if (!admin) return null;
-  const { data } = await admin
-    .from("stores")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
-  return data?.id || null;
-}
+import { authenticateRequest, withCookies, getStoreId } from "@/lib/auth-helper";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
     if (!storeId)
@@ -41,11 +17,6 @@ export async function POST(req: NextRequest) {
         { error: "source_id and target_id required" },
         { status: 400 }
       );
-    }
-
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
     }
 
     // Get sort_order of target menu
@@ -106,8 +77,9 @@ export async function POST(req: NextRequest) {
       .eq("id", source_id)
       .eq("store_id", storeId);
 
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, { success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

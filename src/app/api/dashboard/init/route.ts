@@ -5,12 +5,12 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
+    const res = NextResponse.json({});
+    const supabase = await createSupabaseServerClient(res);
     if (!supabase) {
       return NextResponse.json({ error: "Not configured" }, { status: 503 });
     }
 
-    // Single getUser call — avoids AuthRefreshDiscardedError from concurrent clients
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -23,8 +23,8 @@ export async function GET() {
       return NextResponse.json({ error: "Not configured" }, { status: 503 });
     }
 
-    // Fetch store, menus, categories in parallel using admin client (no auth overhead)
-    const [storeResult, menusResult, catsResult] = await Promise.all([
+    // Fetch store, profile, menus, categories in parallel
+    const [storeResult, profileResult, menusResult, catsResult] = await Promise.all([
       admin
         .from("stores")
         .select(
@@ -33,31 +33,62 @@ export async function GET() {
         .eq("user_id", user.id)
         .single(),
       admin
+        .from("profiles")
+        .select("is_pro, pro_expiry_date")
+        .eq("id", user.id)
+        .single(),
+      admin
         .from("menus")
-        .select("*")
-        .eq("store_id", user.id)
+        .select("*, categories(name)")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
       admin
         .from("categories")
         .select("*")
-        .eq("store_id", user.id)
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true }),
     ]);
 
-    return NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.user_metadata?.name, is_pro: user.user_metadata?.is_pro, pro_expiry_date: user.user_metadata?.pro_expiry_date },
+    // Get store id, fallback to user.id if no store (shouldn't happen normally)
+    const storeId = storeResult.data?.id;
+
+    // Filter menus/categories by store_id (CRITICAL FIX: was using user.id before)
+    const menus = (menusResult.data || []).filter((m: any) => m.store_id === storeId).map((m: any) => ({
+      ...m,
+      category_name: m.categories?.name || null,
+      categories: undefined,
+    }));
+    const categories = (catsResult.data || []).filter((c: any) => c.store_id === storeId);
+
+    // Build response body
+    const body = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name,
+        is_pro: profileResult.data?.is_pro ?? false,
+        pro_expiry_date: profileResult.data?.pro_expiry_date ?? null,
+      },
       store: storeResult.data || null,
-      menus: menusResult.data || [],
-      categories: catsResult.data || [],
+      menus,
+      categories,
+    };
+
+    // Return with refreshed cookies
+    return new NextResponse(JSON.stringify(body), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        // Merge cookies from the supabase client refresh
+        ...Object.fromEntries(res.cookies.getAll().map(c => [`set-cookie`, c.toString()])),
+      },
     });
-  } catch (err: any) {
-    // AuthRefreshDiscardedError is benign — session still valid from another concurrent call
-    if (err?.__isAuthError && err?.status === 409) {
+  } catch (err: unknown) {
+    if (err instanceof Error && "status" in err && (err as any).status === 409) {
       return NextResponse.json({ error: "Session refresh conflict, please retry" }, { status: 409 });
     }
     console.error("Dashboard init error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

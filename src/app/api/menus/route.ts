@@ -1,47 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
-
-async function getAuthUser(req: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-async function getStoreId(userId: string) {
-  const admin = createSupabaseAdminClient();
-  if (!admin) return null;
-  const { data } = await admin
-    .from("stores")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
-  return data?.id || null;
-}
+import { authenticateRequest, withCookies, getStoreId } from "@/lib/auth-helper";
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
-    if (!storeId) return NextResponse.json([]);
+    if (!storeId) return withCookies(res, []);
 
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("category");
     const search = searchParams.get("search");
-
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
 
     let query = admin
       .from("menus")
@@ -52,7 +23,11 @@ export async function GET(req: NextRequest) {
       query = query.eq("category_id", categoryId);
     }
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      // Sanitize search to prevent PostgREST filter injection
+      const safeSearch = search.replace(/[%_,.()\\]/g, '');
+      if (safeSearch) {
+        query = query.or(`name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
+      }
     }
 
     const { data, error } = await query
@@ -62,35 +37,31 @@ export async function GET(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     // Flatten category name
-    const menus = (data || []).map((m: any) => ({
+    const menus = (data || []).map((m: Record<string, unknown>) => ({
       ...m,
-      category_name: m.categories?.name || null,
+      category_name: (m.categories as Record<string, string>)?.name || null,
       categories: undefined,
     }));
 
-    return NextResponse.json(menus);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, menus);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
     if (!storeId)
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
     const body = await req.json();
-    const { id, name, description, price, category_id, image_url, is_available } =
-      body;
+    const { id, name, description, price, category_id, image_url, is_available } = body;
 
     if (!name?.trim())
       return NextResponse.json(
@@ -103,14 +74,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
     let result;
     if (id) {
-      // Update
       const { data, error } = await admin
         .from("menus")
         .update({
@@ -125,10 +90,8 @@ export async function POST(req: NextRequest) {
         .eq("store_id", storeId)
         .select()
         .single();
-
       result = { data, error };
     } else {
-      // Create
       const { data, error } = await admin
         .from("menus")
         .insert({
@@ -142,35 +105,34 @@ export async function POST(req: NextRequest) {
         })
         .select()
         .single();
-
       result = { data, error };
     }
 
     if (result.error)
       return NextResponse.json({ error: result.error.message }, { status: 500 });
-    return NextResponse.json(result.data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, result.data);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
-    const { id } = await req.json();
-
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+    if (!storeId) {
+      return NextResponse.json({ error: "Store not found" }, { status: 404 });
     }
+
+    const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: "Menu ID required" }, { status: 400 });
+    }
+
     const { error } = await admin
       .from("menus")
       .delete()
@@ -178,8 +140,9 @@ export async function DELETE(req: NextRequest) {
       .eq("store_id", storeId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, { success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

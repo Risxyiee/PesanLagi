@@ -1,29 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { authenticateRequest, withCookies, getStoreId } from "@/lib/auth-helper";
 
-async function getAuthUser(req: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
     const { data, error } = await admin
       .from("stores")
       .select(
@@ -33,25 +16,21 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (error && error.code !== "PGRST116") {
-      // PGRST116 = not found (single() returned no rows)
       console.error("Store fetch error:", error.message);
     }
 
-    return NextResponse.json(data || null);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, data || null);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const body = await req.json();
     const allowed = [
@@ -68,7 +47,7 @@ export async function PUT(req: NextRequest) {
       "is_open",
     ];
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     for (const key of allowed) {
       if (body[key] !== undefined) updateData[key] = body[key];
     }
@@ -77,10 +56,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
     const { data, error } = await admin
       .from("stores")
       .update(updateData)
@@ -92,8 +67,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, data);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

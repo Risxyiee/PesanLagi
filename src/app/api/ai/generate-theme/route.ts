@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { authenticateRequest } from '@/lib/auth-helper';
 import ZAI from 'z-ai-web-dev-sdk';
 
 const SYSTEM_PROMPT = `Kamu adalah AI desainer QR menu untuk restoran/warung di Indonesia. Tugasmu: menerima deskripsi warung, lalu pilih kombinasi warna & template yang paling cocok.
@@ -33,15 +33,9 @@ Contoh:
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth check
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await authenticateRequest();
+    if ('error' in auth) return auth.error;
+    const { user } = auth;
 
     const { prompt } = await req.json();
 
@@ -73,10 +67,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse JSON dari response AI
     let parsed: Record<string, string>;
     try {
-      // Strip markdown code fence jika ada
       const clean = raw.replace(/```json\s*|```/g, '').trim();
       parsed = JSON.parse(clean);
     } catch {
@@ -86,7 +78,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate hex colors
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
     const bgColor = hexRegex.test(parsed.bgColor) ? parsed.bgColor : '#FFFFFF';
     const qrColor = hexRegex.test(parsed.qrColor) ? parsed.qrColor : '#0F172A';
@@ -96,19 +87,10 @@ export async function POST(req: NextRequest) {
     const template = validTemplates.includes(parsed.template) ? parsed.template : 'minimalist';
     const reason = typeof parsed.reason === 'string' ? parsed.reason : 'Desain yang cocok untuk warungmu!';
 
-    return NextResponse.json({
-      bgColor,
-      qrColor,
-      textColor,
-      accentColor,
-      template,
-      reason
-    });
-  } catch (err: any) {
+    return NextResponse.json({ bgColor, qrColor, textColor, accentColor, template, reason });
+  } catch (err: unknown) {
     console.error('AI generate theme error:', err);
-    return NextResponse.json(
-      { error: err.message || 'Terjadi kesalahan' },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : 'Terjadi kesalahan';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

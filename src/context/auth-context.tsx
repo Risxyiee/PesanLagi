@@ -44,14 +44,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchUser();
 
-    // Listen for auth state changes
+    // Listen for auth state changes — FIX: properly clean up subscription
+    let subscription: { unsubscribe: () => void } | undefined;
+
     getSupabase().then(supabase => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
       });
-      return () => subscription.unsubscribe();
+      subscription = data.subscription;
     });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [fetchUser, getSupabase]);
 
   const signUp = async (email: string, password: string) => {
@@ -74,6 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    try {
+      // Clear server-side cookies first
+      await fetch('/api/auth/sign-out', { method: 'POST' });
+    } catch {
+      // Continue even if server sign-out fails
+    }
     const supabase = await getSupabase();
     await supabase.auth.signOut();
     setUser(null);

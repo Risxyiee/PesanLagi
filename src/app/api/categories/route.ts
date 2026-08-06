@@ -1,43 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { authenticateRequest, withCookies, getStoreId } from "@/lib/auth-helper";
 
-async function getAuthUser(req: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
-async function getStoreId(userId: string) {
-  const admin = createSupabaseAdminClient();
-  if (!admin) return null;
-  const { data } = await admin
-    .from("stores")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
-  return data?.id || null;
-}
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
-    if (!storeId) return NextResponse.json([]);
+    if (!storeId) return withCookies(res, []);
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
     const { data, error } = await admin
       .from("categories")
       .select("*")
@@ -46,21 +18,18 @@ export async function GET(req: NextRequest) {
       .order("name", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data || []);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, data || []);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const storeId = await getStoreId(user.id);
     if (!storeId)
@@ -73,10 +42,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
     const { data, error } = await admin
       .from("categories")
       .insert({ store_id: storeId, name: name.trim() })
@@ -84,31 +49,27 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, data);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
-
-    const user = await getAuthUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
 
     const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: "Category ID required" }, { status: 400 });
+    }
+
     const storeId = await getStoreId(user.id);
     if (!storeId)
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
-
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
-    }
 
     // Nullify category_id on menus that belong to this category
     await admin
@@ -124,8 +85,9 @@ export async function DELETE(req: NextRequest) {
       .eq("store_id", storeId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCookies(res, { success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
