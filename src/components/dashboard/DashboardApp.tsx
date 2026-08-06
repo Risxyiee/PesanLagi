@@ -50,10 +50,14 @@ import {
   Lock,
   Loader2,
   MessageCircle,
+  Shield,
+  Users,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
+import AdminPage from "./AdminPage";
+import { isAdmin } from "@/lib/admin";
 import styles from "./DashboardApp.module.css";
 
 /* ------------------------------------------------------------------ */
@@ -175,7 +179,7 @@ interface ConfirmState {
   onConfirm: () => void;
 }
 
-type PageId = "dashboard" | "menu" | "qr" | "orders" | "reports" | "reviews" | "notifications" | "blog" | "settings";
+type PageId = "dashboard" | "menu" | "qr" | "orders" | "reports" | "reviews" | "notifications" | "blog" | "settings" | "admin";
 
 const PAGE_TITLES: Record<PageId, string> = {
   dashboard: "Dashboard Warung",
@@ -187,6 +191,7 @@ const PAGE_TITLES: Record<PageId, string> = {
   notifications: "Notifikasi",
   blog: "Blog & Tips",
   settings: "Pengaturan Profil",
+  admin: "Admin Panel",
 };
 
 const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badge?: string; badgeColor?: string }[] = [
@@ -199,6 +204,7 @@ const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badg
   { id: "notifications", icon: Bell, label: "Notifikasi" },
   { id: "blog", icon: Sparkles, label: "Blog & Tips" },
   { id: "settings", icon: Settings, label: "Pengaturan Profil" },
+  { id: "admin", icon: Shield, label: "Admin Panel", badge: "Admin", badgeColor: "bg-red-100 text-red-600" },
 ];
 
 const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string }[] = [
@@ -305,6 +311,8 @@ export default function DashboardApp() {
   const [confirm, setConfirm] = useState<ConfirmState>({ show: false, message: "", onConfirm: () => {} });
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barAnimated, setBarAnimated] = useState(false);
+
+  const isAdminUser = isAdmin(user?.email);
 
   // Data from API
   const [user, setUser] = useState<UserData | null>(null);
@@ -1231,6 +1239,7 @@ export default function DashboardApp() {
         {/* Nav items */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto sidebarScroll" style={{ scrollbarWidth: "thin" }}>
           {NAV_ITEMS.map((item) => {
+            if (item.id === "admin" && !isAdminUser) return null;
             const Icon = item.icon;
             const isActive = activePage === item.id;
             const badgeCount = item.id === "menu" ? String(menuCount) : item.badge;
@@ -2397,6 +2406,9 @@ export default function DashboardApp() {
             </div>
           </section>
         )}
+
+        {/* ============ ADMIN PAGE ============ */}
+        {activePage === "admin" && isAdminUser && <AdminPage />}
 
         {/* ============ SETTINGS PAGE ============ */}
         {activePage === "settings" && (
