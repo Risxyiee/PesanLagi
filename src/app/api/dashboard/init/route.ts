@@ -23,8 +23,8 @@ export async function GET() {
       return NextResponse.json({ error: "Not configured" }, { status: 503 });
     }
 
-    // Fetch store, profile, menus, categories in parallel
-    const [storeResult, profileResult, menusResult, catsResult] = await Promise.all([
+    // Phase 1: store + profile in parallel (profile uses user.id, not storeId)
+    const [storeResult, profileResult] = await Promise.all([
       admin
         .from("stores")
         .select(
@@ -37,28 +37,37 @@ export async function GET() {
         .select("is_pro, pro_expiry_date")
         .eq("id", user.id)
         .single(),
-      admin
-        .from("menus")
-        .select("*, categories(name)")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true }),
-      admin
-        .from("categories")
-        .select("*")
-        .order("sort_order", { ascending: true })
-        .order("name", { ascending: true }),
     ]);
 
-    // Get store id, fallback to user.id if no store (shouldn't happen normally)
     const storeId = storeResult.data?.id;
 
-    // Filter menus/categories by store_id (CRITICAL FIX: was using user.id before)
-    const menus = (menusResult.data || []).filter((m: any) => m.store_id === storeId).map((m: any) => ({
-      ...m,
-      category_name: m.categories?.name || null,
-      categories: undefined,
-    }));
-    const categories = (catsResult.data || []).filter((c: any) => c.store_id === storeId);
+    // Phase 2: menus + categories scoped by store_id at the DB level
+    let menus: Record<string, unknown>[] = [];
+    let categories: Record<string, unknown>[] = [];
+
+    if (storeId) {
+      const [menusResult, catsResult] = await Promise.all([
+        admin
+          .from("menus")
+          .select("*, categories(name)")
+          .eq("store_id", storeId)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+        admin
+          .from("categories")
+          .select("*")
+          .eq("store_id", storeId)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true }),
+      ]);
+
+      menus = (menusResult.data || []).map((m: Record<string, unknown>) => ({
+        ...m,
+        category_name: (m.categories as Record<string, string>)?.name || null,
+        categories: undefined,
+      }));
+      categories = catsResult.data || [];
+    }
 
     // Build response body
     const body = {
@@ -75,16 +84,16 @@ export async function GET() {
     };
 
     // Return with refreshed cookies
+    const cookieHeaders = res.cookies.getAll().map((c) => c.toString());
     return new NextResponse(JSON.stringify(body), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        // Merge cookies from the supabase client refresh
-        ...Object.fromEntries(res.cookies.getAll().map(c => [`set-cookie`, c.toString()])),
+        ...(cookieHeaders.length > 0 ? { "set-cookie": cookieHeaders } : {}),
       },
     });
   } catch (err: unknown) {
-    if (err instanceof Error && "status" in err && (err as any).status === 409) {
+    if (err instanceof Error && "status" in err && (err as Record<string, unknown>).status === 409) {
       return NextResponse.json({ error: "Session refresh conflict, please retry" }, { status: 409 });
     }
     console.error("Dashboard init error:", err);
