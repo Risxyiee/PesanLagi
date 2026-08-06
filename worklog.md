@@ -71,3 +71,48 @@ Stage Summary:
 - Reviews, Notifications, Blog pages fully functional with sample data
 - Reports chart shows menu price distribution
 - Orders page supports manual order creation
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Fix 14 bugs dari audit komprehensif - AuthRefreshDiscardedError, security, UX
+
+Work Log:
+- Audit menyeluruh codebase oleh sub-agent Explore agent, menemukan 3 critical, 5 high, 6 medium, 5 low severity issues
+- C1: dashboard/init queried menus/categories by user.id (auth UUID) bukan store.id → menu selalu kosong
+- C2: /api/upload route hilang → semua upload gambar 404
+- C3: Setiap API route membuat 2 Supabase server client independen (dual client pattern) → race condition saat token refresh → AuthRefreshDiscardedError
+- H1: AuthContext useEffect return subscription.unsubscribe() di dalam .then() callback, bukan di useEffect → memory leak
+- H2: is_pro dibaca dari user_metadata (selalu undefined) bukan dari profiles table
+- H3: Tidak ada route yang pass NextResponse ke createSupabaseServerClient → refreshed cookies tidak dikirim ke client
+- H4: search parameter di /api/menus tidak disanitasi → PostgREST filter injection possible
+- H5: signOut() di AuthContext tidak memanggil /api/auth/sign-out → server cookies tetap ada
+- M1: Middleware matcher termasuk /auth/callback (tidak ada route di path itu)
+- M2: Missing null checks di menus DELETE dan categories DELETE
+- M5: Dead designer/page.tsx (24KB, hardcoded isPro=true)
+- M6: /dashboard/settings 404 (tidak ada page.tsx)
+- L1: Redundan CDN scripts (qrcodejs, html2canvas sudah npm module)
+- L2: /dashboard/settings 404
+
+Fix:
+- Buat src/lib/auth-helper.ts: authenticateRequest(), withCookies(), getStoreId() → single client pattern
+- Rewrite semua 7 API route (store, menus, categories, reorder, auth/me, ai/generate-theme, dashboard/init)
+- Buat ulang /api/upload/route.ts (Supabase Storage, 5MB, auto-create bucket)
+- Fix AuthContext: subscription cleanup + signOut server cookie clear
+- Fix middleware: hapus dead /auth/callback matcher
+- Hapus redundan CDN scripts dari layout.tsx
+- Hapus dead designer/page.tsx (24KB), buat redirect stub
+- Buat /dashboard/settings/page.tsx redirect
+- Sanitasi search parameter di menus GET
+
+Stage Summary:
+- 14 files changed, 339 insertions, 739 deletions (net -400 lines)
+- AuthRefreshDiscardedError root cause fixed: dual Supabase clients → single client per request
+- Upload gambar kembali berfungsi via Supabase Storage
+- Dashboard menu/category data sekarang muncul (query by store.id bukan user.id)
+- is_pro status sekarang benar (dari profiles table)
+- Session cookies ter-propagate dengan benar ke client
+- Sign out membersihkan server + client cookies
+- PostgREST injection di-search ditutup
+- ESLint: 0 errors, 1 pre-existing warning
+- Commit b7674ec pushed ke origin/main (force push)
