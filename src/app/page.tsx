@@ -95,17 +95,43 @@ function initApp() {
     else switchView('landing');
   }
 
+  // Only redirect to dashboard on auth=success if there's an actual session
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('auth') === 'success') {
     window.history.replaceState({}, '', window.location.pathname);
     initLanding();
-    switchView('dashboard');
+    import('@supabase/ssr').then(({ createBrowserClient }) => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      );
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) switchView('dashboard');
+      }).catch(() => {});
+    }).catch(() => {});
     return;
   }
 
   window.addEventListener('hashchange', handleHash);
   const initHash = window.location.hash.replace('#', '');
-  if (initHash === 'dashboard') { initLanding(); switchView('dashboard'); }
+  if (initHash === 'dashboard') {
+    initLanding();
+    // Verify session before showing dashboard
+    import('@supabase/ssr').then(({ createBrowserClient }) => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      );
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          switchView('dashboard');
+        } else {
+          window.location.hash = '';
+          switchView('landing');
+        }
+      }).catch(() => { window.location.hash = ''; switchView('landing'); });
+    }).catch(() => { window.location.hash = ''; switchView('landing'); });
+  }
   else if (initHash === 'login' || initHash === 'register') { initLanding(); switchView('login'); }
   else { initLanding(); }
 

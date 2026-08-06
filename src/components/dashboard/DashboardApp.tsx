@@ -470,12 +470,15 @@ export default function DashboardApp() {
   const handleLogout = useCallback(async () => {
     try {
       await fetch("/api/auth/sign-out", { method: "POST" });
-      showToast("Berhasil keluar");
     } catch {
-      showToast("Gagal keluar, coba lagi", "error");
-      return;
+      // Continue even if server sign-out fails
     }
-    window.location.hash = "#login";
+    // Client-side sign-out clears in-memory session & cookies
+    const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    // Full page reload to clear all React state
+    window.location.href = "/#login";
   }, [showToast]);
 
   const handleToggleStore = useCallback(async () => {
