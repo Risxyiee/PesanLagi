@@ -4,9 +4,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["sharp"],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  reactStrictMode: false,
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {

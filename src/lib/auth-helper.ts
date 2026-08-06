@@ -38,15 +38,12 @@ export function withCookies(res: NextResponse, body: unknown, status = 200) {
   const cookieHeaders = res.cookies
     .getAll()
     .map((c) => c.toString());
-  return new NextResponse(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      ...(cookieHeaders.length > 0
-        ? { "set-cookie": cookieHeaders }
-        : {}),
-    },
-  });
+  const headers = new Headers();
+  headers.set("Content-Type", "application/json");
+  if (cookieHeaders.length > 0) {
+    headers.set("set-cookie", cookieHeaders.join(", "));
+  }
+  return new NextResponse(JSON.stringify(body), { status, headers });
 }
 
 /**

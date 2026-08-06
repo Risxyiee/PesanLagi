@@ -38,6 +38,7 @@ import {
   Phone,
   Clock,
   Save,
+  Pencil,
   CheckCircle2,
   ShieldCheck,
   LayoutGrid,
@@ -66,7 +67,9 @@ function compressImage(file: File, maxSize = 800, quality = 0.75): Promise<File>
       return;
     }
     const img = new window.Image();
+    const blobUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(blobUrl);
       const canvas = document.createElement('canvas');
       let w = img.width;
       let h = img.height;
@@ -90,8 +93,8 @@ function compressImage(file: File, maxSize = 800, quality = 0.75): Promise<File>
         quality
       );
     };
-    img.onerror = () => resolve(file);
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(file); };
+    img.src = blobUrl;
   });
 }
 
@@ -109,18 +112,19 @@ interface UserData {
 
 interface StoreData {
   id?: string;
+  user_id?: string;
   name?: string;
   slug?: string;
   description?: string;
-  phone?: string;
-  email?: string;
+  whatsapp?: string;
   address?: string;
-  logo?: string;
+  logo_url?: string;
+  maps_url?: string;
+  hours?: Record<string, unknown>;
+  bg_color?: string;
+  qr_color?: string;
   is_open?: boolean;
-  open_time?: string;
-  close_time?: string;
-  days?: number[];
-  category?: string;
+  created_at?: string;
 }
 
 interface Category {
@@ -133,7 +137,8 @@ interface MenuItem {
   id?: string;
   name: string;
   price: number;
-  category?: string;
+  category_id?: string;
+  category_name?: string;
   description?: string;
   image_url?: string;
   image?: string; // fallback for compatibility
@@ -355,6 +360,7 @@ export default function DashboardApp() {
   const [modalAvailable, setModalAvailable] = useState(true);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
 
   const orderTabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [tabIndicator, setTabIndicator] = useState({ left: 0, width: 0 });
@@ -500,19 +506,26 @@ export default function DashboardApp() {
     const menuItem = menus.find((m) => m.id === menuId);
     if (!menuItem) return;
     const nextAvailable = !menuItem.is_available;
+    const prevValue = menuItem.is_available;
     setMenus((prev) =>
       prev.map((m) =>
         m.id === menuId ? { ...m, is_available: nextAvailable } : m
       )
     );
     try {
-      await fetch("/api/menus", {
+      const res = await fetch("/api/menus", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: menuId, is_available: nextAvailable }),
       });
+      if (!res.ok) throw new Error();
       showToast(nextAvailable ? "Menu tersedia" : "Menu ditandai habis");
     } catch {
+      setMenus((prev) =>
+        prev.map((m) =>
+          m.id === menuId ? { ...m, is_available: prevValue } : m
+        )
+      );
       showToast("Gagal mengubah status menu", "error");
     }
   }, [menus, showToast]);
@@ -598,7 +611,6 @@ export default function DashboardApp() {
       setSettingsPhone(store.whatsapp ?? "");
       setSettingsAddress(store.address ?? "");
       setSettingsSlug(store.slug ?? "");
-      setSettingsCategory(store.category ?? "Makanan Indonesia");
       if (store.bg_color) setQrBgColor(store.bg_color);
       else setQrBgColor("#FFFFFF");
       if (store.qr_color) setQrFgColor(store.qr_color);
@@ -639,7 +651,7 @@ export default function DashboardApp() {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const data = await res.json();
-        setModalImage(data.url ?? data.publicUrl ?? URL.createObjectURL(file));
+        setModalImage(data.url ?? data.publicUrl ?? "");
       } else {
         const err = await res.json().catch(() => null);
         showToast(err?.error || "Gagal mengunggah gambar", "error");
@@ -687,6 +699,27 @@ export default function DashboardApp() {
     }
   }, [showToast]);
 
+  const resetModal = useCallback(() => {
+    setEditingMenuId(null);
+    setModalName("");
+    setModalPrice("");
+    setModalDesc("");
+    setModalImage(null);
+    setModalCategory("");
+    setModalAvailable(true);
+  }, []);
+
+  const openEditMenu = useCallback((menu: MenuItem) => {
+    setEditingMenuId(menu.id ?? null);
+    setModalName(menu.name);
+    setModalPrice(String(menu.price));
+    setModalDesc(menu.description ?? "");
+    setModalImage(menu.image_url ?? null);
+    setModalCategory(menu.category_id ?? "");
+    setModalAvailable(menu.is_available !== false);
+    setModalOpen(true);
+  }, []);
+
   const handleSaveMenu = useCallback(async () => {
     setSavingMenu(true);
     try {
@@ -698,30 +731,35 @@ export default function DashboardApp() {
         is_available: modalAvailable,
       };
       if (modalImage) body.image_url = modalImage;
+
+      const isEditing = !!editingMenuId;
       const res = await fetch("/api/menus", {
-        method: "POST",
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(isEditing ? { id: editingMenuId, ...body } : body),
       });
+
       if (res.ok) {
-        const newMenu = await res.json();
-        setMenus((prev) => [...prev, newMenu]);
+        const saved = await res.json();
+        if (isEditing) {
+          setMenus((prev) => prev.map((m) => (m.id === editingMenuId ? { ...m, ...saved } : m)));
+          showToast("Menu berhasil diperbarui!");
+        } else {
+          setMenus((prev) => [...prev, saved]);
+          showToast("Menu baru berhasil ditambahkan!");
+        }
         setModalOpen(false);
-        setModalName("");
-        setModalPrice("");
-        setModalDesc("");
-        setModalImage(null);
-        showToast("Menu baru berhasil ditambahkan!");
+        resetModal();
       } else {
         const data = await res.json().catch(() => ({}));
-        showToast(data.error || "Gagal menambah menu", "error");
+        showToast(data.error || "Gagal menyimpan menu", "error");
       }
     } catch {
-      showToast("Gagal menambah menu", "error");
+      showToast("Gagal menyimpan menu", "error");
     } finally {
       setSavingMenu(false);
     }
-  }, [modalName, modalCategory, modalPrice, modalDesc, modalAvailable, modalImage, showToast]);
+  }, [modalName, modalCategory, modalPrice, modalDesc, modalAvailable, modalImage, editingMenuId, showToast]);
 
   const handleOrderAction = useCallback((orderId: string, newStatus: "process" | "done") => {
     setOrders((prev) =>
@@ -1616,6 +1654,12 @@ export default function DashboardApp() {
                         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur text-[10px] font-bold text-slate-700">
                           <span className={catColor}>{m.category_name ?? "Makanan"}</span>
                         </span>
+                        <button
+                          className="absolute top-2 right-10 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-amber-600 transition-colors"
+                          onClick={() => openEditMenu(m)}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors disabled:opacity-50"
                           onClick={() => handleDeleteMenu(m.id)}
@@ -2649,17 +2693,17 @@ export default function DashboardApp() {
         <>
           <div
             className={`${styles.modalBackdrop} ${styles.modalBackdropShow}`}
-            onClick={() => setModalOpen(false)}
+            onClick={() => { setModalOpen(false); resetModal(); }}
           />
           <div className={`${styles.modalCard} ${styles.modalCardShow}`}>
             <div className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900">Tambah Menu Baru</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Isi detail menu makanan Anda</p>
+                  <h3 className="text-lg font-extrabold text-slate-900">{editingMenuId ? "Edit Menu" : "Tambah Menu Baru"}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{editingMenuId ? "Ubah detail menu yang sudah ada" : "Isi detail menu makanan Anda"}</p>
                 </div>
                 <button
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => { setModalOpen(false); resetModal(); }}
                   className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"
                 >
                   <X className="w-5 h-5" />
@@ -2737,7 +2781,7 @@ export default function DashboardApp() {
               </div>
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => { setModalOpen(false); resetModal(); }}
                   className="flex-1 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 transition-colors"
                 >
                   Batal
@@ -2747,7 +2791,7 @@ export default function DashboardApp() {
                   disabled={savingMenu}
                   className={`${styles.ctaBtn} flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50`}
                 >
-                  {savingMenu ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} {savingMenu ? "Menyimpan..." : "Simpan Menu"}
+                  {savingMenu ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} {savingMenu ? "Menyimpan..." : editingMenuId ? "Perbarui Menu" : "Simpan Menu"}
                 </button>
               </div>
             </div>

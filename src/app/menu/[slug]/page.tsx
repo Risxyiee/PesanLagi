@@ -25,7 +25,6 @@ import styles from './page.module.css';
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 interface Store {
-  id: string;
   name: string;
   slug: string;
   description: string;
@@ -865,9 +864,7 @@ export default function PublicMenuPage({
                     </div>
                     <div className="space-y-2">
                       {group.items.map((item, idx) =>
-                        layoutMode === 'list'
-                          ? renderListItem(item, idx)
-                          : renderMenuCard(item, idx),
+                        renderMenuCard(item, idx),
                       )}
                     </div>
                   </div>

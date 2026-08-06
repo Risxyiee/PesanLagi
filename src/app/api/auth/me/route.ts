@@ -18,6 +18,9 @@ export async function GET() {
     }
 
     const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
+    }
     const { data: profile } = await admin
       .from("profiles")
       .select("id, is_pro, pro_expiry_date")

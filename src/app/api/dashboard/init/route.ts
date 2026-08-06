@@ -85,13 +85,12 @@ export async function GET() {
 
     // Return with refreshed cookies
     const cookieHeaders = res.cookies.getAll().map((c) => c.toString());
-    return new NextResponse(JSON.stringify(body), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...(cookieHeaders.length > 0 ? { "set-cookie": cookieHeaders } : {}),
-      },
-    });
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+    if (cookieHeaders.length > 0) {
+      headers.set("set-cookie", cookieHeaders.join(", "));
+    }
+    return new NextResponse(JSON.stringify(body), { status: 200, headers });
   } catch (err: unknown) {
     if (err instanceof Error && "status" in err && (err as Record<string, unknown>).status === 409) {
       return NextResponse.json({ error: "Session refresh conflict, please retry" }, { status: 409 });
