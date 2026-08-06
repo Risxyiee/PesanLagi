@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { withCookies } from "@/lib/auth-helper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,25 +27,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email atau password salah" }, { status: 401 });
     }
 
+    const userEmail = data.user.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: "Akun tidak memiliki email" }, { status: 400 });
+    }
+
     // Get profile
-    const { data: profile } = await supabase
+    const admin = createSupabaseAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("is_pro, pro_expiry_date")
       .eq("id", data.user.id)
       .single();
 
     // Ensure the user has a store (create one if not)
-    await ensureStore(supabase, data.user.id, data.user.email!);
+    await ensureStore(admin, data.user.id, userEmail);
 
-    return NextResponse.json({
+    // Return with session cookies (C2 FIX: was returning new NextResponse, discarding cookies)
+    return withCookies(res, {
       user: {
         id: data.user.id,
-        email: data.user.email,
+        email: userEmail,
         is_pro: profile?.is_pro ?? false,
       },
     });
-  } catch (err) {
-    console.error("Sign-in error:", String(err));
+  } catch (err: unknown) {
+    console.error("Sign-in error:", err);
     return NextResponse.json(
       { error: "Terjadi kesalahan server" },
       { status: 500 }
@@ -53,11 +61,11 @@ export async function POST(req: NextRequest) {
 }
 
 async function ensureStore(
-  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   userId: string,
   email: string
 ) {
-  const { data: existing } = await supabase
+  const { data: existing } = await admin
     .from("stores")
     .select("id")
     .eq("user_id", userId)
@@ -68,7 +76,7 @@ async function ensureStore(
     let slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     // Ensure slug is unique
-    const { data: dup } = await supabase
+    const { data: dup } = await admin
       .from("stores")
       .select("id")
       .eq("slug", slug)
@@ -78,7 +86,7 @@ async function ensureStore(
       let suffix = 2;
       while (true) {
         const candidate = `${slug}-${suffix}`;
-        const { data: d } = await supabase
+        const { data: d } = await admin
           .from("stores")
           .select("id")
           .eq("slug", candidate)
@@ -91,6 +99,6 @@ async function ensureStore(
       }
     }
 
-    await supabase.from("stores").insert({ user_id: userId, name: storeName, slug });
+    await admin.from("stores").insert({ user_id: userId, name: storeName, slug });
   }
 }

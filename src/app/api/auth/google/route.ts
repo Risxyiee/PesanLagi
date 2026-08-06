@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.redirect(data.url!);
-  } catch (err: any) {
-    console.error("Google OAuth error:", err.message);
+  } catch (err: unknown) {
+    console.error("Google OAuth error:", err instanceof Error ? err.message : err);
     return NextResponse.json(
       { error: "Gagal memulai Google OAuth" },
       { status: 500 }

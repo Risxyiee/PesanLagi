@@ -350,7 +350,6 @@ export default function DashboardApp() {
   const [settingsCategory, setSettingsCategory] = useState("");
   const [settingsDesc, setSettingsDesc] = useState("");
   const [settingsPhone, setSettingsPhone] = useState("");
-  const [settingsEmail, setSettingsEmail] = useState("");
   const [settingsAddress, setSettingsAddress] = useState("");
   const [settingsOpenTime, setSettingsOpenTime] = useState("08:00");
   const [settingsCloseTime, setSettingsCloseTime] = useState("22:00");
@@ -413,7 +412,6 @@ export default function DashboardApp() {
       setSettingsName(data.store.name ?? "");
       setSettingsDesc(data.store.description ?? "");
       setSettingsPhone(data.store.whatsapp ?? "");
-      setSettingsEmail("");
       setSettingsAddress(data.store.address ?? "");
       setSettingsSlug(data.store.slug ?? "");
       setSettingsCategory(data.store.category ?? "Makanan Indonesia");
@@ -522,7 +520,7 @@ export default function DashboardApp() {
     );
     try {
       await fetch("/api/menus", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: menuId, is_available: nextAvailable }),
       });
@@ -585,6 +583,8 @@ export default function DashboardApp() {
           address: settingsAddress,
           whatsapp: settingsPhone,
           hours: hoursData,
+          bg_color: qrBgColor,
+          qr_color: qrFgColor,
         }),
       });
       if (res.ok) {
@@ -600,14 +600,20 @@ export default function DashboardApp() {
     } finally {
       setSavingSettings(false);
     }
-  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsPhone, settingsEmail, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, showToast]);
+  }, [settingsName, settingsSlug, settingsDesc, settingsAddress, settingsPhone, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, qrBgColor, qrFgColor, showToast]);
 
   const handleCancelSettings = useCallback(() => {
     if (store) {
       setSettingsName(store.name ?? "");
       setSettingsDesc(store.description ?? "");
+      setSettingsPhone(store.whatsapp ?? "");
       setSettingsAddress(store.address ?? "");
       setSettingsSlug(store.slug ?? "");
+      setSettingsCategory(store.category ?? "Makanan Indonesia");
+      if (store.bg_color) setQrBgColor(store.bg_color);
+      else setQrBgColor("#FFFFFF");
+      if (store.qr_color) setQrFgColor(store.qr_color);
+      else setQrFgColor("#0F172A");
       if (store.hours && typeof store.hours === "object") {
         const h = store.hours as Record<string, any>;
         if (h.open_time) setSettingsOpenTime(h.open_time);
@@ -902,7 +908,8 @@ export default function DashboardApp() {
     if (slug.length >= 3) {
       slugTimer.current = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/store/check-slug?slug=${encodeURIComponent(slug)}`);
+          const storeIdParam = store?.id ? `&exclude_id=${store.id}` : "";
+          const res = await fetch(`/api/store/check-slug?slug=${encodeURIComponent(slug)}${storeIdParam}`);
           if (res.ok) {
             const data = await res.json();
             setSlugAvailable(data.available ?? true);
@@ -1424,7 +1431,9 @@ export default function DashboardApp() {
                   <p className="text-[11px] text-slate-500 mt-1">Edit info warung</p>
                 </div>
                 <div className={`${styles.quickTile} bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm`} onClick={() => {
-                  navigator.clipboard?.writeText(`pesanlagi.web.id/menu/${storeSlug}`).catch(() => {});
+                  const menuUrl = `https://pesanlagi.web.id/menu/${storeSlug}`;
+                  const text = `Menu kami: ${menuUrl}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   showToast("Link menu dibagikan ke WhatsApp!");
                 }}>
                   <div className={`${styles.tileIcon} w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg shadow-green-500/30`}>

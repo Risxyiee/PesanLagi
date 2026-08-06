@@ -71,11 +71,12 @@ export async function DELETE(req: NextRequest) {
     if (!storeId)
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
-    // Nullify category_id on menus that belong to this category
+    // Nullify category_id on menus that belong to this category AND this store
     await admin
       .from("menus")
       .update({ category_id: null })
-      .eq("category_id", id);
+      .eq("category_id", id)
+      .eq("store_id", storeId);
 
     // Delete the category
     const { error } = await admin

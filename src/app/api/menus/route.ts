@@ -117,6 +117,48 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    const auth = await authenticateRequest();
+    if ("error" in auth) return auth.error;
+    const { user, res, admin } = auth;
+
+    const storeId = await getStoreId(user.id);
+    if (!storeId)
+      return NextResponse.json({ error: "Store not found" }, { status: 404 });
+
+    const body = await req.json();
+    const { id } = body;
+    if (!id) {
+      return NextResponse.json({ error: "Menu ID required" }, { status: 400 });
+    }
+
+    // Build update from only the provided fields
+    const allowedPatch = ["name", "description", "price", "category_id", "image_url", "is_available"];
+    const updateData: Record<string, unknown> = {};
+    for (const key of allowedPatch) {
+      if (body[key] !== undefined) updateData[key] = body[key];
+    }
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    }
+
+    const { data, error } = await admin
+      .from("menus")
+      .update(updateData)
+      .eq("id", id)
+      .eq("store_id", storeId)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return withCookies(res, data);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const auth = await authenticateRequest();

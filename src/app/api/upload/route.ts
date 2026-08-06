@@ -82,14 +82,13 @@ export async function POST(req: NextRequest) {
       data: { publicUrl },
     } = admin.storage.from(BUCKET_NAME).getPublicUrl(path);
 
-    // Return with refreshed cookies
+    // Return with refreshed cookies (C3 FIX: use array, not Object.fromEntries which dedupes keys)
+    const cookieHeaders = res.cookies.getAll().map((c) => c.toString());
     return new NextResponse(JSON.stringify({ url: publicUrl }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        ...Object.fromEntries(
-          res.cookies.getAll().map((c) => [`set-cookie`, c.toString()])
-        ),
+        ...(cookieHeaders.length > 0 ? { "set-cookie": cookieHeaders } : {}),
       },
     });
   } catch (err: unknown) {

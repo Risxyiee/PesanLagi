@@ -1,15 +1,15 @@
 'use client';
 
-import Link from 'next/link';
+import { useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Utensils, QrCode, Settings, Plus, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Utensils, QrCode, Settings, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
-  { href: '/dashboard/menus', label: 'Menu', icon: Utensils },
-  { href: '/dashboard/designer', label: 'QR', icon: QrCode },
-  { href: '/dashboard/settings', label: 'Profil', icon: Settings },
+  { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard, hash: '#dashboard' },
+  { href: '/dashboard/menus', label: 'Menu', icon: Utensils, hash: '#menu' },
+  { href: '/dashboard/designer', label: 'QR', icon: QrCode, hash: '#qr' },
+  { href: '/dashboard/settings', label: 'Profil', icon: Settings, hash: '#settings' },
 ];
 
 export default function DashboardLayout({
@@ -18,6 +18,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  const handleNavClick = useCallback((hash: string) => {
+    window.location.hash = hash;
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 font-['Plus_Jakarta_Sans',sans-serif] text-slate-900 antialiased">
@@ -32,7 +36,13 @@ export default function DashboardLayout({
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
-                  <Link key={item.href} href={item.href} className="group relative flex justify-center">
+                  <button
+                    key={item.href}
+                    onClick={() => handleNavClick(item.hash)}
+                    className={cn(
+                      "group relative flex justify-center",
+                    )}
+                  >
                     <div className={cn(
                       "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all duration-300",
                       isActive ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-900 hover:bg-slate-100"
@@ -42,14 +52,11 @@ export default function DashboardLayout({
                     <span className="absolute left-full ml-4 px-3 py-1 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                       {item.label}
                     </span>
-                  </Link>
+                  </button>
                 );
               })}
             </nav>
           </div>
-          <Link href="/dashboard/settings" className="p-3 rounded-2xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors">
-            <Sparkles className="w-6 h-6" strokeWidth={1.75} />
-          </Link>
         </div>
       </aside>
 
@@ -66,30 +73,41 @@ export default function DashboardLayout({
           {navItems.slice(0, 2).map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className={cn(
-                "flex flex-col items-center gap-1 p-2 rounded-xl transition-colors w-16",
-                isActive ? "text-amber-600" : "text-slate-500"
-              )}>
+              <button
+                key={item.href}
+                onClick={() => handleNavClick(item.hash)}
+                className={cn(
+                  "flex flex-col items-center gap-1 p-2 rounded-xl transition-colors w-16",
+                  isActive ? "text-amber-600" : "text-slate-500"
+                )}
+              >
                 <item.icon className="w-6 h-6" strokeWidth={1.75} />
                 <span className="text-[10px] font-semibold">{item.label}</span>
-              </Link>
+              </button>
             );
           })}
           
-          <Link href="/dashboard/menus" className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/40 -mt-8 border-4 border-white transition-transform active:scale-95">
+          <button
+            onClick={() => handleNavClick('#menu')}
+            className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/40 -mt-8 border-4 border-white transition-transform active:scale-95"
+          >
             <Plus className="w-7 h-7" strokeWidth={2.5} />
-          </Link>
+          </button>
 
           {navItems.slice(2).map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className={cn(
-                "flex flex-col items-center gap-1 p-2 rounded-xl transition-colors w-16",
-                isActive ? "text-amber-600" : "text-slate-500"
-              )}>
+              <button
+                key={item.href}
+                onClick={() => handleNavClick(item.hash)}
+                className={cn(
+                  "flex flex-col items-center gap-1 p-2 rounded-xl transition-colors w-16",
+                  isActive ? "text-amber-600" : "text-slate-500"
+                )}
+              >
                 <item.icon className="w-6 h-6" strokeWidth={1.75} />
                 <span className="text-[10px] font-semibold">{item.label}</span>
-              </Link>
+              </button>
             );
           })}
         </div>

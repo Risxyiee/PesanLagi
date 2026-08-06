@@ -84,8 +84,8 @@ export async function GET(req: NextRequest) {
     }
 
     return res;
-  } catch (err: any) {
-    console.error("OAuth callback error:", err.message);
+  } catch (err: unknown) {
+    console.error("OAuth callback error:", err instanceof Error ? err.message : err);
     return NextResponse.redirect(
       `${appUrl}/?auth=error&error=${encodeURIComponent("Terjadi kesalahan saat login Google")}`
     );

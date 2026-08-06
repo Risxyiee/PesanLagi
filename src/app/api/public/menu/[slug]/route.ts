@@ -9,13 +9,13 @@ export async function GET(
     const { slug } = await params;
     const admin = createSupabaseAdminClient();
     if (!admin) {
-      return NextResponse.json({ error: "Supabase environment variables are not configured" }, { status: 503 });
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
     }
 
     // 1. Find store by slug
     const { data: store, error: storeErr } = await admin
       .from("stores")
-      .select("*")
+      .select("id, name, slug, description, logo_url, whatsapp, address, bg_color, qr_color, hours, is_open")
       .eq("slug", slug)
       .single();
 
@@ -39,14 +39,15 @@ export async function GET(
       .order("name", { ascending: true });
 
     // Flatten category name
-    const flatMenus = (menus || []).map((m: any) => ({
+    const flatMenus = (menus || []).map((m: Record<string, unknown>) => ({
       ...m,
-      category_name: m.categories?.name || null,
+      category_name: (m.categories as Record<string, string>)?.name || null,
       categories: undefined,
     }));
 
     return NextResponse.json({ store, categories: categories || [], menus: flatMenus });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("Public menu error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
