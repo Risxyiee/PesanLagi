@@ -164,3 +164,24 @@ Stage Summary:
 - tsconfig.json: Added examples, mini-services, skills to exclude
 - All 8 items were already fixed in previous sessions or are N/A
 - Build passes, tsc --noEmit passes with 0 errors
+---
+Task ID: 2
+Agent: Main
+Task: Fix 3 dashboard pages showing fake/non-functional data to store owners
+
+Work Log:
+- Fixed tsconfig.json to exclude examples/, mini-services/, skills/ (build error)
+- Verified 8 pending items from previous session — all already done or N/A
+- Orders page: Renamed label from "Pesanan Masuk" to "Pesanan (via WhatsApp)", replaced static badge "0" with "Beta" badge, added green WhatsApp info banner explaining orders go to WA not dashboard, updated empty state text to be honest about manual-only tracking
+- Reviews page: Removed entire fake review section (hardcoded 4.8 rating, fake reviewers Budi/Siti/Ahmad, fake 92% recommendation, fake total review count), replaced with clean "Fitur Ulasan Segera Hadir" empty state
+- Reports page: Removed 2 fake cards (Total Pesanan, Pesanan Selesai) that always showed 0 from empty orders array, replaced with info banner explaining data will appear after WA integration; replaced fake Transaksi Terbaru with honest placeholder
+- Added MessageCircle import from lucide-react
+- Updated badge rendering to support non-numeric badges (isNaN check)
+- Verified: tsc --noEmit = 0 errors, lint = 0 errors, build passes
+
+Stage Summary:
+- All fake/misleading data removed from 3 dashboard pages
+- Orders page is honest: explains WA flow, manual orders still work
+- Reviews page: clean empty state, no fake stats
+- Reports page: only shows real data (menu count, category count, price chart), order-dependent sections have clear "coming soon" notices
+- File modified: src/components/dashboard/DashboardApp.tsx

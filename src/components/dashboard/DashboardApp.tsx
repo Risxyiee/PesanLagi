@@ -49,6 +49,7 @@ import {
   Wand2,
   Lock,
   Loader2,
+  MessageCircle,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -180,7 +181,7 @@ const PAGE_TITLES: Record<PageId, string> = {
   dashboard: "Dashboard Warung",
   menu: "Menu Makanan",
   qr: "Kartu QR Code",
-  orders: "Pesanan Masuk",
+  orders: "Pesanan (via WhatsApp)",
   reports: "Laporan Penjualan",
   reviews: "Ulasan Pelanggan",
   notifications: "Notifikasi",
@@ -192,7 +193,7 @@ const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badg
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { id: "menu", icon: UtensilsCrossed, label: "Menu Makanan", badge: "0", badgeColor: "bg-amber-100 text-amber-700" },
   { id: "qr", icon: QrCode, label: "Kartu QR Code" },
-  { id: "orders", icon: ShoppingBag, label: "Pesanan Masuk", badge: "0", badgeColor: "bg-red-100 text-red-600" },
+  { id: "orders", icon: ShoppingBag, label: "Pesanan (via WhatsApp)", badge: "Beta", badgeColor: "bg-blue-100 text-blue-600" },
   { id: "reports", icon: BarChart3, label: "Laporan Penjualan" },
   { id: "reviews", icon: Star, label: "Ulasan Pelanggan" },
   { id: "notifications", icon: Bell, label: "Notifikasi" },
@@ -204,7 +205,7 @@ const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: strin
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { id: "menu", icon: UtensilsCrossed, label: "Menu" },
   { id: "qr", icon: QrCode, label: "QR" },
-  { id: "orders", icon: ShoppingBag, label: "Pesanan" },
+  { id: "orders", icon: ShoppingBag, label: "WA" },
   { id: "settings", icon: User, label: "Profil" },
 ];
 
@@ -1219,7 +1220,7 @@ export default function DashboardApp() {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = activePage === item.id;
-            const badgeCount = item.id === "menu" ? String(menuCount) : item.id === "orders" ? String(newOrderCount) : item.badge;
+            const badgeCount = item.id === "menu" ? String(menuCount) : item.badge;
             return (
               <div
                 key={item.id}
@@ -1228,7 +1229,7 @@ export default function DashboardApp() {
               >
                 <Icon className="w-[18px] h-[18px] shrink-0" />
                 <span className={styles.sidebarLabel}>{item.label}</span>
-                {badgeCount && Number(badgeCount) > 0 && (
+                {badgeCount && (Number(badgeCount) > 0 || isNaN(Number(badgeCount))) && (
                   <span className={`${styles.navBadge} ml-auto text-[10px] font-bold ${item.badgeColor ?? "bg-amber-100 text-amber-700"} px-1.5 py-0.5 rounded-md`}>
                     {badgeCount}
                   </span>
@@ -1944,10 +1945,10 @@ export default function DashboardApp() {
         {/* ============ ORDERS PAGE ============ */}
         {activePage === "orders" && (
           <section>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-extrabold text-slate-900">Pesanan Masuk</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Kelola pesanan pelanggan secara real-time</p>
+                <h2 className="text-xl font-extrabold text-slate-900">Pesanan (via WhatsApp)</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Catat & kelola pesanan manual</p>
               </div>
               <button
                 onClick={() => {
@@ -1968,6 +1969,18 @@ export default function DashboardApp() {
               >
                 <Plus className="w-3.5 h-3.5" /> Tambah Manual
               </button>
+            </div>
+            {/* WhatsApp info banner */}
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-5">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">Pesanan pelanggan masuk ke WhatsApp Anda</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Saat pelanggan order dari halaman menu, pesanan langsung dikirim ke WhatsApp toko. Halaman ini untuk <span className="font-semibold text-slate-700">mencatat pesanan manual</span> (pelanggan langsung/datang ke tempat). Pencatatan otomatis dari WhatsApp akan segera hadir.</p>
+                </div>
+              </div>
             </div>
             {orders.length > 0 ? (
               <>
@@ -2059,8 +2072,8 @@ export default function DashboardApp() {
             ) : (
               <div className="bg-white border border-slate-100 rounded-2xl p-8 sm:p-12 shadow-sm text-center">
                 <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Pesanan Masuk</h3>
-                <p className="text-xs text-slate-500 mb-4">Pesanan pelanggan akan muncul di sini secara real-time.<br/>Anda juga bisa mencatat pesanan manual dari pelanggan langsung.</p>
+                <h3 className="text-sm font-bold text-slate-900 mb-1">Belum Ada Pesanan Manual</h3>
+                <p className="text-xs text-slate-500 mb-4">Catat pesanan dari pelanggan yang datang langsung ke tempat Anda.<br/>Pesanan via WhatsApp tidak tampil di sini.</p>
                 <button
                   onClick={() => {
                     const newOrder: Order = {
@@ -2092,7 +2105,7 @@ export default function DashboardApp() {
               <h2 className="text-xl font-extrabold text-slate-900">Laporan Penjualan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Analisis performa warung Anda</p>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 stagger">
+            <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-5 stagger">
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><UtensilsCrossed className="w-5 h-5 text-amber-600" /></div>
@@ -2107,19 +2120,17 @@ export default function DashboardApp() {
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{catCount}</p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Kategori</p>
               </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><ShoppingBag className="w-5 h-5 text-blue-600" /></div>
+            </div>
+            {/* Order tracking not yet connected */}
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-5">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-blue-600" />
                 </div>
-                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{orders.length}</p>
-                <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Pesanan</p>
-              </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-purple-600" /></div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">Data pesanan belum terhubung</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Total Pesanan dan Pesanan Selesai akan tampil di sini setelah sistem pencatatan order WhatsApp terintegrasi.</p>
                 </div>
-                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{orders.filter(o => o.status === "done").length}</p>
-                <p className="text-xs text-slate-500 mt-1.5 font-medium">Pesanan Selesai</p>
               </div>
             </div>
 
@@ -2192,32 +2203,15 @@ export default function DashboardApp() {
                   </div>
                 )}
               </div>
-              {/* Recent transactions placeholder */}
+              {/* Recent transactions — not yet connected */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 mb-4">Transaksi Terbaru</h3>
-                {orders.length > 0 ? (
-                  <div className="space-y-3">
-                    {orders.slice(0, 5).map((order, idx) => {
-                      const isLast = idx === Math.min(orders.length, 5) - 1;
-                      return (
-                        <div key={order.id} className={`flex items-center gap-3 ${!isLast ? "pb-3 border-b border-slate-100" : ""}`}>
-                          <div className={`w-8 h-8 rounded-lg ${order.status === "done" ? "bg-green-100" : "bg-amber-100"} flex items-center justify-center`}>
-                            {order.status === "done" ? <Check className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-amber-600" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate">{order.id}</p>
-                            <p className="text-[11px] text-slate-500">{order.customer} • {order.time}</p>
-                          </div>
-                          <span className={`text-sm font-bold ${order.status === "done" ? "text-green-600" : "text-amber-600"}`}>{order.total}</span>
-                        </div>
-                      );
-                    })}
+                <div className="h-32 flex items-center justify-center text-center">
+                  <div>
+                    <Clock className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400">Akan tampil setelah sistem pesanan terhubung</p>
                   </div>
-                ) : (
-                  <div className="h-32 flex items-center justify-center">
-                    <p className="text-xs text-slate-400">Belum ada transaksi</p>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </section>
@@ -2229,69 +2223,10 @@ export default function DashboardApp() {
               <h2 className="text-xl font-extrabold text-slate-900">Ulasan Pelanggan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Lihat dan balas ulasan dari pelanggan setia</p>
             </div>
-            {/* Stats cards */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
-                <p className="text-2xl font-extrabold text-amber-600">4.8</p>
-                <div className="flex justify-center gap-0.5 my-1">
-                  {[1,2,3,4,5].map(s => (
-                    <Star key={s} className={`w-3.5 h-3.5 ${s <= 4 ? "text-amber-400 fill-amber-400" : s === 5 ? "text-amber-400" : "text-slate-300"}`} />
-                  ))}
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium">Rating Rata-rata</p>
-              </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
-                <p className="text-2xl font-extrabold text-green-600">{menus.length > 0 ? Math.min(menus.length * 3, 47) : 0}</p>
-                <p className="text-[11px] text-slate-500 font-medium mt-1">Total Ulasan</p>
-              </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-center">
-                <p className="text-2xl font-extrabold text-blue-600">92%</p>
-                <p className="text-[11px] text-slate-500 font-medium mt-1">Rekomendasi</p>
-              </div>
-            </div>
-            {/* Sample reviews */}
-            <div className="space-y-3 stagger">
-              {[
-                { name: "Budi Santoso", text: "Nasi gorengnya enak banget! Porsinya juga banyak, pasti balik lagi.", rating: 5, time: "2 jam lalu", avatar: "B" },
-                { name: "Siti Rahayu", text: "Es teh manisnya segar, menu lengkap, tempat nyaman. Recommended!", rating: 5, time: "5 jam lalu", avatar: "S" },
-                { name: "Ahmad Fadli", text: "Soto ayamnya juara, tapi kadang lama waiting time-nya. Overall oke.", rating: 4, time: "1 hari lalu", avatar: "A" },
-              ].map((r, i) => (
-                <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0">
-                      <span className="text-white font-bold text-sm">{r.avatar}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-bold text-slate-900">{r.name}</p>
-                        <span className="text-[11px] text-slate-400">{r.time}</span>
-                      </div>
-                      <div className="flex gap-0.5 mb-2">
-                        {[1,2,3,4,5].map(s => (
-                          <Star key={s} className={`w-3 h-3 ${s <= r.rating ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
-                        ))}
-                      </div>
-                      <p className="text-sm text-slate-600">{r.text}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* CTA for review link */}
-            <div className="mt-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 text-center">
-              <Link className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2" />
-              <h3 className="text-sm font-bold text-slate-900 mb-1">Bagikan Link Ulasan</h3>
-              <p className="text-xs text-slate-500 mb-3">Minta pelanggan memberikan ulasan setelah makan</p>
-              <button
-                onClick={() => {
-                  const url = storeSlug ? `pesanlagi.web.id/menu/${storeSlug}` : window.location.origin;
-                  navigator.clipboard.writeText(url);
-                  showToast("Link berhasil disalin!");
-                }}
-                className="px-4 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-colors"
-              >
-                <Copy className="w-3.5 h-3.5 inline mr-1" /> Salin Link Menu
-              </button>
+            <div className="bg-white border border-slate-100 rounded-2xl p-12 shadow-sm text-center">
+              <Star className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Fitur Ulasan Segera Hadir</h3>
+              <p className="text-xs text-slate-500 max-w-xs mx-auto">Sistem ulasan pelanggan sedang dalam pengembangan. Nanti Anda bisa melihat rating, balas ulasan, dan meminta feedback pelanggan langsung dari sini.</p>
             </div>
           </section>
         )}
