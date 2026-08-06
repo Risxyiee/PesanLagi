@@ -29,14 +29,14 @@ export async function GET(
     // 2. Get categories for this store
     const { data: categories } = await admin
       .from("categories")
-      .select("*")
+      .select("id, name")
       .eq("store_id", storeId)
       .order("name", { ascending: true });
 
     // 3. Get available menus joined with category name
     const { data: menus } = await admin
       .from("menus")
-      .select("*, categories(name)")
+      .select("id, name, description, price, image_url, category_id, is_available, categories(name)")
       .eq("store_id", storeId)
       .eq("is_available", true)
       .order("name", { ascending: true });

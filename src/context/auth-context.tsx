@@ -61,11 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser, getSupabase]);
 
   const signUp = async (email: string, password: string) => {
-    const supabase = await getSupabase();
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return { error: error.message };
-    if (data.user && !data.session) return { requireEmailVerification: true };
-    return {};
+    try {
+      const res = await fetch('/api/auth/sign-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Pendaftaran gagal' };
+      if (data.requireEmailVerification) return { requireEmailVerification: true };
+      // Server set session cookies — refresh local auth state
+      await fetchUser();
+      return {};
+    } catch {
+      return { error: 'Gagal terhubung ke server' };
+    }
   };
 
   const signIn = async (email: string, password: string) => {

@@ -906,7 +906,7 @@ export default function DashboardApp() {
         } catch {}
       }, 500);
     }
-  }, []);
+  }, [store]);
 
   /* ---------- derived ---------- */
   const isDarkQr = qrActiveTemplate === "pesanlagi" || qrActiveTemplate === "dark_gold";

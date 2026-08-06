@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ available: true });
     }
 
-    return NextResponse.json({ available: false, id: data.id });
+    return NextResponse.json({ available: false });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
