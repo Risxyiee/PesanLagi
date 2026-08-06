@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { rateLimitCheckSlug } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
+  const limited = rateLimitCheckSlug(req);
+  if (limited) return limited;
+
   try {
     const slug = req.nextUrl.searchParams.get("slug");
     const excludeId = req.nextUrl.searchParams.get("exclude_id");

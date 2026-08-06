@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { withCookies } from "@/lib/auth-helper";
+import { rateLimitSignIn } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimitSignIn(req);
+  if (limited) return limited;
+
   try {
     const { email, password } = await req.json();
     if (!email || !password) {

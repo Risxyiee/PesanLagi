@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { withCookies } from "@/lib/auth-helper";
+import { rateLimitSignUp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimitSignUp(req);
+  if (limited) return limited;
+
   // Create a response object early so Supabase can set session cookies on it
   const res = NextResponse.json({ success: true });
 

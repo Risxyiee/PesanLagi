@@ -12,6 +12,26 @@ const ALLOWED_TYPES = new Set([
   "image/gif",
 ]);
 
+/* ------------------------------------------------------------------ */
+/*  Magic-byte signatures for common image formats                     */
+/* ------------------------------------------------------------------ */
+const MAGIC: Record<string, (buf: Uint8Array) => boolean> = {
+  "image/jpeg": (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  "image/png":  (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,
+  "image/webp": (b) =>
+    b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+    b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50,
+  "image/gif":  (b) => b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38,
+};
+
+async function validateMagicBytes(file: File): Promise<boolean> {
+  const checker = MAGIC[file.type];
+  if (!checker) return false; // unknown type should not reach here
+  const ab = await file.arrayBuffer();
+  const buf = new Uint8Array(ab, 0, Math.min(ab.byteLength, 12));
+  return checker(buf);
+}
+
 export async function POST(req: NextRequest) {
   const auth = await authenticateRequest();
   if (auth.error) return auth.error;
@@ -37,6 +57,11 @@ export async function POST(req: NextRequest) {
     }
     if (file.size > MAX_FILE_SIZE) {
       return withCookies(res, { error: "File terlalu besar (maks 5MB)" }, 400);
+    }
+
+    // Validate file content matches declared type (magic-byte check)
+    if (!(await validateMagicBytes(file))) {
+      return withCookies(res, { error: "File tidak valid atau rusak." }, 400);
     }
 
     // Ensure bucket exists
