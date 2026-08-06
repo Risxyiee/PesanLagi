@@ -141,3 +141,26 @@ Stage Summary:
 - 6 preset templates, styling, and layout completely untouched
 - Files changed: .env, src/app/api/public/menu/[slug]/route.ts, src/components/dashboard/DashboardApp.tsx, package.json, bun.lockb
 - ESLint: 0 errors, 1 pre-existing warning (font in layout.tsx)
+---
+Task ID: 1
+Agent: Main
+Task: Fix build error (socket.io module not found) + verify 8 pending items from previous session
+
+Work Log:
+- Fixed build error: tsconfig.json `include: ["**/*.ts"]` was pulling in `examples/websocket/server.ts` (needs socket.io) and `skills/image-edit/scripts/image-edit.ts` (type error)
+- Added `"examples"`, `"mini-services"`, `"skills"` to tsconfig.json `exclude` array
+- Build passed clean after fix
+- Verified all 8 pending items:
+  - H1 (edit menu): Already implemented - editingMenuId state, Pencil button, PATCH in handleSaveMenu, modal title changes
+  - H4 (toggle rollback): Already implemented - both handleToggleStock and handleToggleStore have optimistic update + catch rollback
+  - M2 (objectURL leak): Already fixed - compressImage() revokes in onload and onerror
+  - M4 (StoreData interface): Already fixed - uses whatsapp, logo_url, hours
+  - M5 (dual login): N/A - /login is just redirect("/#login"), LoginView is the single login UI
+  - L1 (phantom id): Already fixed - Store interface has no id field
+  - L4 (hashchange cleanup): N/A - login/page.tsx is a simple redirect, no event listeners
+  - H8 (build config): Already done - ignoreBuildErrors:false, reactStrictMode:true; npx tsc --noEmit = 0 errors
+
+Stage Summary:
+- tsconfig.json: Added examples, mini-services, skills to exclude
+- All 8 items were already fixed in previous sessions or are N/A
+- Build passes, tsc --noEmit passes with 0 errors
