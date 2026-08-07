@@ -5,11 +5,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 /**
- * Midtrans Payment Notification Webhook
+ * Midtrans Payment Notification Webhook (idempotent)
  *
  * order_id format: PRO-{userId} (e.g. PRO-abc123def456)
- * On successful payment, sets profiles.is_pro = true and
- * extends pro_expiry_date by 30 days from now.
+ * Uses payment_transactions table to prevent double-processing.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -49,7 +48,6 @@ export async function POST(req: NextRequest) {
     }
 
     /* ---- 2. Parse order_id → userId ---- */
-    // Expected format: PRO-{userId}
     const userId = order_id.startsWith("PRO-") ? order_id.slice(4) : null;
     if (!userId) {
       console.warn("[Midtrans Webhook] Unrecognized order_id format:", order_id);
@@ -67,20 +65,54 @@ export async function POST(req: NextRequest) {
       transaction_status === "expire";
 
     if (!isSuccess && !isFailure) {
-      // Pending / challenge — nothing to do yet
       console.log("[Midtrans Webhook] Transaction pending:", order_id, transaction_status);
       return NextResponse.json({ status: "OK" }, { status: 200 });
     }
 
-    /* ---- 4. Update database ---- */
+    /* ---- 4. Get DB client ---- */
     const admin = createSupabaseAdminClient();
     if (!admin) {
       console.error("[Midtrans Webhook] Supabase admin client unavailable");
       return NextResponse.json({ status: "OK" }, { status: 200 });
     }
 
+    /* ---- 5. Idempotency check via payment_transactions ---- */
+    const effectiveStatus = isSuccess ? "settlement" : transaction_status;
+
+    const { data: existing } = await admin
+      .from("payment_transactions")
+      .select("order_id, transaction_status")
+      .eq("order_id", order_id)
+      .maybeSingle();
+
+    // Already processed this exact status → skip, return 200 OK
+    if (existing && existing.transaction_status === effectiveStatus) {
+      console.log("[Midtrans Webhook] Duplicate skip (already processed):", order_id, effectiveStatus);
+      return NextResponse.json({ status: "OK" }, { status: 200 });
+    }
+
+    /* ---- 6. Upsert payment_transactions (race-condition safe) ---- */
+    // onConflict='order_id' ensures only one row per order_id
+    const { error: upsertErr } = await admin
+      .from("payment_transactions")
+      .upsert(
+        {
+          order_id,
+          user_id: userId,
+          transaction_status: effectiveStatus,
+          gross_amount: Number(gross_amount) || 0,
+          processed_at: new Date().toISOString(),
+        },
+        { onConflict: "order_id" }
+      );
+
+    if (upsertErr) {
+      console.error("[Midtrans Webhook] Upsert error:", upsertErr);
+      return NextResponse.json({ status: "OK" }, { status: 200 });
+    }
+
+    /* ---- 7. Update profiles if success ---- */
     if (isSuccess) {
-      // Fetch current profile to preserve existing expiry if still valid
       const { data: profile } = await admin
         .from("profiles")
         .select("pro_expiry_date")
@@ -92,7 +124,6 @@ export async function POST(req: NextRequest) {
         ? new Date(profile.pro_expiry_date as string)
         : null;
 
-      // If existing Pro hasn't expired, extend from that date; otherwise from now
       const baseDate =
         currentExpiry && currentExpiry.getTime() > now.getTime()
           ? currentExpiry
@@ -109,26 +140,14 @@ export async function POST(req: NextRequest) {
       if (error) {
         console.error("[Midtrans Webhook] DB update error:", error);
       } else {
-        console.log(
-          "[Midtrans Webhook] Pro activated for user:",
-          userId,
-          "expiry:",
-          newExpiry
-        );
+        console.log("[Midtrans Webhook] Pro activated for user:", userId, "expiry:", newExpiry);
       }
     }
 
     if (isFailure) {
-      console.log(
-        "[Midtrans Webhook] Payment failed for user:",
-        userId,
-        "status:",
-        transaction_status
-      );
-      // No DB change needed — is_pro stays as-is (was never set to true)
+      console.log("[Midtrans Webhook] Payment failed for user:", userId, "status:", transaction_status);
     }
 
-    /* ---- 5. Always return 200 to Midtrans ---- */
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch (err) {
     console.error("[Midtrans Webhook] Unhandled error:", err);
