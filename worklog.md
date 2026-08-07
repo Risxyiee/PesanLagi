@@ -185,3 +185,25 @@ Stage Summary:
 - Reviews page: clean empty state, no fake stats
 - Reports page: only shows real data (menu count, category count, price chart), order-dependent sections have clear "coming soon" notices
 - File modified: src/components/dashboard/DashboardApp.tsx
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Fix admin panel tidak terlihat di sidebar dan mobile
+
+Work Log:
+- Diagnosa: Admin Panel ada di posisi paling bawah sidebar (item ke-10) dan tidak ada di mobile bottom nav
+- Pindahkan Admin Panel dari posisi terakhir ke posisi ke-2 (setelah Dashboard) di NAV_ITEMS
+- Tambahkan admin item ke BOTTOM_NAV_ITEMS untuk akses mobile
+- Tambahkan `adminOnly` flag ke tipe data NAV_ITEMS dan BOTTOM_NAV_ITEMS
+- Tambahkan visual separator (garis) sebelum admin item di sidebar
+- Styling khusus admin: teks merah, hover merah, active gradient merah
+- Mobile bottom nav: admin item warna merah saat active, filter berdasarkan isAdminUser
+- Gunakan `adminOnly` flag untuk filter (bukan hardcode item.id === "admin")
+- Lint bersih (0 errors), push ke GitHub
+
+Stage Summary:
+- Admin Panel sekarang di posisi ke-2 sidebar (sudah pasti terlihat tanpa scroll)
+- Admin Panel bisa diakses dari mobile bottom nav
+- Visual: separator garis, warna merah, badge "Admin"
+- Commit 6482a2c pushed ke origin/main
