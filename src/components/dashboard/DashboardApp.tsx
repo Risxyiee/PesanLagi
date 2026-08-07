@@ -194,8 +194,9 @@ const PAGE_TITLES: Record<PageId, string> = {
   admin: "Admin Panel",
 };
 
-const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badge?: string; badgeColor?: string }[] = [
+const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badge?: string; badgeColor?: string; adminOnly?: boolean }[] = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { id: "admin", icon: Shield, label: "Admin Panel", badge: "Admin", badgeColor: "bg-red-100 text-red-600", adminOnly: true },
   { id: "menu", icon: UtensilsCrossed, label: "Menu Makanan", badge: "0", badgeColor: "bg-amber-100 text-amber-700" },
   { id: "qr", icon: QrCode, label: "Kartu QR Code" },
   { id: "orders", icon: ShoppingBag, label: "Pesanan (via WhatsApp)", badge: "Beta", badgeColor: "bg-blue-100 text-blue-600" },
@@ -204,11 +205,11 @@ const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badg
   { id: "notifications", icon: Bell, label: "Notifikasi" },
   { id: "blog", icon: Sparkles, label: "Blog & Tips" },
   { id: "settings", icon: Settings, label: "Pengaturan Profil" },
-  { id: "admin", icon: Shield, label: "Admin Panel", badge: "Admin", badgeColor: "bg-red-100 text-red-600" },
 ];
 
-const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string }[] = [
+const BOTTOM_NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; adminOnly?: boolean }[] = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { id: "admin", icon: Shield, label: "Admin", adminOnly: true },
   { id: "menu", icon: UtensilsCrossed, label: "Menu" },
   { id: "qr", icon: QrCode, label: "QR" },
   { id: "orders", icon: ShoppingBag, label: "WA" },
@@ -1238,24 +1239,28 @@ export default function DashboardApp() {
 
         {/* Nav items */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto sidebarScroll" style={{ scrollbarWidth: "thin" }}>
-          {NAV_ITEMS.map((item) => {
-            if (item.id === "admin" && !isAdminUser) return null;
+          {NAV_ITEMS.map((item, idx) => {
+            if (item.adminOnly && !isAdminUser) return null;
             const Icon = item.icon;
             const isActive = activePage === item.id;
             const badgeCount = item.id === "menu" ? String(menuCount) : item.badge;
+            // Show divider before admin item
+            const showDivider = item.adminOnly && isAdminUser && idx > 0;
             return (
-              <div
-                key={item.id}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
-                onClick={() => navigate(item.id)}
-              >
-                <Icon className="w-[18px] h-[18px] shrink-0" />
-                <span className={styles.sidebarLabel}>{item.label}</span>
-                {badgeCount && (Number(badgeCount) > 0 || isNaN(Number(badgeCount))) && (
-                  <span className={`${styles.navBadge} ml-auto text-[10px] font-bold ${item.badgeColor ?? "bg-amber-100 text-amber-700"} px-1.5 py-0.5 rounded-md`}>
-                    {badgeCount}
-                  </span>
-                )}
+              <div key={item.id}>
+                {showDivider && <div className="border-t border-slate-200/70 my-2 mx-1" />}
+                <div
+                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${item.adminOnly ? "!text-red-600 hover:!bg-red-50" : ""} ${isActive && item.adminOnly ? "!bg-gradient-to-r !from-red-500 !to-red-600 !shadow-red-500/30" : ""}`}
+                  onClick={() => navigate(item.id)}
+                >
+                  <Icon className="w-[18px] h-[18px] shrink-0" />
+                  <span className={styles.sidebarLabel}>{item.label}</span>
+                  {badgeCount && (Number(badgeCount) > 0 || isNaN(Number(badgeCount))) && (
+                    <span className={`${styles.navBadge} ml-auto text-[10px] font-bold ${item.badgeColor ?? "bg-amber-100 text-amber-700"} px-1.5 py-0.5 rounded-md`}>
+                      {badgeCount}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -2647,12 +2652,14 @@ export default function DashboardApp() {
       {/* ==================== BOTTOM NAV ==================== */}
       <nav className={styles.bottomNav}>
         {BOTTOM_NAV_ITEMS.map((item) => {
+          if ('adminOnly' in item && item.adminOnly && !isAdminUser) return null;
           const Icon = item.icon;
           const isActive = activePage === item.id;
+          const isAdminItem = 'adminOnly' in item && item.adminOnly;
           return (
             <div
               key={item.id}
-              className={`${styles.bottomNavItem} ${isActive ? styles.bottomNavItemActive : ""}`}
+              className={`${styles.bottomNavItem} ${isActive ? styles.bottomNavItemActive : ""} ${isActive && isAdminItem ? "!text-red-500 !bg-red-50" : ""} ${!isActive && isAdminItem ? "!text-red-400" : ""}`}
               onClick={() => navigate(item.id)}
             >
               <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
