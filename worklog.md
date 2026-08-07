@@ -225,3 +225,32 @@ Work Log:
 Stage Summary:
 - File di-restore 100% identik dari versi terakhir di git history
 - Commit ac9fe3e pushed ke origin/main
+---
+Task ID: 1
+Agent: Main Agent
+Task: Redesign dashboard QR live preview to match landing page design + Fix AI integration
+
+Work Log:
+- Analyzed uploaded image (IMG_8032.png) with VLM to understand landing page QR card design
+- Identified landing page QR card: PESANLAGI header + green Live badge, white QR container, business info, footer with Meja/ID
+- Explored dashboard DashboardApp.tsx QR preview (lines 1810-1847) - found completely different design (simple logo+name+QR+URL)
+- Explored AI generate-theme API route - found it complete with Gemini integration
+- Added MapPin icon import to lucide-react
+- Added qrTableNumber state and storeCode/storeAddress derived values
+- Completely rewrote QR live preview card JSX to match landing page design:
+  - Header: orange gradient logo icon + PESANLAGI text + Live green badge
+  - QR: white rounded-2xl container with shadow-inner, accent border for dark templates
+  - Info: "SCAN UNTUK LIHAT MENU" uppercase, store name, address with MapPin icon
+  - Footer: editable Meja number, 3 accent dots, store ID code
+- Completely rewrote handleQrExport canvas drawing to match new design (header, QR, info, footer)
+- Fixed canvas clip issue (save/restore pattern)
+- Added "pesanlagi" template to AI generate-theme API allowed templates list
+- Updated AI system prompt to include pesanlagi template description
+- Verified: TypeScript compilation passes, ESLint clean, dev server runs without errors
+
+Stage Summary:
+- Dashboard QR live preview now matches landing page design exactly
+- QR export (PNG/PDF) generates matching design with header, info, footer
+- AI theme generation properly integrated with pesanlagi template option added
+- Table number editable directly in QR card preview
+- Store ID auto-generated from store name initials + year

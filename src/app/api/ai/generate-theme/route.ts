@@ -14,7 +14,7 @@ Kembalikan JSON saja, tanpa markdown fence, tanpa penjelasan tambahan:
   "qrColor": "#HEX", 
   "textColor": "#HEX",
   "accentColor": "#HEX",
-  "template": "minimalist" | "rustic" | "dark_gold" | "acrylic",
+  "template": "pesanlagi" | "minimalist" | "rustic" | "dark_gold" | "acrylic",
   "reason": "penjelasan singkat 1 kalimat kenapa warna ini cocok"
 }
 
@@ -24,7 +24,8 @@ Panduan pemilihan:
 - textColor: warna judul & teks utama, harus readable
 - accentColor: warna aksen (powered by text, badge, highlight)
 - template: pilih yang paling cocok dengan vibe warung
-  - minimalist: cocok untuk umum, bersih, modern
+  - pesanlagi: cocok untuk umum, brand default, background gelap elegan dengan aksen orange
+  - minimalist: cocok untuk umum, bersih, modern, background terang
   - rustic: cocok untuk warung tradisional, kayu, kafe vintage
   - dark_gold: cocok untuk fine dining, bar, lounge, mewah
   - acrylic: cocok untuk modern, minimalis, clean look
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
     const qrColor = hexRegex.test(parsed.qrColor) ? parsed.qrColor : '#0F172A';
     const textColor = hexRegex.test(parsed.textColor) ? parsed.textColor : '#0F172A';
     const accentColor = hexRegex.test(parsed.accentColor) ? parsed.accentColor : '#F59E0B';
-    const validTemplates = ['minimalist', 'rustic', 'dark_gold', 'acrylic'];
+    const validTemplates = ['pesanlagi', 'minimalist', 'rustic', 'dark_gold', 'acrylic'];
     const template = validTemplates.includes(parsed.template) ? parsed.template : 'minimalist';
     const reason = typeof parsed.reason === 'string' ? parsed.reason : 'Desain yang cocok untuk warungmu!';
 

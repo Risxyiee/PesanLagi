@@ -52,6 +52,7 @@ import {
   MessageCircle,
   Shield,
   Users,
+  MapPin,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -342,6 +343,7 @@ export default function DashboardApp() {
   const [qrAccentColor, setQrAccentColor] = useState("#F59E0B");
   const [qrActiveTemplate, setQrActiveTemplate] = useState("pesanlagi");
   const [qrCustomBgImage, setQrCustomBgImage] = useState<string | null>(null);
+  const [qrTableNumber, setQrTableNumber] = useState("01");
   const qrExportRef = useRef<HTMLDivElement>(null);
   const qrFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1027,6 +1029,8 @@ export default function DashboardApp() {
   const storeName = store?.name ?? user?.name ?? "Warung Saya";
   const storeSlug = (store?.slug ?? settingsSlug) || "warung-saya";
   const storeLogo = store?.logo_url ?? "";
+  const storeAddress = store?.address ?? settingsAddress ?? "";
+  const storeCode = storeName.split(/\s+/).map(w => w.charAt(0).toUpperCase()).slice(0, 3).join('') + '-' + new Date().getFullYear().toString().slice(-2);
   const isPro = isAdminUser || (user?.is_pro ?? false);
   const menuCount = menus.length;
   const catCount = categories.length;
@@ -1070,13 +1074,19 @@ export default function DashboardApp() {
       const isDark = qrActiveTemplate === "pesanlagi" || qrActiveTemplate === "dark_gold";
       const textCol = isDark ? "#FFFFFF" : qrTextColor;
       const accentCol = qrActiveTemplate === "pesanlagi" ? "#F97316" : qrAccentColor;
+      const brandCol = isDark ? "#F97316" : "#EA580C";
+      const addressText = storeAddress || "";
 
-      const W = 630; const H = 720;
+      const W = 630; const H = 890;
       const cvs = document.createElement("canvas");
       cvs.width = W * 2; cvs.height = H * 2;
       const ctx = cvs.getContext("2d")!;
       ctx.scale(2, 2);
-      const pad = 30;
+      const pad = 28;
+
+      // Card background
+      ctx.save();
+      canvasRoundRect(ctx, 0, 0, W, H, 20); ctx.clip();
 
       if (qrActiveTemplate === "pesanlagi") {
         ctx.fillStyle = "#14100B"; ctx.fillRect(0, 0, W, H);
@@ -1085,6 +1095,8 @@ export default function DashboardApp() {
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       } else if (qrActiveTemplate === "dark_gold") {
         ctx.fillStyle = "#0F172A"; ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = accentCol; ctx.lineWidth = 2;
+        canvasRoundRect(ctx, pad / 2, pad / 2, W - pad, H - pad, 14); ctx.stroke();
       } else if (qrActiveTemplate === "rustic") {
         ctx.fillStyle = qrBgColor || "#FDFBF7"; ctx.fillRect(0, 0, W, H);
         ctx.strokeStyle = "rgba(139,90,43,0.06)"; ctx.lineWidth = 1;
@@ -1099,72 +1111,142 @@ export default function DashboardApp() {
       if (qrActiveTemplate === "acrylic") {
         ctx.fillStyle = "#F1F5F9"; ctx.fillRect(0, 0, W, 18); ctx.fillRect(0, H - 18, W, 18);
       }
-      if (isDark) {
-        ctx.strokeStyle = accentCol; ctx.lineWidth = 3;
-        canvasRoundRect(ctx, pad / 2, pad / 2, W - pad, H - pad, 14);
-        ctx.stroke();
-      }
 
+      let cy = pad + 4;
       const cx = W / 2;
-      let cy = pad + 16;
 
-      const logoS = 60; const logoX = cx - logoS / 2;
-      if (storeLogo) {
-        try {
-          const lImg = await loadImg(storeLogo);
-          ctx.save(); canvasRoundRect(ctx, logoX, cy, logoS, logoS, 14); ctx.clip();
-          ctx.drawImage(lImg, logoX, cy, logoS, logoS);
-          ctx.restore();
-          ctx.shadowColor = "rgba(0,0,0,0.15)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-          ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2;
-          canvasRoundRect(ctx, logoX, cy, logoS, logoS, 14); ctx.stroke();
-          ctx.shadowColor = "transparent";
-        } catch { drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2); }
-      } else { drawFallbackLogo(ctx, cx, cy + logoS / 2, logoS / 2); }
-      cy += logoS + 12;
+      // === HEADER ===
+      // Logo icon (orange gradient box with QR icon)
+      const logoX = pad + 2;
+      const logoS = 30;
+      const grad = ctx.createLinearGradient(logoX, cy, logoX + logoS, cy + logoS);
+      grad.addColorStop(0, "#FB923C"); grad.addColorStop(1, "#EA580C");
+      ctx.fillStyle = grad;
+      canvasRoundRect(ctx, logoX, cy, logoS, logoS, 8); ctx.fill();
+      // QR icon inside logo
+      ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2;
+      ctx.strokeRect(logoX + 6, cy + 6, 10, 10);
+      ctx.strokeRect(logoX + 19, cy + 6, 10, 10);
+      ctx.strokeRect(logoX + 6, cy + 19, 10, 10);
+      ctx.strokeRect(logoX + 19, cy + 19, 4, 4);
+      ctx.strokeRect(logoX + 25, cy + 19, 4, 4);
+      ctx.strokeRect(logoX + 19, cy + 25, 10, 0);
 
-      ctx.fillStyle = textCol;
-      ctx.font = "bold 22px system-ui,-apple-system,sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(storeName, cx, cy); cy += 16;
+      // PESANLAGI text
+      ctx.fillStyle = brandCol;
+      ctx.font = "bold 11px system-ui,-apple-system,sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("PESANLAGI", logoX + logoS + 8, cy + 14);
+      ctx.fillStyle = textCol + "99";
+      ctx.font = "9px system-ui,sans-serif";
+      ctx.fillText("QR Menu Digital", logoX + logoS + 8, cy + 25);
 
-      ctx.fillStyle = textCol + "AA";
-      ctx.font = "13px system-ui,sans-serif";
-      ctx.fillText("Scan untuk lihat menu & pesan", cx, cy); cy += 18;
+      // Live badge (right)
+      const badgeText = "Live";
+      ctx.font = "bold 9px system-ui,sans-serif";
+      const badgeW = ctx.measureText(badgeText).width + 14;
+      const badgeX = W - pad - badgeW - 2;
+      ctx.fillStyle = isDark ? "rgba(34,197,94,0.15)" : "#F0FDF4";
+      canvasRoundRect(ctx, badgeX, cy + 5, badgeW, 20, 10); ctx.fill();
+      // Green dot
+      ctx.beginPath(); ctx.arc(badgeX + 9, cy + 15, 3, 0, Math.PI * 2);
+      ctx.fillStyle = "#22C55E"; ctx.fill();
+      // Live text
+      ctx.fillStyle = "#15803D";
+      ctx.textAlign = "center";
+      ctx.fillText(badgeText, badgeX + badgeW / 2 + 3, cy + 19);
 
-      const qrPx = 340; const qrPad = 14;
-      const qrW = qrPx + qrPad * 2;
+      cy += logoS + 22;
+
+      // === QR CODE ===
+      const qrPx = 380;
+      const qrPadBox = 14;
+      const qrW = qrPx + qrPadBox * 2;
       const qrX = cx - qrW / 2;
+
+      // White QR container
       ctx.fillStyle = "#FFFFFF";
-      canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.fill();
+      canvasRoundRect(ctx, qrX, cy, qrW, qrW, 14); ctx.fill();
       if (isDark) {
         ctx.strokeStyle = accentCol; ctx.lineWidth = 3;
-        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.stroke();
+        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 14); ctx.stroke();
       } else {
-        ctx.shadowColor = "rgba(0,0,0,0.06)"; ctx.shadowBlur = 6;
-        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 10); ctx.fill();
-        ctx.shadowColor = "transparent";
+        ctx.shadowColor = "rgba(0,0,0,0.06)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
+        canvasRoundRect(ctx, qrX, cy, qrW, qrW, 14); ctx.fill();
+        ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       }
+
       const qrDataUrl = qrDataUrlRef.current || await getQrDataUrl(
         `${process.env.NEXT_PUBLIC_APP_URL || "https://pesanlagi.web.id"}/menu/${storeSlug}`,
         qrFgColor,
         "#FFFFFF",
       );
-      await canvasDrawQrFromUrl(ctx, qrX + qrPad, cy + qrPad, qrPx, qrDataUrl);
-      cy += qrW + 16;
+      await canvasDrawQrFromUrl(ctx, qrX + qrPadBox, cy + qrPadBox, qrPx, qrDataUrl);
+      cy += qrW + 24;
 
+      // === INFO SECTION ===
+      ctx.textAlign = "center";
+      // "SCAN UNTUK LIHAT MENU"
       ctx.fillStyle = textCol + "88";
-      ctx.font = "12px system-ui,sans-serif";
-      ctx.fillText(`pesanlagi.web.id/menu/${storeSlug}`, cx, cy); cy += 18;
+      ctx.font = "10px system-ui,sans-serif";
+      ctx.fillText("SCAN UNTUK LIHAT MENU", cx, cy);
+      cy += 18;
 
+      // Store name
+      ctx.fillStyle = textCol;
+      ctx.font = "bold 24px system-ui,-apple-system,sans-serif";
+      ctx.fillText(storeName, cx, cy);
+      cy += 20;
+
+      // Address with pin icon
+      if (addressText) {
+        ctx.fillStyle = accentCol;
+        ctx.font = "10px system-ui,sans-serif";
+        const addrDisplay = addressText.length > 40 ? addressText.slice(0, 40) + '...' : addressText;
+        const addrW = ctx.measureText(addrDisplay).width;
+        const pinX = cx - addrW / 2 - 12;
+        // Draw pin icon (simple circle + triangle)
+        ctx.beginPath(); ctx.arc(pinX + 5, cy - 4, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(pinX + 5, cy); ctx.lineTo(pinX + 1, cy - 2); ctx.lineTo(pinX + 9, cy - 2); ctx.fill();
+        ctx.fillStyle = textCol + "99";
+        ctx.fillText(addrDisplay, cx + 2, cy);
+        cy += 18;
+      }
+
+      // === FOOTER BAR ===
+      cy += 14;
+      const footY = cy;
+      ctx.strokeStyle = textCol + "1A";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, footY); ctx.lineTo(W - pad, footY); ctx.stroke();
+      cy += 16;
+
+      ctx.font = "10px system-ui,sans-serif";
+      ctx.fillStyle = textCol + "99";
+
+      // Left: Meja
+      ctx.textAlign = "left";
+      ctx.fillText(`Meja ${qrTableNumber}`, pad + 2, cy);
+
+      // Center: 3 dots
+      ctx.textAlign = "center";
       ctx.fillStyle = accentCol;
-      ctx.font = "bold 12px system-ui,sans-serif";
-      ctx.fillText("Powered by PesanLagi", cx, cy);
+      ctx.beginPath(); ctx.arc(cx - 5, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 5, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
+
+      // Right: ID
+      ctx.textAlign = "right";
+      ctx.fillStyle = textCol + "99";
+      ctx.fillText(`ID: ${storeCode}`, W - pad - 2, cy);
+
+      ctx.restore(); // Restore clip
 
       if (!isPro) {
         ctx.fillStyle = textCol + "44";
-        ctx.font = "10px system-ui,sans-serif";
+        ctx.font = "9px system-ui,sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("Dibuat dengan PesanLagi.com", cx, H - 14);
+        ctx.fillText("Dibuat dengan PesanLagi.com", cx, H - 12);
       }
 
       if (format === "PNG") {
@@ -1184,7 +1266,7 @@ export default function DashboardApp() {
     } finally {
       setExportingQr(false);
     }
-  }, [storeName, storeSlug, storeLogo, isPro, qrFgColor, qrBgColor, qrAccentColor, qrTextColor, qrActiveTemplate, qrCustomBgImage, showToast]);
+  }, [storeName, storeSlug, storeAddress, storeLogo, isPro, qrFgColor, qrBgColor, qrAccentColor, qrTextColor, qrActiveTemplate, qrCustomBgImage, qrTableNumber, storeCode, showToast]);
 
   const categoryChips = [
     { id: "all", label: `Semua (${menuCount})`, catId: undefined as string | undefined },
@@ -1810,40 +1892,77 @@ export default function DashboardApp() {
                   <div
                     ref={qrExportRef}
                     style={getQrTemplateStyle()}
-                    className={`relative w-full aspect-[105/148] flex flex-col items-center justify-center p-6 sm:p-8 ${getQrTemplateClass()}`}
+                    className={`relative w-full aspect-[105/148] flex flex-col p-6 sm:p-8 ${getQrTemplateClass()}`}
                   >
-                    {/* Watermark for Free — horizontal at bottom */}
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <path d="M14 14h3v3h-3z M17 17h4 M14 21h3 M21 14v3 M21 21v.01"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold" style={{ color: isDarkQr ? '#F97316' : '#EA580C' }}>PESANLAGI</p>
+                          <p className="text-[8px]" style={{ color: qrDisplayText + '99' }}>QR Menu Digital</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: isDarkQr ? 'rgba(34,197,94,0.15)' : '#F0FDF4' }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-[9px] font-semibold text-green-700">Live</span>
+                      </div>
+                    </div>
+
+                    {/* QR Code */}
+                    <div className="flex justify-center mb-4">
+                      <div className="w-full max-w-[220px] aspect-square rounded-2xl p-3.5" style={{ backgroundColor: '#FFFFFF', boxShadow: isDarkQr ? 'none' : 'inset 0 2px 6px rgba(0,0,0,0.06)', border: isDarkQr ? '3px solid ' + qrDisplayAccent : 'none' }}>
+                        <div className="w-full h-full [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: qrSvgHtml }} />
+                      </div>
+                    </div>
+
+                    {/* Info Section */}
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: qrDisplayText + '88' }}>Scan untuk lihat menu</p>
+                      <h3 className="font-bold text-lg leading-tight mb-1.5" style={{ color: qrDisplayText }}>{storeName}</h3>
+                      {storeAddress && (
+                        <div className="flex items-center justify-center gap-1">
+                          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: qrDisplayAccent }} />
+                          <span className="text-[10px]" style={{ color: qrDisplayText + '99' }}>{storeAddress.length > 40 ? storeAddress.slice(0, 40) + '...' : storeAddress}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer Bar */}
+                    <div className="mt-auto pt-4 border-t flex items-center justify-between" style={{ borderColor: qrDisplayText + '1A' }}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-semibold" style={{ color: qrDisplayText + '99' }}>Meja</span>
+                        <input
+                          type="text"
+                          value={qrTableNumber}
+                          onChange={(e) => setQrTableNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 3) || '01')}
+                          className="w-6 text-center text-[9px] font-semibold bg-transparent outline-none"
+                          style={{ color: qrDisplayText + '99' }}
+                          onClick={(e) => (e.target as HTMLInputElement).select()}
+                        />
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: qrDisplayAccent }}></div>
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: qrDisplayAccent }}></div>
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: qrDisplayAccent }}></div>
+                      </div>
+                      <span className="text-[9px] font-semibold" style={{ color: qrDisplayText + '99' }}>ID: {storeCode}</span>
+                    </div>
+
+                    {/* Watermark for Free */}
                     {!isPro && (
-                      <div className="absolute bottom-2.5 left-0 right-0 flex justify-center pointer-events-none z-10">
-                        <span className="text-[10px] font-semibold tracking-wide" style={{ color: qrDisplayText + "55" }}>
+                      <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none z-10">
+                        <span className="text-[8px] font-semibold tracking-wide" style={{ color: qrDisplayText + '44' }}>
                           Dibuat dengan PesanLagi.com
                         </span>
                       </div>
                     )}
-
-                    <div className="w-14 h-14 rounded-2xl bg-white p-0.5 shadow-md mb-3 z-0">
-                      {storeLogo ? (
-                        <img src={storeLogo} crossOrigin="anonymous" className="w-full h-full rounded-2xl object-cover" alt="Logo" />
-                      ) : (
-                        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700 flex items-center justify-center p-2">
-                          <img src="/pesanlagi-logo.png" alt="" className="w-full h-full object-contain" />
-                        </div>
-                      )}
-                    </div>
-                    <h3 style={{ color: qrDisplayText }} className="text-lg font-extrabold mb-0.5 text-center z-0">
-                      {storeName}
-                    </h3>
-                    <p style={{ color: qrDisplayText + "AA" }} className="text-[11px] mb-4 z-0">Scan untuk lihat menu & pesan</p>
-                    <div className={`p-2.5 bg-white shadow-sm z-0 ${qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? "border-[3px] rounded-xl" : "rounded-xl"}`} style={qrActiveTemplate === "dark_gold" || qrActiveTemplate === "pesanlagi" ? { borderColor: qrDisplayAccent } : {}}>
-                      <div className="w-36 h-36 [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: qrSvgHtml }} />
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 mt-3 mb-1 z-0">
-                      <Globe className="w-3 h-3" style={{ color: qrDisplayText + "88" }} />
-                      <span className="text-[11px] font-medium" style={{ color: qrDisplayText }}>pesanlagi.web.id/menu/{storeSlug}</span>
-                    </div>
-                    <div style={{ color: qrDisplayAccent }} className="text-[11px] font-bold z-0 flex items-center gap-1">
-                      <Sparkles size={11} /> Powered by PesanLagi
-                    </div>
                   </div>
                   {/* Export Buttons */}
                   <div className="mt-5 space-y-2">
