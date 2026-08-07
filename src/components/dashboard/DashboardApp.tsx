@@ -858,15 +858,15 @@ export default function DashboardApp() {
   ];
 
   const handleQrTabClick = useCallback((tab: string) => {
-    if (!(user?.is_pro) && (tab === "ai" || tab === "custom")) {
+    if (!isAdminUser && !(user?.is_pro) && (tab === "ai" || tab === "custom")) {
       setQrShowUpgrade(true);
       return;
     }
     setQrActiveTab(tab);
-  }, [user]);
+  }, [isAdminUser, user]);
 
   const handleAiGenerate = useCallback(async () => {
-    if (!(user?.is_pro)) { setQrShowUpgrade(true); return; }
+    if (!isAdminUser && !(user?.is_pro)) { setQrShowUpgrade(true); return; }
     if (!aiPrompt.trim()) { showToast("Tulis deskripsi warungmu dulu!", "info"); return; }
     setIsAiGenerating(true);
     try {
@@ -975,13 +975,14 @@ export default function DashboardApp() {
   const storeName = store?.name ?? user?.name ?? "Warung Saya";
   const storeSlug = (store?.slug ?? settingsSlug) || "warung-saya";
   const storeLogo = store?.logo_url ?? "";
-  const isPro = user?.is_pro ?? false;
+  const isPro = isAdminUser || (user?.is_pro ?? false);
   const menuCount = menus.length;
   const catCount = categories.length;
   const newOrderCount = orders.filter((o) => o.status === "new").length;
 
   // Pro days remaining
   const proDaysLeft = (() => {
+    if (isAdminUser) return null;
     if (!user?.pro_expiry_date) return null;
     const end = new Date(user.pro_expiry_date);
     const now = new Date();
@@ -1265,8 +1266,8 @@ export default function DashboardApp() {
           })}
         </nav>
 
-        {/* Pro banner */}
-        {isPro && (
+        {/* Pro banner (hide for admin — always pro) */}
+        {isPro && !isAdminUser && (
           <div className={`${styles.proBanner} m-3 p-3.5 rounded-2xl bg-slate-900 text-white relative overflow-hidden`}>
             <div className="absolute -top-8 -right-8 w-24 h-24 bg-amber-500/30 rounded-full blur-2xl" />
             <div className="relative">
