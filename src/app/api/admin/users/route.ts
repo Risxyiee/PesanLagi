@@ -63,9 +63,9 @@ export async function GET(req: NextRequest) {
     // The email will be derived from the store or profile data
 
     // Build store map by user_id
-    const storeByUser: Record<string, (typeof stores)[number]> = {};
+    const storeByUser: Record<string, Record<string, unknown>> = {};
     for (const s of stores || []) {
-      storeByUser[(s as { user_id: string }).user_id] = s;
+      storeByUser[(s as { user_id: string }).user_id] = s as Record<string, unknown>;
     }
 
     // Combine profiles + stores

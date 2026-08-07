@@ -313,8 +313,6 @@ export default function DashboardApp() {
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barAnimated, setBarAnimated] = useState(false);
 
-  const isAdminUser = isAdmin(user?.email);
-
   // Data from API
   const [user, setUser] = useState<UserData | null>(null);
   const [store, setStore] = useState<StoreData | null>(null);
@@ -448,6 +446,7 @@ export default function DashboardApp() {
   }, []);
 
   /* ---------- navigation ---------- */
+  const isAdminUser = isAdmin(user?.email);
   const navigate = useCallback((page: PageId) => {
     setActivePage(page);
     setSidebarMobileOpen(false);
