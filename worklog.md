@@ -207,3 +207,21 @@ Stage Summary:
 - Admin Panel bisa diakses dari mobile bottom nav
 - Visual: separator garis, warna merah, badge "Admin"
 - Commit 6482a2c pushed ke origin/main
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Restore deleted src/app/api/upload/route.ts
+
+Work Log:
+- Cek git log --all untuk semua commit yang berisi file ini (15 commit punya)
+- Ambil versi terakhir dari commit 7221565 (Vercel deploy)
+- Verifikasi file restore IDENTIK dengan versi git history (diff = 0)
+- Verifikasi semua 6 fitur ada: POST+auth, ALLOWED_TYPES, MAX_SIZE 5MB, magic-byte validation (JPEG/PNG/WEBP/GIF), Supabase Storage auto-create bucket, withCookies+publicUrl
+- Lint: 0 errors
+- git status sebelum commit: hanya ?? src/app/api/upload/ (aman, tidak ada file lain)
+- Push ke GitHub
+
+Stage Summary:
+- File di-restore 100% identik dari versi terakhir di git history
+- Commit ac9fe3e pushed ke origin/main
