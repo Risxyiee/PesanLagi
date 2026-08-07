@@ -30,7 +30,23 @@ export async function GET(req: NextRequest) {
       .select("id, is_pro, pro_expiry_date, created_at")
       .order("created_at", { ascending: false });
 
-    const { data: profiles, count: totalProfiles } = await profilesQuery;
+    const { data: profiles } = await profilesQuery;
+
+    // Get auth users for emails & names
+    const authUsersMap: Record<string, { email: string; name: string | null }> = {};
+    try {
+      const { data: authUsers } = await admin.auth.admin.listUsers({
+        perPage: 1000,
+      });
+      for (const au of authUsers.users || []) {
+        authUsersMap[au.id] = {
+          email: au.email ?? "",
+          name: (au.user_metadata as Record<string, string>)?.name ?? au.email ?? "",
+        };
+      }
+    } catch (e) {
+      console.error("Failed to fetch auth users:", e);
+    }
 
     // Get all stores to join
     const { data: stores } = await admin
@@ -58,22 +74,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Get auth users for emails
-    // Note: We can't query auth.users from admin client, so we'll use the profile id
-    // The email will be derived from the store or profile data
-
     // Build store map by user_id
     const storeByUser: Record<string, Record<string, unknown>> = {};
     for (const s of stores || []) {
       storeByUser[(s as { user_id: string }).user_id] = s as Record<string, unknown>;
     }
 
-    // Combine profiles + stores
+    // Combine profiles + stores + auth users
     const users = (profiles || []).map((p: Record<string, unknown>) => {
       const store = storeByUser[p.id as string] as Record<string, unknown> | undefined;
       const storeId = store?.id as string | undefined;
+      const authInfo = authUsersMap[p.id as string] || { email: "", name: null };
       return {
         id: p.id,
+        email: authInfo.email,
+        name: authInfo.name,
         is_pro: p.is_pro ?? false,
         pro_expiry_date: p.pro_expiry_date ?? null,
         created_at: p.created_at,
@@ -93,6 +108,8 @@ export async function GET(req: NextRequest) {
       filtered = users.filter((u: Record<string, unknown>) =>
         ((u.store_name as string) || "").toLowerCase().includes(q) ||
         ((u.store_slug as string) || "").toLowerCase().includes(q) ||
+        ((u.email as string) || "").toLowerCase().includes(q) ||
+        ((u.name as string) || "").toLowerCase().includes(q) ||
         (u.id as string).toLowerCase().includes(q)
       );
     }

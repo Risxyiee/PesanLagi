@@ -254,3 +254,34 @@ Stage Summary:
 - AI theme generation properly integrated with pesanlagi template option added
 - Table number editable directly in QR card preview
 - Store ID auto-generated from store name initials + year
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Admin Pro users countdown + Lock Pro features for free users
+
+Work Log:
+- Updated /api/admin/users route to fetch auth users emails via admin.auth.admin.listUsers()
+- Combined auth user data (email, name) with profiles and stores data in response
+- Rewrote AdminPage.tsx with:
+  - Active Pro Users section at top with real-time countdown timer (1s interval)
+  - Shows user avatar initial, name, email (with Mail icon), store name, and live countdown
+  - Countdown shows days/hours/minutes/seconds, turns orange when ≤3 days, red when expired
+  - "Expired Pro" warning banner at bottom of section
+  - Expandable list (show 5, click to show all)
+  - Users table now shows name + email in User column, removed separate Slug column
+  - Pro column in table shows countdown timer too
+- Added proOnly flag to NAV_ITEMS for: reports, reviews, blog
+- Updated navigate() function to block free users from pro pages (shows upgrade modal)
+- Added Lock icon to sidebar nav items for Pro-only pages (visible to free users)
+- Added Pro lock overlay (blur + centered lock + upgrade button) to:
+  - Laporan Penjualan page
+  - Ulasan Pelanggan page  
+  - Blog & Tips page
+
+Stage Summary:
+- Admin panel now shows active Pro users with real-time countdown (days, hours, minutes, seconds)
+- Free users can no longer access Laporan Penjualan, Ulasan, Blog - all show Pro lock overlay
+- Navigation blocks Pro pages and shows upgrade modal instead
+- Lock icons visible on sidebar for Pro-only features
+- 0 lint errors, 0 TypeScript errors

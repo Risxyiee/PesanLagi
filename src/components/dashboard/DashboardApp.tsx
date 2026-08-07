@@ -195,16 +195,16 @@ const PAGE_TITLES: Record<PageId, string> = {
   admin: "Admin Panel",
 };
 
-const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badge?: string; badgeColor?: string; adminOnly?: boolean }[] = [
+const NAV_ITEMS: { id: PageId; icon: typeof LayoutDashboard; label: string; badge?: string; badgeColor?: string; adminOnly?: boolean; proOnly?: boolean }[] = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { id: "admin", icon: Shield, label: "Admin Panel", badge: "Admin", badgeColor: "bg-red-100 text-red-600", adminOnly: true },
   { id: "menu", icon: UtensilsCrossed, label: "Menu Makanan", badge: "0", badgeColor: "bg-amber-100 text-amber-700" },
   { id: "qr", icon: QrCode, label: "Kartu QR Code" },
   { id: "orders", icon: ShoppingBag, label: "Pesanan (via WhatsApp)", badge: "Beta", badgeColor: "bg-blue-100 text-blue-600" },
-  { id: "reports", icon: BarChart3, label: "Laporan Penjualan" },
-  { id: "reviews", icon: Star, label: "Ulasan Pelanggan" },
+  { id: "reports", icon: BarChart3, label: "Laporan Penjualan", proOnly: true },
+  { id: "reviews", icon: Star, label: "Ulasan Pelanggan", proOnly: true },
   { id: "notifications", icon: Bell, label: "Notifikasi" },
-  { id: "blog", icon: Sparkles, label: "Blog & Tips" },
+  { id: "blog", icon: Sparkles, label: "Blog & Tips", proOnly: true },
   { id: "settings", icon: Settings, label: "Pengaturan Profil" },
 ];
 
@@ -451,10 +451,18 @@ export default function DashboardApp() {
   /* ---------- navigation ---------- */
   const isAdminUser = isAdmin(user?.email);
   const navigate = useCallback((page: PageId) => {
+    // Pro gate for navigation
+    if (!isAdminUser && !(user?.is_pro)) {
+      const proPages: PageId[] = ["reports", "reviews", "blog"];
+      if (proPages.includes(page)) {
+        setQrShowUpgrade(true);
+        return;
+      }
+    }
     setActivePage(page);
     setSidebarMobileOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  }, [user, isAdminUser]);
 
   /* ---------- chart animation ---------- */
   useEffect(() => {
@@ -1389,6 +1397,7 @@ export default function DashboardApp() {
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
                   <span className={styles.sidebarLabel}>{item.label}</span>
+                  {item.proOnly && !isPro && <Lock size={12} className="ml-auto text-amber-400 shrink-0" />}
                   {badgeCount && (Number(badgeCount) > 0 || isNaN(Number(badgeCount))) && (
                     <span className={`${styles.navBadge} ml-auto text-[10px] font-bold ${item.badgeColor ?? "bg-amber-100 text-amber-700"} px-1.5 py-0.5 rounded-md`}>
                       {badgeCount}
@@ -2307,7 +2316,20 @@ export default function DashboardApp() {
 
         {/* ============ REPORTS PAGE ============ */}
         {activePage === "reports" && (
-          <section>
+          <section className="relative">
+            {!isPro && (
+              <div className="absolute inset-0 bg-white/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-3">
+                  <Lock className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-base font-bold text-slate-900 mb-1">Fitur Khusus Pro</p>
+                <p className="text-xs text-slate-500 mb-4 text-center max-w-xs">Laporan penjualan, analisis menu terlaris, dan tracking revenue hanya tersedia untuk pengguna Pro.</p>
+                <button onClick={() => setQrShowUpgrade(true)} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform">
+                  <Crown className="w-4 h-4 inline mr-1.5" /> Upgrade ke Pro
+                </button>
+              </div>
+            )}
+
             <div className="mb-5">
               <h2 className="text-xl font-extrabold text-slate-900">Laporan Penjualan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Analisis performa warung Anda</p>
@@ -2425,7 +2447,19 @@ export default function DashboardApp() {
         )}
 
         {activePage === "reviews" && (
-          <section>
+          <section className="relative">
+            {!isPro && (
+              <div className="absolute inset-0 bg-white/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-3">
+                  <Lock className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-base font-bold text-slate-900 mb-1">Fitur Khusus Pro</p>
+                <p className="text-xs text-slate-500 mb-4 text-center max-w-xs">Ulasan pelanggan, rating bintang, dan feedback management hanya tersedia untuk pengguna Pro.</p>
+                <button onClick={() => setQrShowUpgrade(true)} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform">
+                  <Crown className="w-4 h-4 inline mr-1.5" /> Upgrade ke Pro
+                </button>
+              </div>
+            )}
             <div className="mb-5">
               <h2 className="text-xl font-extrabold text-slate-900">Ulasan Pelanggan</h2>
               <p className="text-sm text-slate-500 mt-0.5">Lihat dan balas ulasan dari pelanggan setia</p>
@@ -2502,7 +2536,19 @@ export default function DashboardApp() {
 
         {/* ============ BLOG PAGE ============ */}
         {activePage === "blog" && (
-          <section>
+          <section className="relative">
+            {!isPro && (
+              <div className="absolute inset-0 bg-white/85 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-3">
+                  <Lock className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-base font-bold text-slate-900 mb-1">Fitur Khusus Pro</p>
+                <p className="text-xs text-slate-500 mb-4 text-center max-w-xs">Blog & tips bisnis kuliner eksklusif untuk meningkatkan penjualan warung Anda.</p>
+                <button onClick={() => setQrShowUpgrade(true)} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform">
+                  <Crown className="w-4 h-4 inline mr-1.5" /> Upgrade ke Pro
+                </button>
+              </div>
+            )}
             <div className="mb-5">
               <h2 className="text-xl font-extrabold text-slate-900">Blog & Tips</h2>
               <p className="text-sm text-slate-500 mt-0.5">Panduan dan tips untuk meningkatkan penjualan warung Anda</p>
