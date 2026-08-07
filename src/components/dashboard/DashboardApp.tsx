@@ -333,6 +333,7 @@ export default function DashboardApp() {
   // QR Designer states
   const [qrActiveTab, setQrActiveTab] = useState("ai");
   const [qrShowUpgrade, setQrShowUpgrade] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [qrBgColor, setQrBgColor] = useState("#FFFFFF");
@@ -894,6 +895,57 @@ export default function DashboardApp() {
     }
   }, [user, aiPrompt, showToast]);
 
+  /* ---------- Midtrans Pro Payment ---------- */
+  const handleUpgradePro = useCallback(async () => {
+    setIsPaying(true);
+    try {
+      // Load Midtrans Snap.js if not yet loaded
+      if (!(window as any).snap) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY?.startsWith("SB-")
+            ? "https://app.sandbox.midtrans.com/snap/snap.js"
+            : "https://app.midtrans.com/snap/snap.js";
+          s.setAttribute("data-client-key", process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "");
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("Gagal memuat payment gateway"));
+          document.head.appendChild(s);
+        });
+      }
+
+      const res = await fetch("/api/midtrans/create-transaction");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Gagal membuat transaksi");
+      }
+      const { snap_token } = await res.json();
+
+      (window as any).snap.pay(snap_token, {
+        onSuccess: () => {
+          setQrShowUpgrade(false);
+          showToast("Pembayaran berhasil! Pro aktif.");
+          // Re-fetch init to get updated is_pro
+          fetch("/api/dashboard/init").then((r) => r.json()).then((d) => {
+            if (d.user) setUser(d.user);
+          }).catch(() => {});
+        },
+        onPending: () => {
+          showToast("Menunggu pembayaran...", "info");
+        },
+        onError: () => {
+          showToast("Pembayaran gagal atau dibatalkan", "error");
+        },
+        onClose: () => {
+          // User closed popup without paying — do nothing
+        },
+      });
+    } catch (err: any) {
+      showToast(err.message || "Gagal memulai pembayaran", "error");
+    } finally {
+      setIsPaying(false);
+    }
+  }, [showToast, setUser]);
+
   const handleQrApplyPreset = useCallback((preset: typeof QR_PRESETS[0]) => {
     setQrBgColor(preset.bg);
     setQrFgColor(preset.qr);
@@ -1281,7 +1333,7 @@ export default function DashboardApp() {
                   : "Member Pro aktif."}
               </p>
               <button
-                onClick={() => showToast("Halaman pembayaran segera hadir")}
+                onClick={() => { if (!isPaying) handleUpgradePro(); }}
                 className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-amber-500/30 transition-all"
               >
                 Perpanjang Pro
@@ -2788,13 +2840,24 @@ export default function DashboardApp() {
               <X size={20} />
             </button>
             <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <Lock className="text-white" size={32} />
+              <Crown className="text-white" size={32} />
             </div>
             <h3 className="text-xl font-extrabold text-slate-900">Upgrade ke Pro</h3>
-            <p className="text-slate-500 mt-2 text-sm">Fitur AI QR Designer dan Custom Background hanya tersedia untuk pengguna Pro.</p>
-            <button onClick={() => setQrShowUpgrade(false)} className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform">
-              Upgrade Sekarang
+            <p className="text-slate-500 mt-2 text-sm leading-relaxed">
+              Buka fitur AI QR Designer, Custom Background, dan semua fitur premium selama <strong>30 hari</strong>.
+            </p>
+            <div className="mt-4 py-3 px-4 bg-amber-50 rounded-xl border border-amber-200">
+              <p className="text-3xl font-extrabold text-amber-600">Rp29.000</p>
+              <p className="text-xs text-amber-500 font-semibold mt-0.5">/bulan</p>
+            </div>
+            <button
+              onClick={handleUpgradePro}
+              disabled={isPaying}
+              className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+            >
+              {isPaying ? <><Loader2 className="w-4 h-4 animate-spin" /> Memproses...</> : "Bayar Sekarang"}
             </button>
+            <p className="text-[11px] text-slate-400 mt-3">Pembayaran aman via Midtrans</p>
           </div>
         </div>
       )}

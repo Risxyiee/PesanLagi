@@ -95,9 +95,9 @@ function initApp() {
     else switchView('landing');
   }
 
-  // Only redirect to dashboard on auth=success if there's an actual session
+  // Handle Midtrans payment redirect
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('auth') === 'success') {
+  if (urlParams.get('payment') === 'success' || urlParams.get('auth') === 'success') {
     window.history.replaceState({}, '', window.location.pathname);
     initLanding();
     import('@supabase/ssr').then(({ createBrowserClient }) => {
