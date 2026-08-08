@@ -79,11 +79,24 @@ export async function POST(req: NextRequest) {
     /* ---- 5. Idempotency check via payment_transactions ---- */
     const effectiveStatus = isSuccess ? "settlement" : transaction_status;
 
-    const { data: existing } = await admin
+    const { data: existing, error: checkErr } = await admin
       .from("payment_transactions")
       .select("order_id, transaction_status")
       .eq("order_id", order_id)
       .maybeSingle();
+
+    if (checkErr) {
+      console.error(
+        "[Midtrans Webhook] Failed to query payment_transactions (table may not exist):",
+        checkErr.message,
+        checkErr.code,
+        checkErr.details
+      );
+      return NextResponse.json(
+        { error: "Internal DB error", detail: "payment_transactions query failed" },
+        { status: 500 }
+      );
+    }
 
     // Already processed this exact status → skip, return 200 OK
     if (existing && existing.transaction_status === effectiveStatus) {
