@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { authenticateRequest, withCookies } from "@/lib/auth-helper";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -28,7 +29,7 @@ export async function POST() {
       ? "https://app.midtrans.com/snap/v1/transactions"
       : "https://app.sandbox.midtrans.com/snap/v1/transactions";
 
-    const order_id = `PRO-${user.id}-${Date.now()}`;
+    const order_id = `PRO-${crypto.randomUUID().replace(/-/g, "")}`;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pesanlagi.web.id";
 
     const payload = {
