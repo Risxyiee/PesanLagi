@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: critical-files + lint + tsc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Step 1: Critical files guard (zero dependencies needed)
+      - name: Check critical files
+        run: node scripts/check-critical-files.js
+
+      # Step 2: Install deps for lint + tsc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+
+      # Step 3: Lint
+      - name: Lint
+        run: npm run lint
+
+      # Step 4: Type check
+      - name: Type check
+        run: npx tsc --noEmit
