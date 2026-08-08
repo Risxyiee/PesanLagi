@@ -111,34 +111,69 @@ export async function POST(req: NextRequest) {
     const raw = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!raw) {
+      console.error('[AI Theme] Empty response from Gemini. Full geminiData:', JSON.stringify(geminiData));
       return NextResponse.json(
         { error: 'AI tidak memberikan respons' },
         { status: 500 }
       );
     }
 
-    /* ---- Parse & validate (unchanged logic) ---- */
+    /* ---- LANGKAH 1: Log raw response ---- */
+    console.log('[AI Theme] Raw Gemini response:', raw);
+
+    /* ---- Parse ---- */
     let parsed: Record<string, string>;
     try {
       const clean = raw.replace(/```json\s*|```/g, '').trim();
       parsed = JSON.parse(clean);
-    } catch {
+    } catch (parseErr) {
+      console.error('[AI Theme] JSON parse failed. Raw:', raw, 'Error:', parseErr);
       return NextResponse.json(
-        { error: 'Gagal mem-parse respons AI' },
+        { error: 'Gagal mem-parse respons AI. Coba lagi.' },
         { status: 500 }
       );
     }
 
+    console.log('[AI Theme] Parsed object:', JSON.stringify(parsed));
+
+    /* ---- LANGKAH 2: Validate ALL fields, reject on ANY failure ---- */
     const hexRegex = /^#[0-9A-Fa-f]{6}$/;
-    const bgColor = hexRegex.test(parsed.bgColor) ? parsed.bgColor : '#FFFFFF';
-    const qrColor = hexRegex.test(parsed.qrColor) ? parsed.qrColor : '#0F172A';
-    const textColor = hexRegex.test(parsed.textColor) ? parsed.textColor : '#0F172A';
-    const accentColor = hexRegex.test(parsed.accentColor) ? parsed.accentColor : '#F59E0B';
     const validTemplates = ['pesanlagi', 'minimalist', 'rustic', 'dark_gold', 'acrylic'];
-    const template = validTemplates.includes(parsed.template) ? parsed.template : 'minimalist';
+
+    const fields: Record<string, { value: string; test: () => boolean }> = {
+      bgColor:    { value: parsed.bgColor,    test: () => hexRegex.test(parsed.bgColor) },
+      qrColor:    { value: parsed.qrColor,    test: () => hexRegex.test(parsed.qrColor) },
+      textColor:   { value: parsed.textColor,   test: () => hexRegex.test(parsed.textColor) },
+      accentColor: { value: parsed.accentColor, test: () => hexRegex.test(parsed.accentColor) },
+      template:   { value: parsed.template,   test: () => validTemplates.includes(parsed.template) },
+    };
+
+    const failedFields = Object.entries(fields)
+      .filter(([, { test }]) => !test())
+      .map(([name]) => name);
+
+    if (failedFields.length > 0) {
+      console.error(
+        '[AI Theme] Validation failed for fields:', failedFields.join(', '),
+        '| Raw:', raw,
+        '| Parsed:', JSON.stringify(parsed)
+      );
+      return NextResponse.json(
+        { error: 'AI memberikan format tidak valid, coba lagi.' },
+        { status: 500 }
+      );
+    }
+
     const reason = typeof parsed.reason === 'string' ? parsed.reason : 'Desain yang cocok untuk warungmu!';
 
-    return withCookies(res, { bgColor, qrColor, textColor, accentColor, template, reason });
+    return withCookies(res, {
+      bgColor: parsed.bgColor,
+      qrColor: parsed.qrColor,
+      textColor: parsed.textColor,
+      accentColor: parsed.accentColor,
+      template: parsed.template,
+      reason,
+    });
   } catch (err: unknown) {
     console.error('AI generate theme error:', err);
     return NextResponse.json(
