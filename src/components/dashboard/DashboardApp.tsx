@@ -923,7 +923,7 @@ export default function DashboardApp() {
         });
       }
 
-      const res = await fetch("/api/midtrans/create-transaction");
+      const res = await fetch("/api/midtrans/create-transaction", { method: "POST" });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Gagal membuat transaksi");
