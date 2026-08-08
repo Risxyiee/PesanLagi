@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 /**
  * Midtrans Payment Notification Webhook (idempotent)
  *
- * order_id format: PRO-{userId} (e.g. PRO-abc123def456)
+ * order_id format: PRO-{userId}-{timestamp}
+ * Resolves user_id from payment_transactions table (not string parsing).
  * Uses payment_transactions table to prevent double-processing.
  */
 export async function POST(req: NextRequest) {
@@ -47,14 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid Signature" }, { status: 400 });
     }
 
-    /* ---- 2. Parse order_id → userId ---- */
-    const userId = order_id.startsWith("PRO-") ? order_id.slice(4) : null;
-    if (!userId) {
-      console.warn("[Midtrans Webhook] Unrecognized order_id format:", order_id);
-      return NextResponse.json({ status: "OK" }, { status: 200 });
-    }
-
-    /* ---- 3. Determine outcome ---- */
+    /* ---- 2. Determine outcome ---- */
     const isSuccess =
       transaction_status === "settlement" ||
       (transaction_status === "capture" && fraud_status === "accept");
@@ -69,19 +63,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "OK" }, { status: 200 });
     }
 
-    /* ---- 4. Get DB client ---- */
+    /* ---- 3. Get DB client ---- */
     const admin = createSupabaseAdminClient();
     if (!admin) {
       console.error("[Midtrans Webhook] Supabase admin client unavailable");
       return NextResponse.json({ status: "OK" }, { status: 200 });
     }
 
-    /* ---- 5. Idempotency check via payment_transactions ---- */
+    /* ---- 4. Single query: lookup existing row + get user_id ---- */
     const effectiveStatus = isSuccess ? "settlement" : transaction_status;
 
-    const { data: existing, error: checkErr } = await admin
+    const { data: txRow, error: checkErr } = await admin
       .from("payment_transactions")
-      .select("order_id, transaction_status")
+      .select("order_id, user_id, transaction_status")
       .eq("order_id", order_id)
       .maybeSingle();
 
@@ -98,14 +92,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    /* ---- 5. Resolve userId from DB row ---- */
+    const userId = txRow?.user_id ?? null;
+
+    if (!userId) {
+      console.warn(
+        "[Midtrans Webhook] No payment_transactions row found for order_id:",
+        order_id,
+        "— skipping. Row may not have been inserted by create-transaction."
+      );
+      return NextResponse.json({ status: "OK" }, { status: 200 });
+    }
+
     // Already processed this exact status → skip, return 200 OK
-    if (existing && existing.transaction_status === effectiveStatus) {
+    if (txRow && txRow.transaction_status === effectiveStatus) {
       console.log("[Midtrans Webhook] Duplicate skip (already processed):", order_id, effectiveStatus);
       return NextResponse.json({ status: "OK" }, { status: 200 });
     }
 
     /* ---- 6. Upsert payment_transactions (race-condition safe) ---- */
-    // onConflict='order_id' ensures only one row per order_id
     const { error: upsertErr } = await admin
       .from("payment_transactions")
       .upsert(

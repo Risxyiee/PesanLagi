@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { authenticateRequest, withCookies } from "@/lib/auth-helper";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,8 @@ const PRO_PRICE = 29000; // Rp 29.000 / bulan
 /**
  * Create a Midtrans Snap transaction for Pro upgrade.
  * Returns { snap_token, redirect_url } to open the Snap payment popup.
+ *
+ * order_id format: PRO-{userId}-{timestamp} (unique per attempt)
  */
 export async function POST() {
   try {
@@ -25,7 +28,7 @@ export async function POST() {
       ? "https://app.midtrans.com/snap/v1/transactions"
       : "https://app.sandbox.midtrans.com/snap/v1/transactions";
 
-    const order_id = `PRO-${user.id}`;
+    const order_id = `PRO-${user.id}-${Date.now()}`;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pesanlagi.web.id";
 
     const payload = {
@@ -69,7 +72,36 @@ export async function POST() {
     }
 
     const data = await response.json();
-    // data = { token: "snap_token", redirect_url: "..." }
+
+    /* ---- Insert pending row to payment_transactions for webhook lookup ---- */
+    try {
+      const admin = createSupabaseAdminClient();
+      if (admin) {
+        const { error: insertErr } = await admin
+          .from("payment_transactions")
+          .upsert(
+            {
+              order_id,
+              user_id: user.id,
+              transaction_status: "pending",
+              gross_amount: PRO_PRICE,
+              processed_at: new Date().toISOString(),
+            },
+            { onConflict: "order_id" }
+          );
+        if (insertErr) {
+          console.error(
+            "[Create Transaction] Failed to insert pending row (non-fatal):",
+            insertErr.message
+          );
+        }
+      }
+    } catch (trackErr) {
+      console.error(
+        "[Create Transaction] Pending row insert error (non-fatal):",
+        trackErr
+      );
+    }
 
     return withCookies(res, {
       snap_token: data.token,
