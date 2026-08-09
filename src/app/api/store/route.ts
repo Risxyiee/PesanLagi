@@ -10,7 +10,7 @@ export async function GET() {
     const { data, error } = await admin
       .from("stores")
       .select(
-        "id, user_id, name, slug, logo_url, bg_color, qr_color, description, whatsapp, address, maps_url, hours, is_open, created_at"
+        "id, user_id, name, slug, logo_url, bg_color, qr_color, description, whatsapp, address, maps_url, hours, is_open, is_age_restricted, created_at"
       )
       .eq("user_id", user.id)
       .single();
@@ -46,6 +46,7 @@ export async function PUT(req: NextRequest) {
       "maps_url",
       "hours",
       "is_open",
+      "is_age_restricted",
     ];
 
     const updateData: Record<string, unknown> = {};

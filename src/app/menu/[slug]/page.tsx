@@ -34,6 +34,7 @@ interface Store {
   address: string;
   bg_color: string;
   qr_color: string;
+  is_age_restricted?: boolean;
   hours?: {
     menu_theme?: string;
     menu_layout?: string;
@@ -824,8 +825,8 @@ export default function PublicMenuPage({
 
   return (
     <div className={styles.root} style={themeVars as React.CSSProperties}>
-      {/* ===================== 18+ AGE GATE ===================== */}
-      <AgeVerificationModal />
+      {/* ===================== 18+ AGE GATE (only for age-restricted stores) ===================== */}
+      {store.is_age_restricted === true && <AgeVerificationModal />}
       <div className={styles.mobileFrame}>
         {/* Background Blobs */}
         <div className={`${styles.bgBlob} ${styles.blobA}`} />

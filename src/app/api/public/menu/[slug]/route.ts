@@ -15,7 +15,7 @@ export async function GET(
     // 1. Find store by slug — keep id for internal queries only
     const { data: rawStore, error: storeErr } = await admin
       .from("stores")
-      .select("id, name, slug, description, logo_url, whatsapp, address, bg_color, qr_color, hours, is_open")
+      .select("id, name, slug, description, logo_url, whatsapp, address, bg_color, qr_color, hours, is_open, is_age_restricted")
       .eq("slug", slug)
       .single();
 

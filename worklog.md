@@ -285,3 +285,34 @@ Stage Summary:
 - Navigation blocks Pro pages and shows upgrade modal instead
 - Lock icons visible on sidebar for Pro-only features
 - 0 lint errors, 0 TypeScript errors
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Fix AgeVerificationModal showing unconditionally on ALL store menus + add is_age_restricted toggle
+
+Work Log:
+- Created SQL migration: supabase/migrations/20250101_add_is_age_restricted.sql (ALTER TABLE stores ADD COLUMN IF NOT EXISTS is_age_restricted BOOLEAN NOT NULL DEFAULT false)
+- Updated /api/store/route.ts GET select to include is_age_restricted
+- Updated /api/store/route.ts PUT allowlist to include is_age_restricted
+- Updated /api/public/menu/[slug]/route.ts select to include is_age_restricted
+- Updated DashboardApp.tsx StoreData interface to include is_age_restricted?: boolean
+- Added settingsAgeRestricted state, loaded from store data in applyInitData and handleCancelSettings
+- Added settingsAgeRestricted to handleSaveSettings body and dependency array
+- Added "Batasan Usia" settings card with toggle switch in Dashboard Settings page (after Appearance, before Save/Cancel)
+- Added AlertCircle import from lucide-react
+- Updated menu/[slug]/page.tsx Store interface to include is_age_restricted?: boolean
+- Changed AgeVerificationModal rendering from unconditional to conditional: {store.is_age_restricted === true && <AgeVerificationModal />}
+- Rewrote AgeVerificationModal.tsx handleDeny: removed Google redirect, added denied state that shows polite in-place message with "Kembali ke Beranda" link
+- Ran ESLint: 0 errors (1 pre-existing font warning)
+- Ran tsc --noEmit: 0 errors
+- Tested with Agent Browser: homepage loads, menu page loads without runtime errors, no browser console errors
+
+Stage Summary:
+- SQL migration file created at supabase/migrations/20250101_add_is_age_restricted.sql
+- Default behavior: is_age_restricted=false → NO age verification modal (fixes the bug for all normal UMKM stores)
+- Only stores with is_age_restricted=true show the 18+ modal
+- Dashboard Settings has new "Batasan Usia" card with toggle + warning text
+- handleDeny now shows polite message instead of redirecting to Google
+- Backward compatible: if column doesn't exist yet, code treats is_age_restricted as undefined/false
+- Files modified: store/route.ts, public menu/[slug]/route.ts, DashboardApp.tsx, menu/[slug]/page.tsx, AgeVerificationModal.tsx

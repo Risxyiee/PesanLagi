@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 
 const STORAGE_KEY = 'is_age_verified_18';
@@ -21,6 +21,7 @@ function getServerSnapshot() {
 export default function AgeVerificationModal() {
   // useSyncExternalStore ensures we only render client-confirmed state after hydration
   const isClient = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [denied, setDenied] = useState(false);
 
   const readVerified = useCallback(() => {
     try {
@@ -48,8 +49,34 @@ export default function AgeVerificationModal() {
   };
 
   const handleDeny = () => {
-    window.location.href = 'https://www.google.com';
+    setDenied(true);
   };
+
+  // Denied state: show polite in-place message
+  if (denied) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/90 backdrop-blur-md">
+        <div className="mx-4 w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-800">
+            <ShieldCheck className="h-8 w-8 text-slate-500" strokeWidth={2} />
+          </div>
+          <h2 className="mb-3 text-xl font-bold text-white">
+            Maaf, Konten Ini Khusus 18+
+          </h2>
+          <p className="mb-6 text-sm leading-relaxed text-slate-400">
+            Menu ini berisi produk yang hanya diperuntukkan bagi pengunjung
+            berusia 18 tahun atau lebih. Terima kasih atas pengertiannya.
+          </p>
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-600 bg-slate-800 px-6 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-700 hover:text-white"
+          >
+            ← Kembali ke Beranda
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/85 backdrop-blur-md">

@@ -51,6 +51,7 @@ import {
   Loader2,
   MessageCircle,
   Shield,
+  AlertCircle,
   Users,
   MapPin,
 } from "lucide-react";
@@ -130,6 +131,7 @@ interface StoreData {
   bg_color?: string;
   qr_color?: string;
   is_open?: boolean;
+  is_age_restricted?: boolean;
   created_at?: string;
 }
 
@@ -362,6 +364,8 @@ export default function DashboardApp() {
   // Digital menu appearance
   const [menuTheme, setMenuTheme] = useState("amber");
   const [menuLayout, setMenuLayout] = useState("grid");
+  // Age restriction
+  const [settingsAgeRestricted, setSettingsAgeRestricted] = useState(false);
 
   // Modal form
   const [modalName, setModalName] = useState("");
@@ -434,6 +438,7 @@ export default function DashboardApp() {
         if (h.menu_theme) setMenuTheme(h.menu_theme);
         if (h.menu_layout) setMenuLayout(h.menu_layout);
       }
+      setSettingsAgeRestricted(data.store.is_age_restricted === true);
     }
     if (Array.isArray(data.menus)) setMenus(data.menus);
     if (Array.isArray(data.categories)) setCategories(data.categories);
@@ -618,6 +623,7 @@ export default function DashboardApp() {
           hours: hoursData,
           bg_color: qrBgColor,
           qr_color: qrFgColor,
+          is_age_restricted: settingsAgeRestricted,
         }),
       });
       if (res.ok) {
@@ -633,7 +639,7 @@ export default function DashboardApp() {
     } finally {
       setSavingSettings(false);
     }
-  }, [settingsName, settingsSlug, settingsCategory, settingsDesc, settingsAddress, settingsPhone, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, qrBgColor, qrFgColor, showToast]);
+  }, [settingsName, settingsSlug, settingsCategory, settingsDesc, settingsAddress, settingsPhone, settingsOpenTime, settingsCloseTime, settingsDays, menuTheme, menuLayout, qrBgColor, qrFgColor, settingsAgeRestricted, showToast]);
 
   const handleCancelSettings = useCallback(() => {
     if (store) {
@@ -668,6 +674,7 @@ export default function DashboardApp() {
         setMenuTheme("amber");
         setMenuLayout("grid");
       }
+      setSettingsAgeRestricted(store.is_age_restricted === true);
     }
     showToast("Perubahan dibatalkan", "info");
   }, [store, showToast]);
@@ -2892,6 +2899,32 @@ export default function DashboardApp() {
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Kategori</p>
                   </button>
                 </div>
+              </div>
+
+              {/* Age Restriction */}
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center"><Shield className="w-4 h-4 text-red-600" /></div>
+                  <h3 className="text-sm font-bold text-slate-900">Batasan Usia</h3>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">Toko menjual produk 18+</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      Aktifkan jika toko Anda menjual produk khusus dewasa seperti rokok, vape, atau alkohol. Customer akan diminta konfirmasi usia sebelum melihat menu.
+                    </p>
+                  </div>
+                  <div
+                    className={`${styles.toggle} ${settingsAgeRestricted ? styles.toggleAmber : ""} shrink-0 ml-4`}
+                    onClick={() => setSettingsAgeRestricted(!settingsAgeRestricted)}
+                  />
+                </div>
+                {settingsAgeRestricted && (
+                  <p className="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-700 font-medium flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>Modal verifikasi usia 18+ akan ditampilkan di halaman menu publik toko Anda.</span>
+                  </p>
+                )}
               </div>
 
               {/* Save / Cancel */}
