@@ -20,6 +20,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import styles from './page.module.css';
+import AgeVerificationModal from '@/components/AgeVerificationModal';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -699,6 +700,8 @@ export default function PublicMenuPage({
 
   return (
     <div className={styles.root} style={themeVars as React.CSSProperties}>
+      {/* ===================== 18+ AGE GATE ===================== */}
+      <AgeVerificationModal />
       <div className={styles.mobileFrame}>
         {/* Background Blobs */}
         <div className={`${styles.bgBlob} ${styles.blobA}`} />
