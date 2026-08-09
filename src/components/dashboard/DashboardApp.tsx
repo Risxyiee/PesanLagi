@@ -370,6 +370,7 @@ export default function DashboardApp() {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAvailable, setModalAvailable] = useState(true);
   const [modalImage, setModalImage] = useState<string | null>(null);
+  const [modalImages, setModalImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
 
@@ -681,7 +682,12 @@ export default function DashboardApp() {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const data = await res.json();
-        setModalImage(data.url ?? data.publicUrl ?? "");
+        const url = data.url ?? data.publicUrl ?? "";
+        setModalImage(url);
+        setModalImages((prev) => {
+          const next = [...prev, url];
+          return next.slice(0, 5);
+        });
       } else {
         const err = await res.json().catch(() => null);
         showToast(err?.error || "Gagal mengunggah gambar", "error");
@@ -692,6 +698,45 @@ export default function DashboardApp() {
       setUploading(false);
     }
   }, [showToast]);
+
+  const handleRemoveImage = useCallback((index: number) => {
+    setModalImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setModalImage(next[0] ?? null);
+      return next;
+    });
+  }, []);
+
+  const handleUploadMultiple = useCallback(async (files: FileList) => {
+    const remaining = 5 - modalImages.length;
+    if (remaining <= 0) {
+      showToast("Maksimal 5 foto per menu", "error");
+      return;
+    }
+    const toUpload = Array.from(files).slice(0, remaining);
+    setUploading(true);
+    for (const file of toUpload) {
+      try {
+        const compressed = await compressImage(file, 1024, 0.8);
+        const fd = new FormData();
+        fd.append("file", compressed);
+        fd.append("bucket", "menus");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        if (res.ok) {
+          const data = await res.json();
+          const url = data.url ?? data.publicUrl ?? "";
+          setModalImages((prev) => {
+            const next = [...prev, url];
+            setModalImage(next[0] ?? null);
+            return next;
+          });
+        }
+      } catch {
+        /* skip failed individual upload */
+      }
+    }
+    setUploading(false);
+  }, [modalImages.length]);
 
   const handleUploadLogo = useCallback(async (file: File) => {
     setUploadingLogo(true);
@@ -738,6 +783,7 @@ export default function DashboardApp() {
     setModalPrice("");
     setModalDesc("");
     setModalImage(null);
+    setModalImages([]);
     setModalCategory("");
     setModalAvailable(true);
   }, []);
@@ -748,6 +794,8 @@ export default function DashboardApp() {
     setModalPrice(String(menu.price));
     setModalDesc(menu.description ?? "");
     setModalImage(menu.image_url ?? null);
+    const rawUrls = (menu as unknown as Record<string, unknown>).image_urls;
+    setModalImages(Array.isArray(rawUrls) ? (rawUrls as string[]) : menu.image_url ? [menu.image_url] : []);
     setModalCategory(menu.category_id ?? "");
     setModalAvailable(menu.is_available !== false);
     setModalOpen(true);
@@ -764,6 +812,7 @@ export default function DashboardApp() {
         is_available: modalAvailable,
       };
       if (modalImage) body.image_url = modalImage;
+      if (modalImages.length > 0) body.image_urls = modalImages;
 
       const isEditing = !!editingMenuId;
       const res = await fetch("/api/menus", {
@@ -792,7 +841,7 @@ export default function DashboardApp() {
     } finally {
       setSavingMenu(false);
     }
-  }, [modalName, modalCategory, modalPrice, modalDesc, modalAvailable, modalImage, editingMenuId, showToast]);
+  }, [modalName, modalCategory, modalPrice, modalDesc, modalAvailable, modalImage, modalImages, editingMenuId, showToast]);
 
   const handleOrderAction = useCallback((orderId: string, newStatus: "process" | "done") => {
     setOrders((prev) =>
@@ -2908,40 +2957,66 @@ export default function DashboardApp() {
                 </button>
               </div>
               <div className="space-y-4">
-                {/* Dropzone */}
-                <div
-                  className={styles.dropzone}
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                {/* Multi-image Dropzone */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700">Foto Menu</label>
+                    <span className="text-[11px] text-slate-400">{modalImages.length}/5</span>
+                  </div>
+                  {modalImages.length > 0 ? (
+                    <div className="grid grid-cols-5 gap-2">
+                      {modalImages.map((url, i) => (
+                        <div key={url + i} className="relative group">
+                          <img src={url} className="w-full h-16 sm:h-20 object-cover rounded-lg border border-slate-200" alt={`Foto ${i + 1}`} />
+                          <button
+                            type="button"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); handleRemoveImage(i); }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          {i === 0 && <span className="absolute bottom-0.5 left-0.5 text-[8px] bg-amber-500 text-white px-1 rounded font-bold">Utama</span>}
+                        </div>
+                      ))}
+                      {modalImages.length < 5 && (
+                        <div
+                          className="h-16 sm:h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-amber-400 hover:bg-amber-50/50 transition-colors"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Plus className="w-4 h-4 text-slate-400" />
+                          {uploading && <Loader2 className="w-4 h-4 text-amber-500 animate-spin mt-0.5" />}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.dropzone}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
+                        <ImagePlus className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-700">{uploading ? "Mengunggah..." : "Klik untuk tambah foto"}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">JPG/PNG, maks 5 foto, otomatis dikompres</p>
+                    </div>
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleUploadImage(file);
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+                      if (files.length === 1) {
+                        handleUploadImage(files[0]);
+                      } else {
+                        handleUploadMultiple(files);
+                      }
+                      e.target.value = "";
                     }}
                   />
-                  {modalImage ? (
-                    <div className="relative">
-                      <img src={modalImage} className="w-full h-32 object-cover rounded-xl" alt="Menu image preview" />
-                      <button
-                        className="absolute top-2 right-2 w-6 h-6 rounded-lg bg-red-500 text-white flex items-center justify-center"
-                        onClick={(e) => { e.stopPropagation(); setModalImage(null); }}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
-                        <ImagePlus className="w-6 h-6 text-amber-600" />
-                      </div>
-                      <p className="text-sm font-semibold text-slate-700">{uploading ? "Mengunggah..." : "Klik atau drag foto menu ke sini"}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">JPG/PNG, otomatis dikompres (maks 5MB)</p>
-                    </>
-                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nama Menu</label>

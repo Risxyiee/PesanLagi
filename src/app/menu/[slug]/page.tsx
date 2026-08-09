@@ -55,6 +55,7 @@ interface MenuItem {
   description: string;
   price: number;
   image_url: string;
+  image_urls?: string[];
   category_id: string;
   category_name: string;
   is_available: boolean;
@@ -302,6 +303,129 @@ function FadeUp({
       className={`${styles.fadeUp} ${visible ? styles.fadeUpIn : ''}`}
     >
       {children}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Menu Image Carousel (Embla)                                      */
+/* ------------------------------------------------------------------ */
+function MenuImageCarousel({ images, name, onZoom }: {
+  images: string[];
+  name: string;
+  onZoom: (src: string) => void;
+}) {
+  const [current, setCurrent] = useState(0);
+   const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+   const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const scrollTo = (index: number) => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const target = Math.max(0, Math.min(index, images.length - 1));
+    container.scrollTo({ left: container.offsetWidth * target, behavior: 'smooth' });
+    setCurrent(target);
+  };
+
+  const handleScroll = () => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const idx = Math.round(container.scrollLeft / container.offsetWidth);
+    setCurrent(Math.max(0, Math.min(idx, images.length - 1)));
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    startX.current = e.touches[0].clientX;
+    scrollLeft.current = scrollRef.current?.scrollLeft ?? 0;
+  };
+  const handleTouchMove = () => { if (isDragging.current) setCurrent(-1); };
+  const handleTouchEnd = () => { isDragging.current = false; handleScroll(); };
+
+  // Mouse handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    startX.current = e.clientX;
+    scrollLeft.current = scrollRef.current?.scrollLeft ?? 0;
+    const onMove = (ev: MouseEvent) => {
+      if (!isDragging.current || !scrollRef.current) return;
+      ev.preventDefault();
+      const dx = ev.clientX - startX.current;
+      scrollRef.current.scrollLeft = scrollLeft.current - dx;
+    };
+    const onUp = () => { isDragging.current = false; handleScroll(); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  return (
+    <div className="relative select-none">
+      {/* Main image slider */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        className="flex overflow-x-hidden snap-x snap-mandatory h-72"
+      >
+        {images.map((url, i) => (
+          <div key={url + i} className="min-w-full snap-center">
+            <img
+              src={url}
+              alt={`${name} - foto ${i + 1}`}
+              className="w-full h-72 object-cover cursor-pointer"
+              onClick={() => onZoom(url)}
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Arrow buttons */}
+      {images.length > 1 && current >= 0 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); scrollTo(current - 1); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-lg text-slate-700 hover:bg-white transition-colors"
+            aria-label="Foto sebelumnya"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); scrollTo(current + 1); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-lg text-slate-700 hover:bg-white transition-colors"
+            aria-label="Foto selanjutnya"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+        </>
+      )}
+
+      {/* Dot indicators */}
+      {images.length > 1 && current >= 0 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => { e.stopPropagation(); scrollTo(i); }}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                i === current ? 'bg-white w-4' : 'bg-white/50'
+              }`}
+              aria-label={`Foto ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Counter + zoom hint */}
+      <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1 pointer-events-none">
+        <Maximize2 className="w-3 h-3" /> {current + 1}/{images.length} · Tap untuk perbesar
+      </div>
     </div>
   );
 }
@@ -954,28 +1078,43 @@ export default function PublicMenuPage({
         {detailItem && (
           <>
             <div className="relative -mx-5 -mt-5 mb-4">
-              {detailItem.image_url && detailItem.image_url.trim() !== '' ? (
-                <img
-                  src={detailItem.image_url}
-                  alt={detailItem.name}
-                  className="w-full h-72 object-cover cursor-pointer"
-                  onClick={() => setLightboxSrc(detailItem.image_url)}
-                />
-              ) : (
-                <div className={`w-full h-72 bg-gradient-to-br ${tw('imgFallback')} flex items-center justify-center`}>
-                  <Utensils
-                    className={tw('iconFallback')}
-                    size={48}
-                    strokeWidth={1.2}
-                  />
-                </div>
-              )}
-              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1 pointer-events-none">
-                <Maximize2 className="w-3 h-3" /> Tap untuk perbesar
-              </div>
+              {(() => {
+                const urls = (Array.isArray(detailItem.image_urls) && detailItem.image_urls.length > 1)
+                  ? detailItem.image_urls
+                  : detailItem.image_url?.trim()
+                    ? [detailItem.image_url]
+                    : [];
+
+                if (urls.length === 0) {
+                  return (
+                    <div className={`w-full h-72 bg-gradient-to-br ${tw('imgFallback')} flex items-center justify-center`}>
+                      <Utensils className={tw('iconFallback')} size={48} strokeWidth={1.2} />
+                    </div>
+                  );
+                }
+
+                if (urls.length === 1) {
+                  return (
+                    <>
+                      <img
+                        src={urls[0]}
+                        alt={detailItem.name}
+                        className="w-full h-72 object-cover cursor-pointer"
+                        onClick={() => setLightboxSrc(urls[0])}
+                      />
+                      <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur text-white text-[10px] font-semibold flex items-center gap-1 pointer-events-none">
+                        <Maximize2 className="w-3 h-3" /> Tap untuk perbesar
+                      </div>
+                    </>
+                  );
+                }
+
+                // Multiple images — carousel with dots
+                return <MenuImageCarousel images={urls} name={detailItem.name} onZoom={setLightboxSrc} />;
+              })()}
               <button
                 onClick={() => setDetailItem(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md text-slate-600"
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md text-slate-600 z-10"
                 aria-label="Tutup"
               >
                 <X className="w-5 h-5" />

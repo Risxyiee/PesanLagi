@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
     const body = await req.json();
-    const { id, name, description, price, category_id, image_url, is_available } = body;
+    const { id, name, description, price, category_id, image_url, image_urls, is_available } = body;
 
     if (!name?.trim())
       return NextResponse.json(
@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
           price: Number(price),
           category_id: category_id || null,
           image_url: image_url || null,
+          image_urls: Array.isArray(image_urls) && image_urls.length > 0 ? image_urls : null,
           is_available: is_available !== false,
         })
         .eq("id", id)
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
           price: Number(price),
           category_id: category_id || null,
           image_url: image_url || null,
+          image_urls: Array.isArray(image_urls) && image_urls.length > 0 ? image_urls : null,
           is_available: is_available !== false,
         })
         .select()
@@ -139,7 +141,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Build update from only the provided fields
-    const allowedPatch = ["name", "description", "price", "category_id", "image_url", "is_available"];
+    const allowedPatch = ["name", "description", "price", "category_id", "image_url", "image_urls", "is_available"];
     const updateData: Record<string, unknown> = {};
     for (const key of allowedPatch) {
       if (body[key] !== undefined) updateData[key] = body[key];

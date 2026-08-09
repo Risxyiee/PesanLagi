@@ -36,7 +36,7 @@ export async function GET(
     // 3. Get available menus joined with category name
     const { data: menus } = await admin
       .from("menus")
-      .select("id, name, description, price, image_url, category_id, is_available, categories(name)")
+      .select("id, name, description, price, image_url, image_urls, category_id, is_available, categories(name)")
       .eq("store_id", storeId)
       .eq("is_available", true)
       .order("name", { ascending: true });
