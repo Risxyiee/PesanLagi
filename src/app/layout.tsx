@@ -3,10 +3,29 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "Pesanlagi — QR Menu Digital untuk UMKM Kuliner Indonesia",
-  description: "Solusi menu digital praktis tanpa biaya cetak ulang. Tampil keren, rapi, dan mudah di-scan pelanggan dari smartphone.",
-  icons: {
-    icon: "/logo.png",
+  title: "PesanLagi - Auto-Responder AI Telegram untuk UMKM Indonesia",
+  description: "Otomatisasi balas chat Telegram 24/7 dengan AI. Jawab stok, ongkir, dan order dalam hitungan detik tanpa admin ekstra. Gratis coba demo!",
+  keywords: "auto responder telegram, ai chatbot, chatbot telegram, umkm, toko online, telegram bot, automasi chat",
+  openGraph: {
+    title: "PesanLagi - AI Telegram Auto-Responder",
+    description: "Otomatisasi balas chat Telegram 24/7 dengan AI. Gratis coba demo!",
+    url: "https://pesanlagi.web.id",
+    siteName: "PesanLagi",
+    images: [
+      {
+        url: "/pesanlagi-logo.png",
+        width: 512,
+        height: 512,
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PesanLagi - AI Telegram Auto-Responder",
+    description: "Otomatisasi balas chat Telegram 24/7 dengan AI.",
+    images: ["/pesanlagi-logo.png"],
   },
 };
 

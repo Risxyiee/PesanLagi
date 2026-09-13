@@ -27,6 +27,11 @@ import {
   ArrowLeftRight,
   Star,
   Send,
+  Shield,
+  Headphones,
+  CreditCard,
+  Instagram,
+  Twitter,
 } from "lucide-react";
 
 // Types
@@ -637,6 +642,46 @@ export default function Home() {
           <p className="mt-4 text-center text-[10px] text-slate-400 italic">*Nama toko demo untuk ilustrasi</p>
         </section>
 
+        {/* Trust Signals Section */}
+        <section className="bg-white py-12">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+              {/* Security */}
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 transition-transform hover:scale-110">
+                  <Shield className="size-7 text-green-600" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Enkripsi 256-bit</p>
+                <p className="mt-1 text-xs text-slate-500">Data Anda aman</p>
+              </div>
+              {/* Telegram */}
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 transition-transform hover:scale-110">
+                  <Send className="size-7 text-blue-600" fill="currentColor" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Telegram Official</p>
+                <p className="mt-1 text-xs text-slate-500">Bot API terverifikasi</p>
+              </div>
+              {/* Payment */}
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 transition-transform hover:scale-110">
+                  <CreditCard className="size-7 text-purple-600" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Pembayaran Aman</p>
+                <p className="mt-1 text-xs text-slate-500">Midtrans payment</p>
+              </div>
+              {/* Support */}
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 transition-transform hover:scale-110">
+                  <Headphones className="size-7 text-orange-600" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Support 1-on-1</p>
+                <p className="mt-1 text-xs text-slate-500">Prioritas Pro users</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Pain vs Solution */}
         <section id="perbandingan" className="scroll-mt-24 bg-slate-50 py-20 lg:py-28">
           <div ref={addRevealRef(0)} className="reveal mx-auto max-w-[80rem] px-5 sm:px-8">
@@ -1097,12 +1142,23 @@ export default function Home() {
             <p className="mt-4 text-xs font-medium text-orange-100">Tanpa kartu kredit · Batalkan kapan saja</p>
           </div>
         </section>
+
+        {/* Floating Telegram Button */}
+        <a
+          href="https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20tanya%20tentang%20PesanLagi"
+          target="_blank"
+          rel="noopener"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg transition-transform hover:scale-110 md:bottom-8 md:right-8"
+          aria-label="Chat Telegram"
+        >
+          <Send className="size-7" fill="currentColor" />
+        </a>
       </main>
 
       {/* Footer */}
       <footer className="bg-[#1A1A1A] py-14 text-slate-400">
         <div className="mx-auto max-w-[80rem] px-5 sm:px-8">
-          <div className="grid gap-10 md:grid-cols-4">
+          <div className="grid gap-10 md:grid-cols-5">
             <div>
               <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2.5">
                 <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange-500">
@@ -1134,6 +1190,29 @@ export default function Home() {
               <ul className="mt-4 space-y-2.5 text-sm">
                 <li><a href="#" className="transition-colors hover:text-orange-400">Kebijakan Privasi</a></li>
                 <li><a href="#" className="transition-colors hover:text-orange-400">Syarat & Ketentuan</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">Ikuti Kami</p>
+              <ul className="mt-4 flex gap-4">
+                <li>
+                  <a href="https://t.me/Risxyie" target="_blank" rel="noopener"
+                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-transform hover:scale-110 hover:bg-white/20">
+                    <Send className="size-5" fill="currentColor" />
+                  </a>
+                </li>
+                <li>
+                  <a href="https://instagram.com/pesanlagi" target="_blank" rel="noopener"
+                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-transform hover:scale-110 hover:bg-white/20">
+                    <Instagram className="size-5" />
+                  </a>
+                </li>
+                <li>
+                  <a href="https://twitter.com/pesanlagi" target="_blank" rel="noopener"
+                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-transform hover:scale-110 hover:bg-white/20">
+                    <Twitter className="size-5" />
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
