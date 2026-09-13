@@ -417,9 +417,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[80rem] items-center justify-between px-5 sm:px-8">
           <a href="#" className="flex items-center gap-2.5" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500">
-              <MessageCircle className="size-5 text-white" style={{ fill: "currentColor" }} />
-            </span>
+            <img src="/pesanlagi-logo.png" alt="PesanLagi Logo" className="h-9 w-9 rounded-lg object-contain" />
             <span className="text-lg font-extrabold tracking-tight text-[#0B1220]">Pesan<span className="text-emerald-600">Lagi</span></span>
           </a>
 
