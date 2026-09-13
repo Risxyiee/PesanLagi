@@ -484,8 +484,11 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-[#1A1A1A] text-white">
           <div className="dot-grid-light absolute inset-0" aria-hidden="true"></div>
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-purple-500/5" aria-hidden="true"></div>
           <div className="absolute -right-40 -top-40 h-[480px] w-[480px] rounded-full border border-white/5" aria-hidden="true"></div>
           <div className="absolute -right-20 -top-20 h-[280px] w-[280px] rounded-full border border-white/5" aria-hidden="true"></div>
+          <div className="absolute left-1/4 top-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/5 blur-3xl" aria-hidden="true"></div>
 
           <div className="relative mx-auto grid max-w-[80rem] items-center gap-14 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:py-28">
             {/* Copy */}
@@ -642,41 +645,131 @@ export default function Home() {
           <p className="mt-4 text-center text-[10px] text-slate-400 italic">*Nama toko demo untuk ilustrasi</p>
         </section>
 
-        {/* Trust Signals Section */}
-        <section className="bg-white py-12">
+        {/* Integration Logos Section */}
+        <section className="bg-white py-10">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
+              Terintegrasi dengan platform yang Anda gunakan
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-8 md:gap-12">
+              {/* Integrasi 1 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Send className="size-6 text-blue-500" fill="currentColor" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Telegram</span>
+              </div>
+              {/* Integrasi 2 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Package className="size-6 text-orange-500" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Tokopedia</span>
+              </div>
+              {/* Integrasi 3 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <ShoppingBag className="size-6 text-green-600" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Shopee</span>
+              </div>
+              {/* Integrasi 4 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Heart className="size-6 text-pink-500" fill="currentColor" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Instagram</span>
+              </div>
+              {/* Integrasi 5 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <CreditCard className="size-6 text-purple-600" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Midtrans</span>
+              </div>
+              {/* Integrasi 6 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Zap className="size-6 text-amber-500" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">Lazada</span>
+              </div>
+              {/* Integrasi 7 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Search className="size-6 text-red-500" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">TikTok Shop</span>
+              </div>
+              {/* Integrasi 8 */}
+              <div className="flex flex-col items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                  <Bot className="size-6 text-slate-700" />
+                </div>
+                <span className="text-xs font-medium text-slate-600">WhatsApp</span>
+              </div>
+            </div>
+            <p className="mt-6 text-center text-[10px] text-slate-400 italic">
+              *Integrasi tersedia untuk paket Pro dan Agency
+            </p>
+          </div>
+        </section>
+
+        {/* Trust Signals Section */}
+        <section className="bg-slate-50 py-14">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mb-8 text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Kenapa PesanLagi Terpercaya?</p>
+              <h3 className="mt-2 text-xl font-bold text-[#0B1220]">Keamanan & Dukungan Prioritas</h3>
+            </div>
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
               {/* Security */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 transition-transform hover:scale-110">
-                  <Shield className="size-7 text-green-600" />
+              <div className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 shadow-sm transition-all group-hover:shadow-md">
+                  <Shield className="size-8 text-green-600" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Enkripsi 256-bit</p>
-                <p className="mt-1 text-xs text-slate-500">Data Anda aman</p>
+                <p className="mt-4 text-sm font-bold text-[#0B1220]">Enkripsi 256-bit</p>
+                <p className="mt-1.5 text-xs text-slate-500">Data Anda terlindungi dengan standar industri keamanan terbaik</p>
               </div>
               {/* Telegram */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 transition-transform hover:scale-110">
-                  <Send className="size-7 text-blue-600" fill="currentColor" />
+              <div className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm transition-all group-hover:shadow-md">
+                  <Send className="size-8 text-blue-600" fill="currentColor" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Telegram Official</p>
-                <p className="mt-1 text-xs text-slate-500">Bot API terverifikasi</p>
+                <p className="mt-4 text-sm font-bold text-[#0B1220]">Telegram Official</p>
+                <p className="mt-1.5 text-xs text-slate-500">Integrasi resmi dengan Telegram Bot API terverifikasi</p>
               </div>
               {/* Payment */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 transition-transform hover:scale-110">
-                  <CreditCard className="size-7 text-purple-600" />
+              <div className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 shadow-sm transition-all group-hover:shadow-md">
+                  <CreditCard className="size-8 text-purple-600" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Pembayaran Aman</p>
-                <p className="mt-1 text-xs text-slate-500">Midtrans payment</p>
+                <p className="mt-4 text-sm font-bold text-[#0B1220]">Pembayaran Aman</p>
+                <p className="mt-1.5 text-xs text-slate-500">Didukung Midtrans dengan berbagai metode pembayaran</p>
               </div>
               {/* Support */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 transition-transform hover:scale-110">
-                  <Headphones className="size-7 text-orange-600" />
+              <div className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 shadow-sm transition-all group-hover:shadow-md">
+                  <Headphones className="size-8 text-orange-600" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#0B1220]">Support 1-on-1</p>
-                <p className="mt-1 text-xs text-slate-500">Prioritas Pro users</p>
+                <p className="mt-4 text-sm font-bold text-[#0B1220]">Support 1-on-1</p>
+                <p className="mt-1.5 text-xs text-slate-500">Bantuan prioritas untuk semua pengguna Pro & Agency</p>
+              </div>
+            </div>
+
+            {/* Additional Trust Badges */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">
+                <span className="font-semibold text-green-600">✓</span> GDPR Compliant
+              </div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">
+                <span className="font-semibold text-green-600">✓</span> Data Center Indonesia
+              </div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">
+                <span className="font-semibold text-green-600">✓</span> Uptime 99.9%
+              </div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">
+                <span className="font-semibold text-green-600">✓</span> Backup Harian
               </div>
             </div>
           </div>
@@ -1041,6 +1134,53 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Email Capture / Lead Magnet Section */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 py-20 lg:py-28">
+          <div className="dot-grid-light absolute inset-0 opacity-20" aria-hidden="true"></div>
+          <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white">
+              <Sparkles className="size-3.5" />
+              Panduan Eksklusif
+            </div>
+            <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Dapatkan E-Book Gratis: <span className="text-orange-100">5 Strategi CS Otomatis</span>
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-orange-50">
+              Pelajari cara 1.200+ toko online meningkatkan respon rate hingga 340% dengan AI. Termasuk template kata-kata jitu yang terbukti mengkonversi.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <a
+                href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20E-Book%20Gratis%20PesanLagi"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-orange-600 shadow-lg transition-transform hover:scale-105"
+              >
+                <Send className="size-4" fill="currentColor" />
+                Kirim ke Telegram Saya
+              </a>
+              <p className="text-xs text-orange-200">
+                Tanpa spam · Batas terbatas · Gratis selamanya
+              </p>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-orange-100">
+              <div className="flex items-center gap-2">
+                <Check className="size-4" fill="currentColor" />
+                Template balasan CS
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="size-4" fill="currentColor" />
+                Studi kasus nyata
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="size-4" fill="currentColor" />
+                Tips optimasi AI
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Testimonial Section - Coming Soon */}
         <section className="bg-white py-20 lg:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
@@ -1148,7 +1288,7 @@ export default function Home() {
           href="https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20tanya%20tentang%20PesanLagi"
           target="_blank"
           rel="noopener"
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg transition-transform hover:scale-110 md:bottom-8 md:right-8"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/30 transition-all hover:scale-110 hover:bg-orange-600 md:bottom-8 md:right-8"
           aria-label="Chat Telegram"
         >
           <Send className="size-7" fill="currentColor" />
