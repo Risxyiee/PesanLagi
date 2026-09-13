@@ -216,6 +216,29 @@ function QRCode() {
   return <svg id="qrSvg" viewBox="0 0 200 200" className="h-40 w-40" aria-hidden="true" dangerouslySetInnerHTML={{ __html: qrContent }} />;
 }
 
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-start justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-slate-50"
+      >
+        <span className="text-base font-semibold text-[#0B1220]">{question}</span>
+        <ChevronLeft
+          className={`size-5 shrink-0 text-orange-500 transition-transform duration-200 ${isOpen ? "rotate-[-90deg]" : ""}`}
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+      >
+        <p className="px-6 pb-4 text-sm leading-relaxed text-slate-600">{answer}</p>
+      </div>
+    </div>
+  );
+}
+
 // Main component
 export default function Home() {
   // Navbar
@@ -426,6 +449,7 @@ export default function Home() {
             <button onClick={() => scrollToSection("perbandingan")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Perbandingan</button>
             <button onClick={() => scrollToSection("kalkulator")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Kalkulator ROI</button>
             <button onClick={() => scrollToSection("harga")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Harga</button>
+            <button onClick={() => scrollToSection("faq")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">FAQ</button>
             <button onClick={() => scrollToSection("harga")} className="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600">Coba Gratis</button>
           </nav>
 
@@ -444,6 +468,7 @@ export default function Home() {
             <button onClick={() => { scrollToSection("perbandingan"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Perbandingan</button>
             <button onClick={() => { scrollToSection("kalkulator"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Kalkulator ROI</button>
             <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Harga</button>
+            <button onClick={() => { scrollToSection("faq"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">FAQ</button>
             <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link mt-2 block w-full rounded-full bg-orange-500 px-5 py-3 text-center text-sm font-semibold text-white">Coba Gratis</button>
           </nav>
         )}
@@ -504,8 +529,10 @@ export default function Home() {
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => <Star key={i} className="size-3.5 fill-orange-400 text-orange-400" />)}
                     <span className="ml-1 text-xs font-bold text-white">4,9/5</span>
+                    <span className="ml-1 text-[10px] font-medium text-orange-300 opacity-70">(Demo)</span>
                   </div>
                   <p className="mt-0.5 text-xs text-slate-400">Dipakai 1.200+ toko & brand lokal</p>
+                  <p className="mt-1 text-[10px] text-slate-500 italic">*Data demo untuk ilustrasi</p>
                 </div>
               </div>
             </div>
@@ -606,6 +633,7 @@ export default function Home() {
               ))}
             </div>
           </div>
+          <p className="mt-4 text-center text-[10px] text-slate-400 italic">*Nama toko demo untuk ilustrasi</p>
         </section>
 
         {/* Pain vs Solution */}
@@ -967,6 +995,94 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Testimonial Section - Coming Soon */}
+        <section className="bg-white py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Testimoni</p>
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0B1220] sm:text-4xl">Apa kata pengguna PesanLagi?</h2>
+              <p className="mt-4 text-slate-600">Kami sedang mengumpulkan testimonial dari pengguna awal PesanLagi.</p>
+            </div>
+
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                    <MessageCircle className="size-6 text-slate-400" />
+                  </div>
+                  <p className="text-slate-400 italic">"Testimoni pengguna akan ditampilkan di sini..."</p>
+                  <div className="mt-6 flex items-center justify-center gap-2">
+                    <div className="h-10 w-10 rounded-full bg-slate-200"></div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-slate-300">Nama Toko</p>
+                      <p className="text-xs text-slate-400">Kategori Bisnis</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20ingin%20memberikan%20testimonial%20PesanLagi" target="_blank" rel="noopener"
+                 className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-orange-600">
+                Jadilah yang pertama memberikan testimonial!
+                <ArrowRight className="size-4" />
+              </a>
+              <p className="mt-3 text-xs text-slate-400">Bagikan pengalaman Anda dan bantu UMKM lainnya</p>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="scroll-mt-24 bg-slate-50 py-20 lg:py-28">
+          <div className="mx-auto max-w-4xl px-5 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">FAQ</p>
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0B1220] sm:text-4xl">Pertanyaan yang Sering Diajukan</h2>
+              <p className="mt-4 text-slate-600">Jawaban untuk pertanyaan umum seputar PesanLagi</p>
+            </div>
+
+            <div className="mt-12 space-y-4">
+              {[
+                {
+                  q: "Apakah PesanLagi aman digunakan?",
+                  a: "Ya, PesanLagi menggunakan enkripsi untuk melindungi data Anda. Kredensial WhatsApp Business tidak disimpan dalam bentuk plain-text. Kami mengikuti praktik keamanan standar industri untuk melindungi privasi pengguna."
+                },
+                {
+                  q: "Bagaimana cara setup PesanLagi?",
+                  a: "Setup sangat mudah! Cukup daftar akun, scan QR code WhatsApp Business Anda, dan upload katalog produk. Rata-rata waktu setup hanya 58 detik. AI akan otomatis belajar dari katalog Anda untuk memberikan jawaban yang akurat."
+                },
+                {
+                  q: "Berapa lama waktu yang dibutuhkan untuk melihat hasil?",
+                  a: "Hasil bisa langsung terlihat setelah setup. AI akan mulai menjawab chat dalam hitungan detik. Untuk melihat dampak pada penjualan, biasanya butuh 1-2 minggu untuk mengumpulkan data yang cukup."
+                },
+                {
+                  q: "Bisakah saya mengambil alih chat manual?",
+                  a: "Tentu! PesanLagi memiliki fitur Hybrid Mode di mana Anda bisa mengambil alih chat kapan saja. AI akan mendeteksi komplain atau kasus kompleks dan otomatis eskalasi ke admin beserta ringkasan kasus."
+                },
+                {
+                  q: "Apakah data saya aman?",
+                  a: "Data Anda disimpan di server yang aman dengan enkripsi. Kami tidak menjual data Anda ke pihak ketiga. Anda memiliki kontrol penuh atas data Anda dan bisa menghapusnya kapan saja."
+                },
+                {
+                  q: "Berapa biaya langganan PesanLagi?",
+                  a: "PesanLagi memiliki beberapa paket: Starter (gratis), Pro UMKM (Rp 149.000/bulan), dan Agency (custom pricing). Semua paket mendukung WhatsApp Business API dengan fitur lengkap."
+                },
+                {
+                  q: "Apakah bisa dicoba gratis?",
+                  a: "Ya! Paket Starter gratis dengan batasan 100 chat AI/bulan dan katalog hingga 10 produk. Anda bisa upgrade kapan saja tanpa batasan waktu. Coba demo kami untuk melihat cara kerjanya."
+                },
+                {
+                  q: "Bagaimana jika AI menjawab salah?",
+                  a: "AI PesanLagi dilatih khusus untuk domain bisnis online dan terus belajar dari katalog Anda. Jika terjadi kesalahan, Anda bisa langsung mengambil alih chat dan mengedit jawaban AI. Feedback Anda membantu AI menjadi lebih akurat."
+                }
+              ].map((faq, idx) => (
+                <FAQItem key={idx} question={faq.q} answer={faq.a} />
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA Band */}
         <section className="relative overflow-hidden bg-orange-500 py-16 lg:py-20">
           <div className="dot-grid-light absolute inset-0 opacity-60" aria-hidden="true"></div>
@@ -1001,6 +1117,7 @@ export default function Home() {
                 <li><button onClick={() => scrollToSection("fitur")} className="transition-colors hover:text-orange-400">Fitur</button></li>
                 <li><button onClick={() => scrollToSection("harga")} className="transition-colors hover:text-orange-400">Harga</button></li>
                 <li><button onClick={() => scrollToSection("kalkulator")} className="transition-colors hover:text-orange-400">Kalkulator ROI</button></li>
+                <li><button onClick={() => scrollToSection("faq")} className="transition-colors hover:text-orange-400">FAQ</button></li>
               </ul>
             </div>
             <div>
