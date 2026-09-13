@@ -26,6 +26,7 @@ import {
   Heart,
   ArrowLeftRight,
   Star,
+  Send,
 } from "lucide-react";
 
 // Types
@@ -113,7 +114,7 @@ const CATALOG = [
 ];
 
 const QR_STATES = [
-  { t: "Menunggu scan WhatsApp…", ok: false },
+  { t: "Menunggu scan Telegram…", ok: false },
   { t: "Memindai kode…", ok: false },
   { t: "Terhubung sebagai Toko Berkah ✓", ok: true },
 ];
@@ -244,7 +245,7 @@ export default function Home() {
   // Navbar
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // WhatsApp Simulator
+  // Telegram Simulator
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [currentScenario, setCurrentScenario] = useState(0);
@@ -493,7 +494,7 @@ export default function Home() {
               </span>
 
               <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl lg:text-[3.35rem]">
-                Otomatiskan balas chat WhatsApp toko Anda
+                Otomatiskan balas chat Telegram toko Anda
                 <span className="text-orange-400">24/7</span> —
                 <span className="relative inline-block">tanpa admin ekstra
                   <svg className="absolute -bottom-2 left-0 h-2.5 w-full text-orange-500" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
@@ -508,7 +509,7 @@ export default function Home() {
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-4">
-                <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
+                <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
                    className="group inline-flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-colors hover:bg-orange-600">
                   Coba Demo Gratis
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
@@ -720,8 +721,8 @@ export default function Home() {
                 <div className="grid items-center gap-8 sm:grid-cols-2">
                   <div>
                     <span className="grid h-11 w-11 place-items-center rounded-xl bg-orange-50 text-orange-600"><QrCode className="size-5" /></span>
-                    <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Scan QR WhatsApp dalam 1 Menit</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">Tanpa API resmi, tanpa antrian verifikasi Meta. Cukup scan QR seperti login WhatsApp Web — langsung jalan.</p>
+                    <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Scan QR Telegram dalam 1 Menit</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">Tanpa API resmi, tanpa antrian verifikasi. Cukup scan QR seperti login Telegram — langsung jalan.</p>
                     <ul className="mt-4 space-y-2 text-sm text-slate-600">
                       <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Satu nomor bisnis, ganti perangkat bebas</li>
                       <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Sesi terenkripsi, kredensial tidak disimpan plain-text</li>
@@ -853,7 +854,7 @@ export default function Home() {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
                 <div>
                   <div className="flex items-center justify-between">
-                    <label htmlFor="roiChats" className="text-sm font-semibold text-slate-200">Volume chat WhatsApp per hari</label>
+                    <label htmlFor="roiChats" className="text-sm font-semibold text-slate-200">Volume chat Telegram per hari</label>
                     <span className="rounded-full bg-orange-500/15 px-3 py-1 text-sm font-bold text-orange-300">{num(roiChats)} chat</span>
                   </div>
                   <input
@@ -943,13 +944,13 @@ export default function Home() {
                 <p className="mt-6"><span className="text-4xl font-extrabold tracking-tight text-[#0B1220]">Rp 0</span></p>
                 <p className="mt-1 text-xs text-slate-400">Gratis selamanya · tanpa kartu kredit</p>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-slate-600">
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />1 nomor WhatsApp</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />1 nomor Telegram</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />100 chat AI / bulan</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Katalog hingga 10 produk</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Template balasan siap pakai</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Dukungan komunitas</li>
                 </ul>
-                <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Starter%20PesanLagi" target="_blank" rel="noopener"
+                <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Starter%20PesanLagi" target="_blank" rel="noopener"
                    className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-orange-500 hover:text-orange-600">Mulai Gratis</a>
               </div>
 
@@ -969,7 +970,7 @@ export default function Home() {
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Laporan performa mingguan</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Support prioritas 1-on-1</li>
                 </ul>
-                <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20Pro%20UMKM%20PesanLagi" target="_blank" rel="noopener"
+                <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20coba%20Pro%20UMKM%20PesanLagi" target="_blank" rel="noopener"
                    className="mt-7 rounded-full bg-orange-500 py-3 text-center text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition-colors hover:bg-orange-600">Coba 14 Hari Gratis</a>
                 <p className="mt-3 text-center text-[11px] text-slate-400">Batalkan kapan saja</p>
               </div>
@@ -988,7 +989,7 @@ export default function Home() {
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />AI training khusus per brand</li>
                   <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Account manager khusus</li>
                 </ul>
-                <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20tanya%20paket%20Agency%20PesanLagi" target="_blank" rel="noopener"
+                <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20tanya%20paket%20Agency%20PesanLagi" target="_blank" rel="noopener"
                    className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-orange-500 hover:text-orange-600">Hubungi Sales</a>
               </div>
             </div>
@@ -1023,7 +1024,7 @@ export default function Home() {
             </div>
 
             <div className="mt-12 text-center">
-              <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20ingin%20memberikan%20testimonial%20PesanLagi" target="_blank" rel="noopener"
+              <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20memberikan%20testimonial%20PesanLagi" target="_blank" rel="noopener"
                  className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-orange-600">
                 Jadilah yang pertama memberikan testimonial!
                 <ArrowRight className="size-4" />
@@ -1046,11 +1047,11 @@ export default function Home() {
               {[
                 {
                   q: "Apakah PesanLagi aman digunakan?",
-                  a: "Ya, PesanLagi menggunakan enkripsi untuk melindungi data Anda. Kredensial WhatsApp Business tidak disimpan dalam bentuk plain-text. Kami mengikuti praktik keamanan standar industri untuk melindungi privasi pengguna."
+                  a: "Ya, PesanLagi menggunakan enkripsi untuk melindungi data Anda. Kredensial Telegram tidak disimpan dalam bentuk plain-text. Kami mengikuti praktik keamanan standar industri untuk melindungi privasi pengguna."
                 },
                 {
                   q: "Bagaimana cara setup PesanLagi?",
-                  a: "Setup sangat mudah! Cukup daftar akun, scan QR code WhatsApp Business Anda, dan upload katalog produk. Rata-rata waktu setup hanya 58 detik. AI akan otomatis belajar dari katalog Anda untuk memberikan jawaban yang akurat."
+                  a: "Setup sangat mudah! Cukup daftar akun, scan QR code Telegram Anda, dan upload katalog produk. Rata-rata waktu setup hanya 58 detik. AI akan otomatis belajar dari katalog Anda untuk memberikan jawaban yang akurat."
                 },
                 {
                   q: "Berapa lama waktu yang dibutuhkan untuk melihat hasil?",
@@ -1066,7 +1067,7 @@ export default function Home() {
                 },
                 {
                   q: "Berapa biaya langganan PesanLagi?",
-                  a: "PesanLagi memiliki beberapa paket: Starter (gratis), Pro UMKM (Rp 149.000/bulan), dan Agency (custom pricing). Semua paket mendukung WhatsApp Business API dengan fitur lengkap."
+                  a: "PesanLagi memiliki beberapa paket: Starter (gratis), Pro UMKM (Rp 149.000/bulan), dan Agency (custom pricing). Semua paket mendukung integrasi Telegram dengan fitur lengkap."
                 },
                 {
                   q: "Apakah bisa dicoba gratis?",
@@ -1089,7 +1090,7 @@ export default function Home() {
           <div ref={addRevealRef(4)} className="reveal relative mx-auto max-w-3xl px-5 text-center sm:px-8">
             <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Chat tengah malam tak harus jadi pesanan yang hilang.</h2>
             <p className="mt-4 text-orange-50">Pasang PesanLagi hari ini — setup 1 menit, langsung jalan malam ini juga.</p>
-            <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
+            <a href="https://t.me/Risxyie?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
                className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-orange-700 shadow-lg transition-transform hover:scale-[1.03]">
               Coba Demo Gratis <ArrowRight className="size-4" />
             </a>
@@ -1109,7 +1110,7 @@ export default function Home() {
                 </span>
                 <span className="text-lg font-extrabold tracking-tight text-white">Pesan<span className="text-orange-400">Lagi</span></span>
               </a>
-              <p className="mt-4 text-sm leading-relaxed">Auto-responder AI WhatsApp untuk UMKM Indonesia. Balas cepat, jualan lebih.</p>
+              <p className="mt-4 text-sm leading-relaxed">Auto-responder AI Telegram untuk UMKM Indonesia. Balas cepat, jualan lebih.</p>
             </div>
             <div>
               <p className="text-sm font-bold text-white">Produk</p>
