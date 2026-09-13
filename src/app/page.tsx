@@ -146,7 +146,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
     const alert = message.kind === "alert";
     return (
       <div className={`msg fade-swap mx-auto flex w-fit max-w-[90%] items-center gap-1.5 rounded-full px-3 py-1.5 text-center text-[11px] font-medium shadow-sm ${alert ? "bg-amber-100 text-amber-800" : "bg-white text-slate-500"}`}>
-        {alert ? <ArrowLeftRight className="size-3 shrink-0" /> : <Zap className="size-3 shrink-0 text-emerald-600" />}
+        {alert ? <ArrowLeftRight className="size-3 shrink-0" /> : <Zap className="size-3 shrink-0 text-orange-600" />}
         {message.text}
       </div>
     );
@@ -154,15 +154,15 @@ function ChatBubble({ message }: { message: ChatMessage }) {
 
   const out = message.from !== "customer";
   const meta = out && message.meta ? (
-    <p className={`msg fade-swap mb-1 flex items-center justify-end gap-1 text-[10px] font-semibold ${message.from === "admin" ? "text-amber-700" : "text-emerald-700"}`}>
+    <p className={`msg fade-swap mb-1 flex items-center justify-end gap-1 text-[10px] font-semibold ${message.from === "admin" ? "text-amber-700" : "text-orange-700"}`}>
       {message.from === "admin" ? <UserCheck className="size-3" /> : <Bot className="size-3" />}
       {message.meta}
     </p>
   ) : "";
 
   const product = message.product ? (
-    <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-white/80 px-2.5 py-1.5">
-      <ShoppingBag className="size-4 shrink-0 text-emerald-700" />
+    <div className="mt-2 flex items-center gap-2 rounded-lg border border-orange-200 bg-white/80 px-2.5 py-1.5">
+      <ShoppingBag className="size-4 shrink-0 text-orange-700" />
       <div className="min-w-0">
         <p className="truncate text-[11px] font-bold text-slate-800">{message.product.name}</p>
         <p className="text-[10px] text-slate-500">{message.product.price} · {message.product.stock}</p>
@@ -418,7 +418,7 @@ export default function Home() {
         <div className="mx-auto flex h-16 max-w-[80rem] items-center justify-between px-5 sm:px-8">
           <a href="#" className="flex items-center gap-2.5" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             <img src="/pesanlagi-logo.png" alt="PesanLagi Logo" className="h-9 w-9 rounded-lg object-contain" />
-            <span className="text-lg font-extrabold tracking-tight text-[#0B1220]">Pesan<span className="text-emerald-600">Lagi</span></span>
+            <span className="text-lg font-extrabold tracking-tight text-[#0B1220]">Pesan<span className="text-orange-600">Lagi</span></span>
           </a>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -426,7 +426,7 @@ export default function Home() {
             <button onClick={() => scrollToSection("perbandingan")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Perbandingan</button>
             <button onClick={() => scrollToSection("kalkulator")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Kalkulator ROI</button>
             <button onClick={() => scrollToSection("harga")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Harga</button>
-            <button onClick={() => scrollToSection("harga")} className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600">Coba Gratis</button>
+            <button onClick={() => scrollToSection("harga")} className="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600">Coba Gratis</button>
           </nav>
 
           <button
@@ -444,14 +444,14 @@ export default function Home() {
             <button onClick={() => { scrollToSection("perbandingan"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Perbandingan</button>
             <button onClick={() => { scrollToSection("kalkulator"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Kalkulator ROI</button>
             <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Harga</button>
-            <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link mt-2 block w-full rounded-full bg-emerald-500 px-5 py-3 text-center text-sm font-semibold text-white">Coba Gratis</button>
+            <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link mt-2 block w-full rounded-full bg-orange-500 px-5 py-3 text-center text-sm font-semibold text-white">Coba Gratis</button>
           </nav>
         )}
       </header>
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-[#0B1220] text-white">
+        <section className="relative overflow-hidden bg-[#1A1A1A] text-white">
           <div className="dot-grid-light absolute inset-0" aria-hidden="true"></div>
           <div className="absolute -right-40 -top-40 h-[480px] w-[480px] rounded-full border border-white/5" aria-hidden="true"></div>
           <div className="absolute -right-20 -top-20 h-[280px] w-[280px] rounded-full border border-white/5" aria-hidden="true"></div>
@@ -459,19 +459,19 @@ export default function Home() {
           <div className="relative mx-auto grid max-w-[80rem] items-center gap-14 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:py-28">
             {/* Copy */}
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-300">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-60"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-400"></span>
                 </span>
                 Auto-Responder AI untuk UMKM Indonesia
               </span>
 
               <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl lg:text-[3.35rem]">
                 Otomatiskan balas chat WhatsApp toko Anda
-                <span className="text-emerald-400">24/7</span> —
+                <span className="text-orange-400">24/7</span> —
                 <span className="relative inline-block">tanpa admin ekstra
-                  <svg className="absolute -bottom-2 left-0 h-2.5 w-full text-emerald-500" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+                  <svg className="absolute -bottom-2 left-0 h-2.5 w-full text-orange-500" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
                     <path d="M3 7 Q 50 2 100 6 T 197 4" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
                   </svg>
                 </span>
@@ -484,7 +484,7 @@ export default function Home() {
 
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
-                   className="group inline-flex items-center gap-2 rounded-full bg-emerald-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition-colors hover:bg-emerald-600">
+                   className="group inline-flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-colors hover:bg-orange-600">
                   Coba Demo Gratis
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </a>
@@ -495,14 +495,14 @@ export default function Home() {
 
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <div className="flex -space-x-2.5">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-600 text-[11px] font-bold text-white ring-2 ring-[#0B1220]">AS</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-orange-600 text-[11px] font-bold text-white ring-2 ring-[#0B1220]">AS</span>
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-amber-600 text-[11px] font-bold text-white ring-2 ring-[#0B1220]">RD</span>
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-sky-700 text-[11px] font-bold text-white ring-2 ring-[#0B1220]">IB</span>
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-slate-700 text-[10px] font-bold text-slate-200 ring-2 ring-[#0B1220]">1,2rb</span>
                 </div>
                 <div>
                   <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="size-3.5 fill-emerald-400 text-emerald-400" />)}
+                    {[...Array(5)].map((_, i) => <Star key={i} className="size-3.5 fill-orange-400 text-orange-400" />)}
                     <span className="ml-1 text-xs font-bold text-white">4,9/5</span>
                   </div>
                   <p className="mt-0.5 text-xs text-slate-400">Dipakai 1.200+ toko & brand lokal</p>
@@ -516,8 +516,8 @@ export default function Home() {
                 <div className="relative rounded-[2.5rem] bg-slate-900 p-2.5 shadow-2xl shadow-black/40 ring-1 ring-white/10">
                   <div className="absolute -top-3 right-6 z-10 flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span>
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-60"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
                     </span>
                     Simulasi Langsung
                   </div>
@@ -526,10 +526,10 @@ export default function Home() {
                     {/* WA header */}
                     <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3 text-white">
                       <ChevronLeft className="size-5 shrink-0 opacity-80" />
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-600 text-[11px] font-bold">RB</span>
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-orange-600 text-[11px] font-bold">RB</span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-bold">Bu Ratih — Toko Berkah</p>
-                        <p className="flex items-center gap-1 text-[11px] text-emerald-200">
+                        <p className="flex items-center gap-1 text-[11px] text-orange-200">
                           {statusMode === "admin" ? (
                             <>
                               <UserCheck className="size-3" />
@@ -571,8 +571,8 @@ export default function Home() {
                       onClick={() => playScenario(idx)}
                       className={`scenario-btn rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                         currentScenario === idx
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-white/15 bg-white/5 text-slate-300 hover:border-emerald-400/50 hover:text-white"
+                          ? "border-orange-500 bg-orange-500 text-white"
+                          : "border-white/15 bg-white/5 text-slate-300 hover:border-orange-400/50 hover:text-white"
                       }`}
                     >
                       {idx === 0 ? "Tanya Stok" : idx === 1 ? "Tanya Ongkir" : "Komplain (Hybrid)"}
@@ -582,7 +582,7 @@ export default function Home() {
                     onClick={() => playScenario(currentScenario)}
                     title="Putar ulang"
                     aria-label="Putar ulang"
-                    className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition-colors hover:border-emerald-400/50 hover:text-white"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition-colors hover:border-orange-400/50 hover:text-white"
                   >
                     <RotateCcw className="size-3.5" />
                   </button>
@@ -600,7 +600,7 @@ export default function Home() {
             <div className="marquee-track flex w-max items-center gap-12 pr-12">
               {[...BRANDS, ...BRANDS].map((brand, idx) => (
                 <span key={idx} className="flex items-center gap-12 whitespace-nowrap text-lg font-bold text-slate-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400"></span>
                   {brand}
                 </span>
               ))}
@@ -612,7 +612,7 @@ export default function Home() {
         <section id="perbandingan" className="scroll-mt-24 bg-slate-50 py-20 lg:py-28">
           <div ref={addRevealRef(0)} className="reveal mx-auto max-w-[80rem] px-5 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Perbandingan</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Perbandingan</p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0B1220] sm:text-4xl">CS Manual vs PesanLagi AI</h2>
               <p className="mt-4 text-slate-600">Kelola chat sendiri itu mahal — bukan cuma uang, tapi juga order yang hilang diam-diam.</p>
             </div>
@@ -628,7 +628,7 @@ export default function Home() {
                       </span>
                     </th>
                     <th className="w-[38%] p-4">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-bold text-emerald-700">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1.5 text-sm font-bold text-orange-700">
                         <Bot className="size-4" /> PesanLagi AI
                       </span>
                     </th>
@@ -638,39 +638,39 @@ export default function Home() {
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Kecepatan balas</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />5–30 menit, tergantung antrian</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />&lt; 10 detik, otomatis</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />&lt; 10 detik, otomatis</span></td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Jam operasional</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />8 jam/hari, 6 hari/minggu</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />24/7, termasuk libur nasional</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />24/7, termasuk libur nasional</span></td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Biaya per bulan</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />Rp 3,5–4 jt+ per admin</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Mulai Rp 149 rb</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Mulai Rp 149 rb</span></td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Konsistensi jawaban</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />Beda admin, beda jawaban</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />100% sesuai katalog & SOP toko</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />100% sesuai katalog & SOP toko</span></td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Saat flash sale</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />Chat menumpuk, order bocor</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Nol antrian, semua chat terlayani</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Nol antrian, semua chat terlayani</span></td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-[#0B1220]">Komplain sensitif</td>
                     <td className="p-4 text-slate-500"><span className="flex items-start gap-2"><X className="mt-0.5 size-4 shrink-0 text-red-400" />Emosi admin ikut memanas</span></td>
-                    <td className="bg-emerald-50/50 p-4 font-medium text-emerald-900"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />AI eskalasi ke manusia + ringkasan kasus</span></td>
+                    <td className="bg-orange-50/50 p-4 font-medium text-orange-950"><span className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />AI eskalasi ke manusia + ringkasan kasus</span></td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <p className="mt-6 text-center">
-              <button onClick={() => scrollToSection("kalkulator")} className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700">
+              <button onClick={() => scrollToSection("kalkulator")} className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-600 hover:text-orange-700">
                 Hitung penghematan untuk toko Anda <ArrowRight className="size-4" />
               </button>
             </p>
@@ -681,7 +681,7 @@ export default function Home() {
         <section id="fitur" className="scroll-mt-24 bg-white py-20 lg:py-28">
           <div className="mx-auto max-w-[80rem] px-5 sm:px-8">
             <div ref={addRevealRef(1)} className="reveal mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Fitur Inti</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Fitur Inti</p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0B1220] sm:text-4xl">Semua yang toko Anda butuhkan untuk balas chat otomatis</h2>
               <p className="mt-4 text-slate-600">Dari scan QR pertama sampai serah-terima chat ke admin manusia — satu dashboard.</p>
             </div>
@@ -691,13 +691,13 @@ export default function Home() {
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-7 lg:p-8">
                 <div className="grid items-center gap-8 sm:grid-cols-2">
                   <div>
-                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><QrCode className="size-5" /></span>
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-orange-50 text-orange-600"><QrCode className="size-5" /></span>
                     <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Scan QR WhatsApp dalam 1 Menit</h3>
                     <p className="mt-2 text-sm leading-relaxed text-slate-600">Tanpa API resmi, tanpa antrian verifikasi Meta. Cukup scan QR seperti login WhatsApp Web — langsung jalan.</p>
                     <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Satu nomor bisnis, ganti perangkat bebas</li>
-                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Sesi terenkripsi, kredensial tidak disimpan plain-text</li>
-                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Rata-rata setup pengguna: 58 detik</li>
+                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Satu nomor bisnis, ganti perangkat bebas</li>
+                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Sesi terenkripsi, kredensial tidak disimpan plain-text</li>
+                      <li className="flex items-start gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Rata-rata setup pengguna: 58 detik</li>
                     </ul>
                   </div>
                   <div>
@@ -707,7 +707,7 @@ export default function Home() {
                       </div>
                       <div className="scan-line" aria-hidden="true"></div>
                       {QR_STATES[qrStateIndex].ok && (
-                        <span className="absolute -bottom-3 -right-3 grid h-9 w-9 place-items-center rounded-full bg-emerald-500 text-white shadow-lg">
+                        <span className="absolute -bottom-3 -right-3 grid h-9 w-9 place-items-center rounded-full bg-orange-500 text-white shadow-lg">
                           <Check className="size-5" />
                         </span>
                       )}
@@ -719,14 +719,14 @@ export default function Home() {
 
               {/* Gemini AI */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-5 lg:p-8">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Sparkles className="size-5" /></span>
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-orange-50 text-orange-600"><Sparkles className="size-5" /></span>
                 <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Gemini AI Smart Engine</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">AI paham bahasa gaul & singkatan khas Indonesia, kenali niat pembeli, dan jawab kontekstual.</p>
                 <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4" key={intentKey}>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pesan masuk</p>
                   <p className="mt-1 text-sm font-semibold text-[#0B1220]">"{INTENTS[intentIndex].q}"</p>
                   <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-1 text-[11px] font-bold text-orange-700">
                       <Sparkles className="size-3" />Niat: {INTENTS[intentIndex].intent}
                     </span>
                     <span className="text-[11px] font-bold text-slate-400">akurasi {INTENTS[intentIndex].conf}%</span>
@@ -737,7 +737,7 @@ export default function Home() {
 
               {/* Katalog */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-5 lg:p-8">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Package className="size-5" /></span>
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-orange-50 text-orange-600"><Package className="size-5" /></span>
                 <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Katalog Produk = Otak AI</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">AI menjawab berdasarkan stok & harga asli. Coba ketik untuk saring — persis seperti AI mencari produk:</p>
                 <div className="relative mt-4">
@@ -747,7 +747,7 @@ export default function Home() {
                     placeholder="Cari produk… (coba: gamis)"
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-[#0B1220] placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-[#0B1220] placeholder:text-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                   />
                 </div>
                 <div className="mt-3 space-y-2">
@@ -755,19 +755,19 @@ export default function Home() {
                     <div key={idx} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
                       <span className="text-sm font-semibold text-[#0B1220]">{item.name}</span>
                       <span className="flex items-center gap-2 text-xs text-slate-500">
-                        {item.price} <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-bold text-emerald-700">{item.stock}</span>
+                        {item.price} <span className="rounded-full bg-orange-100 px-2 py-0.5 font-bold text-orange-700">{item.stock}</span>
                       </span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] font-semibold text-emerald-600">{filteredCatalog.length} produk siap dijawab AI</p>
+                <p className="mt-3 text-[11px] font-semibold text-orange-600">{filteredCatalog.length} produk siap dijawab AI</p>
               </div>
 
               {/* Hybrid */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:col-span-7 lg:p-8">
                 <div className="grid items-center gap-8 sm:grid-cols-2">
                   <div>
-                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><UserCheck className="size-5" /></span>
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-orange-50 text-orange-600"><UserCheck className="size-5" /></span>
                     <h3 className="mt-4 text-xl font-extrabold text-[#0B1220]">Hybrid: Manual ↔ Auto Takeover</h3>
                     <p className="mt-2 text-sm leading-relaxed text-slate-600">AI pegang 85% chat. Begitu ada komplain atau negosiasi rumit, chat otomatis dialihkan ke admin — dengan ringkasan kasus lengkap. Coba geser sakelarnya:</p>
                   </div>
@@ -779,18 +779,18 @@ export default function Home() {
                         onChange={(e) => setHybridMode(e.target.checked ? "manual" : "auto")}
                         className="peer sr-only"
                       />
-                      <span className={`relative h-6 w-11 rounded-full transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform after:shadow peer-checked:bg-amber-500 peer-checked:after:translate-x-5 ${hybridMode === "auto" ? "bg-emerald-500" : "bg-slate-300"}`}></span>
+                      <span className={`relative h-6 w-11 rounded-full transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform after:shadow peer-checked:bg-amber-500 peer-checked:after:translate-x-5 ${hybridMode === "auto" ? "bg-orange-500" : "bg-slate-300"}`}></span>
                       <span className="text-sm font-bold text-[#0B1220]">
                         {hybridMode === "auto" ? "AUTO — AI yang membalas" : "MANUAL — Admin yang membalas"}
                       </span>
                     </label>
                     <div className="mt-4">
                       {hybridMode === "auto" ? (
-                        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                          <Bot className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                        <div className="flex items-start gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4">
+                          <Bot className="mt-0.5 size-5 shrink-0 text-orange-600" />
                           <div>
-                            <p className="text-sm font-bold text-emerald-800">Mode AUTO aktif</p>
-                            <p className="mt-0.5 text-xs leading-relaxed text-emerald-700">AI menjawab semua chat secara instan. Komplain & kata kunci sensitif otomatis dieskalasi ke admin beserta ringkasan kasus.</p>
+                            <p className="text-sm font-bold text-orange-800">Mode AUTO aktif</p>
+                            <p className="mt-0.5 text-xs leading-relaxed text-orange-700">AI menjawab semua chat secara instan. Komplain & kata kunci sensitif otomatis dieskalasi ke admin beserta ringkasan kasus.</p>
                           </div>
                         </div>
                       ) : (
@@ -811,11 +811,11 @@ export default function Home() {
         </section>
 
         {/* ROI Calculator */}
-        <section id="kalkulator" className="relative scroll-mt-24 overflow-hidden bg-[#0B1220] py-20 text-white lg:py-28">
+        <section id="kalkulator" className="relative scroll-mt-24 overflow-hidden bg-[#1A1A1A] py-20 text-white lg:py-28">
           <div className="dot-grid-light absolute inset-0" aria-hidden="true"></div>
           <div ref={addRevealRef(2)} className="reveal relative mx-auto max-w-[80rem] px-5 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">Kalkulator ROI</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-400">Kalkulator ROI</p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Berapa Banyak yang Bisa Anda Hemat?</h2>
               <p className="mt-4 text-slate-300">Geser sesuai kondisi toko Anda — hitungannya jalan langsung.</p>
             </div>
@@ -826,7 +826,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between">
                     <label htmlFor="roiChats" className="text-sm font-semibold text-slate-200">Volume chat WhatsApp per hari</label>
-                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-bold text-emerald-300">{num(roiChats)} chat</span>
+                    <span className="rounded-full bg-orange-500/15 px-3 py-1 text-sm font-bold text-orange-300">{num(roiChats)} chat</span>
                   </div>
                   <input
                     id="roiChats"
@@ -845,7 +845,7 @@ export default function Home() {
                 <div className="mt-8">
                   <div className="flex items-center justify-between">
                     <label htmlFor="roiMins" className="text-sm font-semibold text-slate-200">Rata-rata lama balas manual per chat</label>
-                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-bold text-emerald-300">{num(roiMins)} menit</span>
+                    <span className="rounded-full bg-orange-500/15 px-3 py-1 text-sm font-bold text-orange-300">{num(roiMins)} menit</span>
                   </div>
                   <input
                     id="roiMins"
@@ -869,26 +869,26 @@ export default function Home() {
 
               {/* Results */}
               <div className="space-y-4">
-                <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 sm:p-8">
-                  <p className="text-sm font-semibold text-emerald-300">Total nilai per bulan</p>
-                  <p className="mt-2 text-4xl font-extrabold tracking-tight text-emerald-400 sm:text-5xl">{roiResults.total}</p>
-                  <span className="mt-3 inline-block rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white">{roiResults.roi}</span>
+                <div className="rounded-2xl border border-orange-500/40 bg-orange-500/10 p-6 sm:p-8">
+                  <p className="text-sm font-semibold text-orange-300">Total nilai per bulan</p>
+                  <p className="mt-2 text-4xl font-extrabold tracking-tight text-orange-400 sm:text-5xl">{roiResults.total}</p>
+                  <span className="mt-3 inline-block rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">{roiResults.roi}</span>
                   <p className="mt-4 text-sm leading-relaxed text-slate-300">{roiResults.summary}</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <Clock className="size-5 text-emerald-400" />
+                    <Clock className="size-5 text-orange-400" />
                     <p className="mt-3 text-2xl font-extrabold text-white">{roiResults.hours}</p>
                     <p className="mt-1 text-xs text-slate-400">Jam kerja hemat / bulan</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <Wallet className="size-5 text-emerald-400" />
+                    <Wallet className="size-5 text-orange-400" />
                     <p className="mt-3 text-2xl font-extrabold text-white">{roiResults.money}</p>
                     <p className="mt-1 text-xs text-slate-400">Hemat biaya admin / bulan</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <TrendingUp className="size-5 text-emerald-400" />
+                    <TrendingUp className="size-5 text-orange-400" />
                     <p className="mt-3 text-2xl font-extrabold text-white">{roiResults.revenue}</p>
                     <p className="mt-1 text-xs text-slate-400">Order tertolong / bulan</p>
                   </div>
@@ -902,7 +902,7 @@ export default function Home() {
         <section id="harga" className="scroll-mt-24 bg-slate-50 py-20 lg:py-28">
           <div ref={addRevealRef(3)} className="reveal mx-auto max-w-[80rem] px-5 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Harga</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Harga</p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0B1220] sm:text-4xl">Murahannya Satu Admin, Kerjanya Tiga Orang</h2>
               <p className="mt-4 text-slate-600">Mulai gratis. Upgrade hanya kalau AI-nya terbukti nutup order.</p>
             </div>
@@ -915,34 +915,34 @@ export default function Home() {
                 <p className="mt-6"><span className="text-4xl font-extrabold tracking-tight text-[#0B1220]">Rp 0</span></p>
                 <p className="mt-1 text-xs text-slate-400">Gratis selamanya · tanpa kartu kredit</p>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-slate-600">
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />1 nomor WhatsApp</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />100 chat AI / bulan</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Katalog hingga 10 produk</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Template balasan siap pakai</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Dukungan komunitas</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />1 nomor WhatsApp</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />100 chat AI / bulan</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Katalog hingga 10 produk</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Template balasan siap pakai</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Dukungan komunitas</li>
                 </ul>
                 <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Starter%20PesanLagi" target="_blank" rel="noopener"
-                   className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-emerald-500 hover:text-emerald-600">Mulai Gratis</a>
+                   className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-orange-500 hover:text-orange-600">Mulai Gratis</a>
               </div>
 
               {/* Pro */}
-              <div className="relative flex flex-col rounded-2xl border-2 border-emerald-500 bg-white p-7 shadow-xl shadow-emerald-500/10 md:-translate-y-2">
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Paling Laris</span>
+              <div className="relative flex flex-col rounded-2xl border-2 border-orange-500 bg-white p-7 shadow-xl shadow-orange-500/10 md:-translate-y-2">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-orange-500 px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Paling Laris</span>
                 <h3 className="text-lg font-extrabold text-[#0B1220]">Pro UMKM</h3>
                 <p className="mt-1 text-sm text-slate-500">Untuk toko yang serius scale-up.</p>
                 <p className="mt-6"><span className="text-4xl font-extrabold tracking-tight text-[#0B1220]">Rp 149.000</span><span className="text-sm font-medium text-slate-400"> /bulan</span></p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Lebih murah dari 1 jasa kirim gratis-ongkir</p>
+                <p className="mt-1 text-xs text-orange-600 font-semibold">Lebih murah dari 1 jasa kirim gratis-ongkir</p>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-slate-600">
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Semua fitur Starter</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Chat AI <strong className="text-[#0B1220]">tanpa batas</strong></li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Katalog produk tak terbatas</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Hybrid takeover manual ↔ AI</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Notifikasi eskalasi langsung ke WA admin</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Laporan performa mingguan</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Support prioritas 1-on-1</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Semua fitur Starter</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Chat AI <strong className="text-[#0B1220]">tanpa batas</strong></li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Katalog produk tak terbatas</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Hybrid takeover manual ↔ AI</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Notifikasi eskalasi langsung ke WA admin</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Laporan performa mingguan</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Support prioritas 1-on-1</li>
                 </ul>
                 <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20Pro%20UMKM%20PesanLagi" target="_blank" rel="noopener"
-                   className="mt-7 rounded-full bg-emerald-500 py-3 text-center text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition-colors hover:bg-emerald-600">Coba 14 Hari Gratis</a>
+                   className="mt-7 rounded-full bg-orange-500 py-3 text-center text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition-colors hover:bg-orange-600">Coba 14 Hari Gratis</a>
                 <p className="mt-3 text-center text-[11px] text-slate-400">Batalkan kapan saja</p>
               </div>
 
@@ -953,75 +953,75 @@ export default function Home() {
                 <p className="mt-6"><span className="text-4xl font-extrabold tracking-tight text-[#0B1220]">Kustom</span></p>
                 <p className="mt-1 text-xs text-slate-400">Sesuai jumlah nomor & volume</p>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-slate-600">
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Semua fitur Pro</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Multi-nomor & multi-klien</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />White-label dashboard</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />API & webhook integrasi</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />AI training khusus per brand</li>
-                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />Account manager khusus</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Semua fitur Pro</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Multi-nomor & multi-klien</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />White-label dashboard</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />API & webhook integrasi</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />AI training khusus per brand</li>
+                  <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-orange-600" />Account manager khusus</li>
                 </ul>
                 <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20tanya%20paket%20Agency%20PesanLagi" target="_blank" rel="noopener"
-                   className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-emerald-500 hover:text-emerald-600">Hubungi Sales</a>
+                   className="mt-7 rounded-full border border-slate-300 py-3 text-center text-sm font-bold text-[#0B1220] transition-colors hover:border-orange-500 hover:text-orange-600">Hubungi Sales</a>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Band */}
-        <section className="relative overflow-hidden bg-emerald-500 py-16 lg:py-20">
+        <section className="relative overflow-hidden bg-orange-500 py-16 lg:py-20">
           <div className="dot-grid-light absolute inset-0 opacity-60" aria-hidden="true"></div>
           <div ref={addRevealRef(4)} className="reveal relative mx-auto max-w-3xl px-5 text-center sm:px-8">
             <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Chat tengah malam tak harus jadi pesanan yang hilang.</h2>
-            <p className="mt-4 text-emerald-50">Pasang PesanLagi hari ini — setup 1 menit, langsung jalan malam ini juga.</p>
+            <p className="mt-4 text-orange-50">Pasang PesanLagi hari ini — setup 1 menit, langsung jalan malam ini juga.</p>
             <a href="https://wa.me/6280000000000?text=Halo%2C%20saya%20mau%20coba%20demo%20PesanLagi" target="_blank" rel="noopener"
-               className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-emerald-700 shadow-lg transition-transform hover:scale-[1.03]">
+               className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-orange-700 shadow-lg transition-transform hover:scale-[1.03]">
               Coba Demo Gratis <ArrowRight className="size-4" />
             </a>
-            <p className="mt-4 text-xs font-medium text-emerald-100">Tanpa kartu kredit · Batalkan kapan saja</p>
+            <p className="mt-4 text-xs font-medium text-orange-100">Tanpa kartu kredit · Batalkan kapan saja</p>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#0B1220] py-14 text-slate-400">
+      <footer className="bg-[#1A1A1A] py-14 text-slate-400">
         <div className="mx-auto max-w-[80rem] px-5 sm:px-8">
           <div className="grid gap-10 md:grid-cols-4">
             <div>
               <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange-500">
                   <MessageCircle className="size-5 text-white" style={{ fill: "currentColor" }} />
                 </span>
-                <span className="text-lg font-extrabold tracking-tight text-white">Pesan<span className="text-emerald-400">Lagi</span></span>
+                <span className="text-lg font-extrabold tracking-tight text-white">Pesan<span className="text-orange-400">Lagi</span></span>
               </a>
               <p className="mt-4 text-sm leading-relaxed">Auto-responder AI WhatsApp untuk UMKM Indonesia. Balas cepat, jualan lebih.</p>
             </div>
             <div>
               <p className="text-sm font-bold text-white">Produk</p>
               <ul className="mt-4 space-y-2.5 text-sm">
-                <li><button onClick={() => scrollToSection("fitur")} className="transition-colors hover:text-emerald-400">Fitur</button></li>
-                <li><button onClick={() => scrollToSection("harga")} className="transition-colors hover:text-emerald-400">Harga</button></li>
-                <li><button onClick={() => scrollToSection("kalkulator")} className="transition-colors hover:text-emerald-400">Kalkulator ROI</button></li>
+                <li><button onClick={() => scrollToSection("fitur")} className="transition-colors hover:text-orange-400">Fitur</button></li>
+                <li><button onClick={() => scrollToSection("harga")} className="transition-colors hover:text-orange-400">Harga</button></li>
+                <li><button onClick={() => scrollToSection("kalkulator")} className="transition-colors hover:text-orange-400">Kalkulator ROI</button></li>
               </ul>
             </div>
             <div>
               <p className="text-sm font-bold text-white">Perusahaan</p>
               <ul className="mt-4 space-y-2.5 text-sm">
-                <li><a href="#" className="transition-colors hover:text-emerald-400">Tentang Kami</a></li>
-                <li><a href="#" className="transition-colors hover:text-emerald-400">Blog</a></li>
-                <li><a href="#" className="transition-colors hover:text-emerald-400">Kontak</a></li>
+                <li><a href="#" className="transition-colors hover:text-orange-400">Tentang Kami</a></li>
+                <li><a href="#" className="transition-colors hover:text-orange-400">Blog</a></li>
+                <li><a href="#" className="transition-colors hover:text-orange-400">Kontak</a></li>
               </ul>
             </div>
             <div>
               <p className="text-sm font-bold text-white">Legal</p>
               <ul className="mt-4 space-y-2.5 text-sm">
-                <li><a href="#" className="transition-colors hover:text-emerald-400">Kebijakan Privasi</a></li>
-                <li><a href="#" className="transition-colors hover:text-emerald-400">Syarat & Ketentuan</a></li>
+                <li><a href="#" className="transition-colors hover:text-orange-400">Kebijakan Privasi</a></li>
+                <li><a href="#" className="transition-colors hover:text-orange-400">Syarat & Ketentuan</a></li>
               </ul>
             </div>
           </div>
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs sm:flex-row">
             <p>© {new Date().getFullYear()} PesanLagi. Seluruh hak cipta dilindungi.</p>
-            <p className="flex items-center gap-1.5">Dibuat untuk UMKM Indonesia <Heart className="size-3.5 fill-emerald-500 text-emerald-500" /></p>
+            <p className="flex items-center gap-1.5">Dibuat untuk UMKM Indonesia <Heart className="size-3.5 fill-orange-500 text-orange-500" /></p>
           </div>
         </div>
       </footer>
