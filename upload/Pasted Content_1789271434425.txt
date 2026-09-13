@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PesanLagi Admin — Dashboard (Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { ink: "#1C1917", wa: { bubble: "#D9FDD3", chatbg: "#ECE5DD" } },
+  fontFamily: { sans: ['"Plus Jakarta Sans"','system-ui','sans-serif'], mono: ['"IBM Plex Mono"','monospace'] },
+}}};
+</script>
+<script>
+window.addEventListener('error', function(e){
+  try {
+    var b = document.getElementById('errBanner');
+    if (b){ document.getElementById('errMsg').textContent = (e.message||'Unknown') + ' — baris ' + (e.lineno||'?'); b.style.display='block'; }
+  } catch(_){}
+});
+</script>
+
+<style>
+body{background:#F8F6F3;color:#1C1917;-webkit-font-smoothing:antialiased}
+::selection{background:#F97316;color:#fff}
+.mono{font-variant-numeric:tabular-nums}
+.k{font:600 10.5px/1.6 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#94A3B8}
+.dotgrid{background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);background-size:22px 22px}
+
+.card{border:1px solid #E7E2DC;background:#fff;border-radius:14px;box-shadow:0 1px 2px rgba(28,25,23,.04),0 10px 28px -18px rgba(28,25,23,.14)}
+.hov{transition:transform .18s ease,box-shadow .18s ease}
+.hov:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(28,25,23,.05),0 16px 36px -18px rgba(28,25,23,.22)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .12s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-e{background:#F97316;color:#fff;padding:10px 18px}.btn-e:hover:not(:disabled){background:#EA580C}
+.btn-o{border:1px solid #E7E2DC;background:#fff;color:#1C1917;padding:10px 18px}.btn-o:hover:not(:disabled){border-color:#F97316;color:#EA580C}
+.btn-danger{background:#EF4444;color:#fff;padding:10px 18px}.btn-danger:hover:not(:disabled){background:#DC2626}
+.btn-ink{background:#1C1917;color:#fff;padding:10px 18px}.btn-ink:hover:not(:disabled){background:#292524}
+.btn-xs{padding:7px 13px;font-size:12px;border-radius:8px}
+
+.input{width:100%;border:1px solid #E7E2DC;border-radius:9px;background:#fff;padding:10px 14px;font-size:14px;color:#1C1917}
+.input:focus{outline:none;border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:#1C1917}
+.errbox{border:1px solid #FECACA;background:#FEF2F2;color:#B91C1C;border-radius:9px;padding:12px 16px;font-size:13.5px}
+.chip{display:inline-flex;align-items:center;font:600 9.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;padding:3px 9px;border-radius:9999px}
+
+@keyframes pulse{50%{opacity:.25}}
+.pd{display:inline-block;width:8px;height:8px;border-radius:50%;animation:pulse 1.6s infinite}
+
+.page.show{animation:pg .28s ease both}
+@keyframes pg{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #E7E2DC}
+.gpanel{position:absolute;top:calc(100% + 8px);left:0;right:0;min-width:320px;background:#fff;border:1px solid #E7E2DC;border-radius:12px;box-shadow:0 20px 50px -18px rgba(28,25,23,.3);overflow:hidden;z-index:60}
+.gitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 14px;font-size:13.5px;cursor:pointer;transition:background .1s}
+.gitem:hover{background:#FAF7F4}
+
+.ch-date{align-self:center;font:500 9.5px 'IBM Plex Mono',monospace;letter-spacing:.08em;background:#fff;color:#94A3B8;padding:3px 10px;border-radius:9999px}
+.bub{max-width:82%;padding:8px 12px;font-size:13px;line-height:1.5;overflow-wrap:break-word;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.b-in{align-self:flex-start;background:#fff;border-radius:12px 12px 12px 3px}
+.b-out{align-self:flex-end;background:#D9FDD3;border-radius:12px 12px 3px 12px}
+.b-sys{align-self:center;font:500 10px 'IBM Plex Mono',monospace;padding:4px 11px;border-radius:9999px;background:#fff;color:#64748B;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+.mmeta{align-self:flex-start;font:500 9px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+.mmeta.ad{align-self:flex-end;color:#0284C7}.mmeta.ai{align-self:flex-end;color:#047857}
+@keyframes tb{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-3px);opacity:1}}
+.tdot{width:5px;height:5px;border-radius:50%;background:#94A3B8;animation:tb 1.2s infinite}
+
+.conv{display:block;width:100%;text-align:left;padding:12px 14px;border-bottom:1px solid #F4F1EC;cursor:pointer;transition:background .12s}
+.conv:hover{background:#FAF7F4}.conv.on{background:#FFF3E8}
+.iflt{font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.1em;padding:7px 12px;border-radius:8px;color:#64748B;cursor:pointer}
+.iflt:hover{background:#F4F1EC}.iflt.on{background:#1C1917;color:#fff}
+
+.avatar{display:inline-grid;place-items:center;border-radius:9999px;color:#fff;font-weight:800;flex-shrink:0}
+.pthumb{width:42px;height:42px;border-radius:10px;object-fit:cover;border:1px solid #E7E2DC;flex-shrink:0}
+
+.stepper{display:inline-flex;align-items:center;gap:2px;border:1px solid #E7E2DC;border-radius:8px;padding:2px}
+.stepper button{width:24px;height:24px;border-radius:6px;font:700 14px 'IBM Plex Mono',monospace;color:#64748B;cursor:pointer;transition:background .1s,color .1s}
+.stepper button:hover{background:#FFF3E8;color:#EA580C}
+.stepper span{min-width:34px;text-align:center;font:600 13px 'IBM Plex Mono',monospace;color:#1C1917}
+
+.bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;cursor:default}
+.bar-fill{width:100%;border-radius:6px 6px 2px 2px;height:0;transition:height .7s cubic-bezier(.2,.7,.3,1);background:#E0DAD2}
+.bar:hover .bar-fill{background:#A8A29E}
+.bar.today .bar-fill{background:#F97316}
+.bar .bv{position:absolute;top:-19px;left:0;right:0;text-align:center;font:600 10px 'IBM Plex Mono',monospace;color:#1C1917;opacity:0;transition:opacity .15s}
+.bar:hover .bv{opacity:1}
+.bar .bd{text-align:center;font:500 9px 'IBM Plex Mono',monospace;color:#94A3B8;margin-top:6px}
+
+.stepw{display:flex;gap:10px;align-items:baseline;font:12px 'IBM Plex Mono',monospace;color:#94A3B8;padding:8px 0;border-bottom:1px dotted #E7E2DC}
+.stepw .sn{color:#1C1917;font-weight:600}
+.chk{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px dotted #E7E2DC;cursor:pointer;font-size:14px}
+.chk:last-child{border-bottom:0}
+.chk:hover .chl{color:#EA580C}
+
+.navsec{margin:18px 12px 6px;font:600 9px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#57534E}
+.navlink{display:flex;align-items:center;gap:12px;border-radius:9px;margin:1px 8px;padding:10px 12px;font-size:13px;font-weight:600;color:#A8A29E;cursor:pointer;transition:background .12s,color .12s}
+.navlink:hover{background:rgba(255,255,255,.05);color:#E7E5E4}
+.navlink.on{background:rgba(249,115,22,.16);color:#FDBA74}
+
+.track{height:8px;border-radius:9999px;background:#F0EBE5;overflow:hidden}
+.track>div{height:100%;border-radius:9999px;background:#F97316;width:0;transition:width .8s cubic-bezier(.2,.7,.3,1)}
+
+.seg{display:inline-flex;border:1px solid #1C1917;border-radius:9px;overflow:hidden}
+.seg button{padding:8px 16px;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:#64748B;background:#fff;cursor:pointer}
+.seg button.on{background:#1C1917;color:#fff}
+
+.kwbox{display:flex;flex-wrap:wrap;gap:6px;border:1px solid #E7E2DC;border-radius:9px;padding:8px 10px;background:#fff;cursor:text}
+.kwbox:focus-within{border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.kw{display:inline-flex;align-items:center;gap:6px;background:#FFF3E8;color:#9A3412;border:1px solid #FED7AA;border-radius:9999px;padding:3px 10px;font:600 11.5px 'IBM Plex Mono',monospace}
+.kw button{color:#EA580C;font-weight:800;cursor:pointer}
+
+.canned{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px 8px}
+.canned button{border:1px dashed #D6CFC7;background:#fff;border-radius:9999px;padding:4px 12px;font-size:12px;color:#57534E;cursor:pointer;transition:all .12s}
+.canned button:hover{border-color:#F97316;color:#EA580C;background:#FFF3E8}
+
+.drop{border:2px dashed #D6CFC7;border-radius:12px;background:#FAF7F4;padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:#F97316;background:#FFF3E8}
+
+.fade-in{animation:fadein .25s ease both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pd,.tdot{animation:none}.page.show{animation:none}}
+</style>
+</head>
+
+<body>
+
+<div id="errBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:#DC2626;color:#fff;padding:10px 16px;font:12px 'IBM Plex Mono',monospace">
+  ⚠ ERROR: <span id="errMsg"></span>
+</div>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 px-4">
+  <button id="btnMenu" class="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <p id="tbPage" class="shrink-0 text-sm font-extrabold tracking-tight text-ink">Ringkasan</p>
+
+  <div class="relative mx-auto hidden w-full max-w-sm md:block">
+    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="gSearch" class="input !py-2 !pl-9 !text-[13px]" placeholder="Cari produk atau kontak…  ( / )" autocomplete="off"/>
+    <div id="gResults" class="gpanel hidden"></div>
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+    <button id="tbWa" class="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 font-mono text-[10px] font-semibold tracking-[.08em] text-slate-600 hover:border-orange-400 sm:flex">
+      <span id="tbWaDot" class="size-2 rounded-full"></span><span id="tbWaTxt">PUTUS</span>
+    </button>
+    <div class="relative">
+      <button id="tbBell" class="relative grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span id="bellBadge" class="absolute -right-0.5 -top-0.5 hidden min-w-[16px] rounded-full bg-amber-500 px-1 text-center font-mono text-[9.5px] font-bold leading-4 text-white"></span>
+      </button>
+      <div id="bellPanel" class="gpanel hidden !left-auto !right-0 !min-w-[280px]"></div>
+    </div>
+    <span class="avatar" style="width:34px;height:34px;font-size:11px;background:#EA580C">TB</span>
+  </div>
+</div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="fixed bottom-0 left-0 top-14 z-30 hidden w-60 flex-col overflow-y-auto bg-ink lg:flex">
+  <div class="flex h-14 shrink-0 items-center border-b border-white/10 px-5">
+    <span class="text-lg font-extrabold tracking-tight text-white">PesanLagi<span class="text-orange-400">.</span></span>
+  </div>
+  <nav id="sideNav" class="flex-1 pb-4">
+    <p class="navsec">Utama</p>
+    <a class="navlink on" data-page="overview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Ringkasan</a>
+    <a class="navlink" data-page="inbox"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Riwayat Chat</a>
+    <a class="navlink" data-page="products"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 8Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Katalog Produk</a>
+    <p class="navsec">Konfigurasi</p>
+    <a class="navlink" data-page="bot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>Bot AI</a>
+    <a class="navlink" data-page="settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9 5 3h14l2 6"/><path d="M3 9h18"/><path d="M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/></svg>Pengaturan Toko</a>
+    <a class="navlink" data-page="whatsapp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v.01M14 21v.01M21 21v.01"/></svg>Koneksi WhatsApp</a>
+    <a class="navlink" data-page="billing"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"/><path d="M22 12h-6a2 2 0 0 0 0 4h6v-4Z"/></svg>Kuota &amp; Plan</a>
+  </nav>
+  <div class="shrink-0 border-t border-white/10 p-4">
+    <p class="mb-3 flex items-center gap-2 rounded-lg border border-orange-400/25 bg-orange-400/10 px-3 py-2 font-mono text-[9.5px] tracking-[.12em] text-orange-300"><span class="pd"></span>AI AKTIF · MODE DEMO</p>
+    <p class="k">Toko</p>
+    <p class="mt-1 text-[13px] font-semibold text-slate-200" id="sideStore">Toko Berkah</p>
+    <p class="mt-0.5 font-mono text-[10px] tracking-[.12em] text-orange-400">PLAN: STARTER</p>
+  </div>
+</aside>
+
+<!-- drawer mobile -->
+<div id="mobOverlay" class="fixed inset-0 z-40 hidden bg-ink/60 lg:hidden"></div>
+<aside id="mobDrawer" class="fixed bottom-0 left-0 top-14 z-50 hidden w-64 overflow-y-auto bg-ink lg:hidden">
+  <div id="mobNavClone"></div>
+</aside>
+
+<div class="min-h-screen pt-14 lg:pl-60">
+<main class="mx-auto max-w-7xl px-5 py-7 sm:px-7">
+
+  <!-- ═══ RINGKASAN ═══ -->
+  <section id="page-overview" class="page hidden">
+    <div class="dotgrid relative overflow-hidden rounded-2xl bg-ink px-6 py-6 text-white sm:px-8">
+      <div class="absolute -right-24 -top-24 size-72 rounded-full border border-white/5"></div>
+      <div class="flex flex-wrap items-center justify-between gap-5">
+        <div>
+          <p class="k !text-slate-500">§ Ringkasan · <span id="ovDate"></span></p>
+          <h1 id="ovGreeting" class="mt-1.5 text-xl font-extrabold tracking-tight sm:text-2xl">—</h1>
+        </div>
+        <div class="flex flex-wrap items-center gap-6" id="ovMini"></div>
+        <div class="flex gap-2.5">
+          <button id="ovAdd" class="btn btn-e btn-xs">＋ Produk</button>
+          <button id="ovImport" class="btn btn-xs border border-white/20 text-white hover:border-orange-400 hover:text-orange-300" style="background:transparent">⬆ Import</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 grid gap-5 xl:grid-cols-12">
+      <div class="space-y-5 xl:col-span-8">
+        <div class="card grid grid-cols-2 divide-slate-100 sm:grid-cols-4 sm:divide-x" id="kpiStrip"></div>
+
+        <div class="card p-6">
+          <div class="flex items-baseline justify-between">
+            <div><h2 class="text-[15px] font-extrabold text-ink">Aktivitas Chat</h2><p class="mt-0.5 text-xs text-slate-400">7 hari terakhir · total <span id="barTotal" class="font-mono font-semibold text-ink"></span> chat</p></div>
+            <span class="chip" style="color:#EA580C;background:#FFF3E8">LIVE</span>
+          </div>
+          <div class="bars mt-6" id="barChart"></div>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex items-baseline justify-between">
+            <h2 class="text-[15px] font-extrabold text-ink">Percakapan Terbaru</h2>
+            <button id="ovAllChats" class="font-mono text-[10.5px] font-semibold uppercase tracking-[.1em] text-orange-600 hover:underline">Lihat semua →</button>
+          </div>
+          <div class="mt-3" id="recentList"></div>
+        </div>
+      </div>
+
+      <div class="space-y-5 xl:col-span-4">
+        <div class="card p-5" id="attentionCard"></div>
+        <div class="card p-5" id="quotaCard"></div>
+        <div class="card p-5" id="waMiniCard"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RIWAYAT ═══ -->
+  <section id="page-inbox" class="page hidden">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
+      <div><p class="k">§ Riwayat</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Riwayat Chat</h1>
+      <p class="mt-1.5 text-sm text-slate-500">Ambil alih chat sensitif — pelanggan akan membalas (simulasi).</p></div>
+      <button id="btnExport" class="btn btn-o btn-xs">↓ Export CSV</button>
+    </div>
+    <div class="mt-6 grid gap-4 lg:grid-cols-12">
+      <div class="card flex flex-col overflow-hidden lg:col-span-4" style="height:620px">
+        <div class="border-b border-slate-100 px-3 pt-3">
+          <input id="convSearch" class="input !py-2 !text-[13px]" placeholder="Cari nama / nomor…"/>
+          <div class="flex gap-1.5 py-2.5">
+            <button class="iflt on" data-f="all">SEMUA</button>
+            <button class="iflt" data-f="admin">BUTUH ADMIN</button>
+            <button class="iflt" data-f="ai">AI</button>
+          </div>
+        </div>
+        <div id="convList" class="min-h-0 flex-1 overflow-y-auto"></div>
+      </div>
+      <div class="card flex-col overflow-hidden lg:col-span-8 lg:flex" style="height:620px">
+        <div id="threadEmpty" class="grid flex-1 place-items-center p-8 text-center">
+          <div><p class="text-sm font-bold text-ink">Pilih percakapan</p>
+          <p class="mx-auto mt-1 max-w-[230px] text-[13px] text-slate-400">Coba: buka <strong>Rina</strong> → Ambil Alih → klik chip balasan cepat → kirim.</p></div>
+        </div>
+        <div id="threadWrap" class="hidden min-h-0 flex-1 flex-col">
+          <div id="threadHead" class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3"></div>
+          <div id="threadBody" class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-4" style="background:#ECE5DD"></div>
+          <div id="composer" class="border-t border-slate-100 p-3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ KATALOG ═══ -->
+  <section id="page-products" class="page hidden">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
+      <div><p class="k">§ Katalog</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Katalog Produk</h1>
+      <p id="prodMeta" class="mt-1.5 font-mono text-[10.5px] tracking-[.12em] text-slate-400"></p></div>
+    </div>
+    <div class="mt-6 flex flex-wrap items-center gap-2.5">
+      <input id="prodSearch" class="input max-w-xs" placeholder="Cari produk…"/>
+      <div class="ml-auto flex flex-wrap gap-2.5">
+        <button id="prodImportBtn" class="btn btn-o">⬆ Import CSV</button>
+        <button id="prodExportBtn" class="btn btn-o">⬇ Export</button>
+        <button id="prodAddBtn" class="btn btn-e">+ Tambah Produk</button>
+      </div>
+    </div>
+    <div class="card mt-4 overflow-x-auto">
+      <table class="w-full min-w-[700px] text-left text-sm">
+        <thead><tr class="border-b border-slate-200">
+          <th class="k px-5 py-3">Produk</th><th class="k px-5 py-3 text-right">Harga</th>
+          <th class="k px-5 py-3">Stok</th><th class="k px-5 py-3">Status</th>
+          <th class="k px-5 py-3 text-right">Aksi</th>
+        </tr></thead>
+        <tbody id="prodTbody" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══ BOT AI ═══ -->
+  <section id="page-bot" class="page hidden">
+    <div class="border-b border-slate-200 pb-5">
+      <p class="k">§ Bot AI</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Perilaku Bot AI</h1>
+      <p class="mt-1.5 text-sm text-slate-500">Atur bagaimana AI berbicara dan kapan ia menyerahkan chat ke Anda.</p>
+    </div>
+    <div class="mt-8 grid gap-8 lg:grid-cols-12">
+      <div class="space-y-5 lg:col-span-7">
+        <div class="card p-6">
+          <label class="label" for="botGreet">Pesan sapaan pembuka</label>
+          <textarea id="botGreet" rows="3" class="input" placeholder="Ada yang bisa saya bantu kak?"></textarea>
+          <p class="mt-1 text-xs text-slate-400">Dikirim AI saat chat pertama dari pelanggan baru.</p>
+          <div class="mt-4">
+            <p class="label">Gaya bahasa</p>
+            <div class="seg" id="toneSeg">
+              <button data-tone="santai" class="on">SANTAI 😊</button><button data-tone="formal">FORMAL</button>
+            </div>
+          </div>
+        </div>
+        <div class="card p-6">
+          <p class="label">Kata kunci eskalasi</p>
+          <p class="mb-2 text-xs text-slate-400">Chat yang mengandung kata ini langsung diteruskan ke admin. Ketik lalu Enter.</p>
+          <div id="kwBox" class="kwbox"><input id="kwInput" class="min-w-[140px] flex-1 border-0 text-sm outline-none placeholder:text-slate-400" placeholder="tambah kata… (Enter)"/></div>
+        </div>
+        <div class="card p-6">
+          <label class="flex cursor-pointer items-start gap-3">
+            <input id="botAuto" type="checkbox" style="width:18px;height:18px;accent-color:#F97316;margin-top:1px"/>
+            <span><span class="text-sm font-bold text-ink">AI aktif otomatis di luar jam kerja</span>
+            <span class="mt-0.5 block text-xs text-slate-400">Di luar jam di bawah, AI memegang semua chat — tidak ada order yang bocor tengah malam.</span></span>
+          </label>
+          <div class="mt-4 flex flex-wrap items-center gap-3" id="autoTimes">
+            <label class="text-[13px] font-semibold text-slate-600">Jam kerja admin</label>
+            <input id="botStart" type="time" class="input !w-auto !py-2 font-mono !text-[13px]"/>
+            <span class="text-slate-400">s.d.</span>
+            <input id="botEnd" type="time" class="input !w-auto !py-2 font-mono !text-[13px]"/>
+          </div>
+          <p id="botNow" class="mt-4 rounded-lg px-3.5 py-2.5 font-mono text-[11px] font-semibold tracking-[.08em]"></p>
+        </div>
+        <button id="botSave" class="btn btn-e">Simpan Perilaku Bot</button>
+      </div>
+      <aside class="lg:col-span-5">
+        <div class="lg:sticky lg:top-20">
+          <p class="k">Pratinjau sapaan</p>
+          <div class="mt-4 flex flex-col gap-2.5 rounded-xl p-4" style="background:#ECE5DD;border:1px solid #E7E2DC">
+            <div class="bub b-in" style="font-size:12px;color:#64748B">Halo, ada stok?</div>
+            <div id="botPreview" class="bub b-out" style="font-size:13.5px"></div>
+            <p class="text-right font-mono text-[9.5px] tracking-[.08em] text-slate-400">PESANLAGI AI · 1,5 DTK</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ═══ PENGATURAN ═══ -->
+  <section id="page-settings" class="page hidden">
+    <div class="border-b border-slate-200 pb-5">
+      <p class="k">§ Pengaturan</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Pengaturan Toko</h1>
+      <p class="mt-1.5 text-sm text-slate-500">Data ini dipakai AI untuk menjawab pelanggan.</p>
+    </div>
+    <div class="mt-8 grid gap-8 lg:grid-cols-12">
+      <form id="stForm" class="space-y-5 lg:col-span-7">
+        <div class="card p-6">
+          <div><label class="label" for="stName">Nama Toko</label><input id="stName" class="input"/></div>
+          <div class="mt-4"><label class="label" for="stHours">Jam Operasional</label><input id="stHours" class="input"/></div>
+        </div>
+        <div class="card p-6">
+          <div><label class="label" for="stAddress">Alamat</label><textarea id="stAddress" rows="2" class="input"></textarea></div>
+          <div class="mt-4"><label class="label" for="stShip">Kebijakan Pengiriman</label><textarea id="stShip" rows="3" class="input"></textarea></div>
+          <div class="mt-4"><label class="label" for="stPay">Info Pembayaran</label><textarea id="stPay" rows="3" class="input"></textarea></div>
+        </div>
+        <div id="stErr" class="errbox hidden"></div>
+        <div class="flex items-center gap-4">
+          <button id="stSaveBtn" type="submit" class="btn btn-e">Simpan Pengaturan</button>
+          <p id="stSaved" class="fade-in hidden font-mono text-[11px] font-semibold tracking-[.1em] text-orange-600"></p>
+        </div>
+      </form>
+      <aside class="lg:col-span-5">
+        <p class="k">Simulasi jawaban AI</p>
+        <div class="mt-4 flex flex-col gap-2.5 rounded-xl p-4" style="background:#ECE5DD;border:1px solid #E7E2DC">
+          <div class="bub b-in" style="color:#64748B;font-size:12px">Kak, jam buka sama bisa COD gak?</div>
+          <div id="pvBubble" class="bub b-out" style="font-size:13.5px"></div>
+          <p class="text-right font-mono text-[9.5px] tracking-[.08em] text-slate-400">PESANLAGI AI · 1,5 DTK</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ═══ WHATSAPP ═══ -->
+  <section id="page-whatsapp" class="page hidden">
+    <div class="border-b border-slate-200 pb-5">
+      <p class="k">§ Koneksi</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Koneksi WhatsApp</h1>
+    </div>
+    <div class="mt-8 grid gap-6 lg:grid-cols-12">
+      <div class="lg:col-span-5"><div id="waStatus" class="card p-6"></div></div>
+      <div class="lg:col-span-7"><div id="waPanel" class="card p-6"></div></div>
+    </div>
+    <div class="mt-4"><div id="notifCard" class="card p-6"></div></div>
+  </section>
+
+  <!-- ═══ KUOTA & PLAN ═══ -->
+  <section id="page-billing" class="page hidden">
+    <div class="border-b border-slate-200 pb-5">
+      <p class="k">§ Kuota</p><h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink">Kuota &amp; Plan</h1>
+    </div>
+    <div class="mt-8 grid gap-5 lg:grid-cols-12">
+      <div class="card p-6 lg:col-span-5">
+        <div class="flex items-center justify-between">
+          <div><p class="k">Plan aktif</p><h2 class="mt-1 text-xl font-extrabold text-ink">Starter — Gratis</h2></div>
+          <span class="chip" style="color:#EA580C;background:#FFF3E8">AKTIF</span>
+        </div>
+        <p class="mt-6 k">Chat AI bulan ini</p>
+        <p class="mt-1 font-mono text-4xl font-bold text-ink"><span id="qUsed">0</span><span class="text-lg text-slate-400"> / 100</span></p>
+        <div class="track mt-3" style="height:12px"><div id="qBar"></div></div>
+        <p class="mt-2 text-xs text-slate-400" id="qRemain"></p>
+        <div class="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+          <div><p class="k">Rata-rata / hari</p><p class="mt-1 font-mono text-lg font-bold text-ink" id="qAvg">—</p></div>
+          <div><p class="k">Perkiraan habis</p><p class="mt-1 font-mono text-lg font-bold text-amber-600" id="qEta">—</p></div>
+        </div>
+        <button id="qUpgrade" class="btn btn-e mt-5 w-full">Upgrade ke Pro — Rp 149rb/bln →</button>
+      </div>
+      <div class="space-y-5 lg:col-span-7">
+        <div class="card p-6">
+          <h2 class="text-[15px] font-extrabold text-ink">Pemakaian 14 Hari Terakhir</h2>
+          <div class="bars mt-5" id="qChart" style="height:110px"></div>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead><tr class="border-b border-slate-200">
+              <th class="k px-5 py-3">Fitur</th><th class="k px-5 py-3">Starter</th><th class="k px-5 py-3" style="color:#EA580C">Pro UMKM</th>
+            </tr></thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr><td class="px-5 py-3 font-medium text-ink">Chat AI / bulan</td><td class="px-5 py-3 font-mono text-slate-500">100</td><td class="px-5 py-3 font-mono font-semibold text-orange-700">∞ Tanpa batas</td></tr>
+              <tr><td class="px-5 py-3 font-medium text-ink">Produk katalog</td><td class="px-5 py-3 font-mono text-slate-500">10</td><td class="px-5 py-3 font-mono font-semibold text-orange-700">∞ Tak terbatas</td></tr>
+              <tr><td class="px-5 py-3 font-medium text-ink">Hybrid takeover admin</td><td class="px-5 py-3 text-slate-300">—</td><td class="px-5 py-3 font-bold text-orange-600">✓</td></tr>
+              <tr><td class="px-5 py-3 font-medium text-ink">Notifikasi WA admin</td><td class="px-5 py-3 text-slate-300">—</td><td class="px-5 py-3 font-bold text-orange-600">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<div id="pModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(28,25,23,.55)">
+  <div class="card max-h-[92vh] w-full max-w-lg overflow-y-auto p-6">
+    <p class="k" id="pModalKicker">Produk baru</p>
+    <h2 id="pModalTitle" class="mt-1 text-lg font-extrabold tracking-tight text-ink">Tambah ke katalog</h2>
+    <form id="pForm" class="mt-5 space-y-4">
+      <div class="flex items-center gap-4">
+        <div id="pImgBox" class="drop !p-3" style="width:92px;height:92px;flex-shrink:0;display:grid;place-items:center;overflow:hidden">
+          <span id="pImgEmpty" class="text-[10px] text-slate-400">+ Foto</span>
+          <img id="pImgPrev" class="hidden h-full w-full rounded-lg object-cover"/>
+        </div>
+        <div class="text-xs text-slate-400">Foto produk (opsional).<br/>AI mengirim kartu produk berfoto ke pembeli.<br/>
+          <button type="button" id="pImgRemove" class="mt-1 hidden font-semibold text-red-500 hover:underline">hapus foto</button>
+        </div>
+        <input id="pImgFile" type="file" accept="image/*" class="hidden"/>
+      </div>
+      <div><label class="label" for="pName">Nama Produk</label><input id="pName" class="input"/></div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div><label class="label" for="pPrice">Harga</label><input id="pPrice" class="input" placeholder="89.000 / 89rb"/></div>
+        <div><label class="label" for="pQty">Jumlah Stok</label>
+          <div class="flex items-center gap-2"><input id="pQty" type="number" min="0" step="1" class="input font-mono"/>
+          <span id="pStPrev" class="chip shrink-0"></span></div>
+        </div>
+      </div>
+      <div><label class="label" for="pDesc">Deskripsi</label><textarea id="pDesc" rows="3" class="input"></textarea></div>
+      <div id="pErr" class="errbox hidden"></div>
+      <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+        <button type="button" class="btn btn-o" onclick="closePM()">Batal</button>
+        <button id="pSaveBtn" type="submit" class="btn btn-e">Tambah Produk</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="impModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(28,25,23,.55)">
+  <div class="card flex max-h-[92vh] w-full max-w-2xl flex-col p-6">
+    <div class="flex items-start justify-between gap-4">
+      <div><p class="k" id="impKicker">Import katalog</p><h2 id="impTitle" class="mt-1 text-lg font-extrabold tracking-tight text-ink">Import produk dari CSV</h2></div>
+      <button class="btn btn-o btn-xs" onclick="closeImp()">✕</button>
+    </div>
+    <div id="impStep1" class="mt-5 overflow-y-auto">
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="impTpl" class="btn btn-o btn-xs">↓ Download template CSV</button>
+        <p class="text-xs text-slate-400">Excel: <em>File → Save As → CSV</em></p>
+      </div>
+      <div id="impDrop" class="drop mt-4">
+        <p class="text-sm font-bold text-ink">Tarik file CSV ke sini</p>
+        <p class="mt-1 text-xs text-slate-400">atau</p>
+        <button id="impPick" class="btn btn-e btn-xs mt-2">Pilih File…</button>
+        <input id="impFile" type="file" accept=".csv,.txt,text/csv,text/plain" class="hidden"/>
+      </div>
+      <div class="mt-4">
+        <label class="label" for="impPaste">…atau tempel datanya langsung</label>
+        <textarea id="impPaste" rows="6" class="input font-mono !text-[12px]" placeholder="Nama Produk;Harga;Deskripsi;Stok
+Hijab Voal Premium;89.000;Motif bunga biru;Tersedia
+Gamis Ceruty;185rb;Jumbo sampai XL;3"></textarea>
+      </div>
+      <p id="impErr1" class="errbox mt-3 hidden"></p>
+      <div class="mt-4 flex justify-end gap-3 border-t border-slate-100 pt-4">
+        <button class="btn btn-o" onclick="closeImp()">Batal</button>
+        <button id="impProcess" class="btn btn-e">Proses Data →</button>
+      </div>
+    </div>
+    <div id="impStep2" class="mt-5 hidden min-h-0 flex-1 flex-col">
+      <div id="impSummary" class="flex flex-wrap gap-2"></div>
+      <div class="mt-4 flex flex-wrap items-center gap-4 rounded-lg bg-slate-50 px-4 py-3">
+        <p class="k !text-[9.5px]">Mode</p>
+        <label class="flex cursor-pointer items-center gap-2 text-[13px] font-semibold text-ink"><input type="radio" name="impMode" value="append" checked style="accent-color:#F97316"/> Tambahkan</label>
+        <label class="flex cursor-pointer items-center gap-2 text-[13px] font-semibold text-ink"><input type="radio" name="impMode" value="replace" style="accent-color:#F97316"/> Ganti semua</label>
+      </div>
+      <div class="mt-4 min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200">
+        <table class="w-full min-w-[560px] text-left text-[12.5px]">
+          <thead class="sticky top-0 bg-white"><tr class="border-b border-slate-200">
+            <th class="k px-3 py-2">#</th><th class="k px-3 py-2">Nama</th>
+            <th class="k px-3 py-2 text-right">Harga</th><th class="k px-3 py-2 text-right">Stok</th>
+            <th class="k px-3 py-2">Status</th>
+          </tr></thead>
+          <tbody id="impPreviewBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 flex justify-between gap-3 border-t border-slate-100 pt-4">
+        <button id="impBack" class="btn btn-o">← Kembali</button>
+        <button id="impCommit" class="btn btn-e">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(28,25,23,.55)">
+  <div class="card w-full max-w-sm p-6">
+    <p class="k">Hapus produk</p>
+    <h3 class="mt-1 text-lg font-extrabold tracking-tight text-ink">Hapus "<span id="dName"></span>"?</h3>
+    <div class="mt-5 flex justify-end gap-3">
+      <button class="btn btn-o" onclick="closeDM()">Batal</button>
+      <button id="dConfirmBtn" class="btn btn-danger">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+<div id="toasts" class="fixed bottom-6 right-5 z-[60] flex w-72 flex-col gap-2"></div>
+
+<script>
+'use strict';
+/* ═══ helpers ═══ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = (n,d) => new Intl.NumberFormat('id-ID',{maximumFractionDigits:d||0}).format(n);
+const rupiah = n => 'Rp ' + num(Math.round(n));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const nowWib = () => { const d=new Date(Date.now()+(7*60+new Date().getTimezoneOffset())*60000); return d.toTimeString().slice(0,5).replace(':','.')+' WIB'; };
+const wibHM = () => nowWib().slice(0,5);
+const fmtT = iso => { const d=new Date(iso),n=new Date(); const t=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}); return d.toDateString()===n.toDateString()?t:d.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit'}); };
+const PALETTE = ['#EA580C','#0284C7','#B45309','#7C3AED','#DB2777','#DC2626','#4F46E5'];
+const hash = s => { let h=0; for (let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; };
+function avatarHTML(name,size){
+  const p = name.trim().split(/\s+/);
+  const ini = (p.length>1 ? p[0][0]+p[1][0] : name.slice(0,2)).toUpperCase();
+  return '<span class="avatar" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*.38)+'px;background:'+PALETTE[hash(name)%PALETTE.length]+'">'+esc(ini)+'</span>';
+}
+function toast(msg,type){
+  const el=document.createElement('div');
+  el.className='fade-in rounded-lg px-4 py-3 text-[13px] font-semibold text-white';
+  el.style.cssText='background:#1C1917;border-left:3px solid '+(type==='err'?'#EF4444':'#F97316')+';box-shadow:0 10px 30px -10px rgba(28,25,23,.4)';
+  el.textContent=msg; $('toasts').appendChild(el); setTimeout(()=>el.remove(),3000);
+}
+function parsePrice(v){ v=(v||'').toLowerCase().replace(/\s/g,''); if(!v)return NaN; let m=1;
+  if(v.endsWith('rb')){m=1e3;v=v.slice(0,-2);} else if(v.endsWith('jt')){m=1e6;v=v.slice(0,-2);}
+  v=v.replace(/\./g,'').replace(',','.'); const n=Number(v); return Number.isFinite(n)?Math.round(n*m):NaN; }
+function normWa(v){ let d=String(v||'').replace(/\D/g,''); if(d.startsWith('0'))d='62'+d.slice(1); else if(d.startsWith('8'))d='62'+d; return d.length>=9&&d.length<=14?'+'+d:null; }
+function countUp(el,target,fmt){
+  const t0=performance.now(),dur=800;
+  (function step(t){ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+    el.textContent=fmt(target*e); if(p<1)requestAnimationFrame(step); })(t0);
+}
+function sparkSVG(pts,w,h){
+  const mx=Math.max(...pts),mn=Math.min(...pts),r=(mx-mn)||1;
+  const P=pts.map((v,i)=>(i/(pts.length-1))*w+','+(h-4-((v-mn)/r)*(h-8)));
+  const L=P[P.length-1].split(',');
+  return '<svg width="'+w+'" height="'+h+'" style="overflow:visible"><polyline points="'+P.join(' ')+'" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+L[0]+'" cy="'+L[1]+'" r="3" fill="#F97316"/></svg>';
+}
+function statusOf(q){ return q<=0 ? 'out_of_stock' : q<=5 ? 'low_stock' : 'in_stock'; }
+
+/* ═══ data demo ═══ */
+const STORE = { store_name:'Toko Berkah', operating_hours:'08.00 – 21.00 WIB',
+  address:'Jl. Raya Condet No. 12, Jakarta Timur',
+  shipping_policies:'JNE & SiCepat se-Indonesia. Order sebelum 15.00 dikirim hari yang sama.',
+  payment_info:'QRIS, BCA, BRI, Dana. COD khusus Jabodetabek.',
+  admin_phone:'+6281234567890', notify_on_escalation:true,
+  bot:{ greeting:'Ada yang bisa saya bantu kak? Tanya stok, harga, atau ongkir langsung saja 😊',
+        tone:'santai', keywords:['komplain','refund','rusak','kecewa'],
+        autoOutside:true, autoStart:'21:00', autoEnd:'08:00' } };
+
+let PRODUCTS = [
+  { id:'p1', name:'Hijab Voal Premium',     price:89000,  description:'Voal premium, motif bunga biru, termasuk box eksklusif.', stock_qty:12, image:null },
+  { id:'p2', name:'Gamis Ceruty Premium',   price:185000, description:'Bahan ceruty fall, tidak menerawang, jumbo sampai XL.', stock_qty:3,  image:null },
+  { id:'p3', name:'Rok Plisket Jeans',      price:95000,  description:'Plisket jeans tebal, ada samping, all size.', stock_qty:21, image:null },
+  { id:'p4', name:'Kerudung Instant Rayon', price:65000,  description:'Instant pet antem, bahan rayon lembut.', stock_qty:30, image:null },
+  { id:'p5', name:'Kopi Arabika Gayo 200g', price:78000,  description:'Roast medium, biji/giling halus, fresh roast.', stock_qty:0,  image:null },
+];
+const T = m => new Date(Date.now()-m*60000).toISOString();
+let CONVS = [
+  { id:'c1', contact_name:'Bu Sari', contact_phone:'+62 813-2288-1190', intent:'Cek Stok', status:'resolved', unread:0, created_at:T(230), last_message_at:T(178), messages:[
+    {sender:'customer', body:'Halo kak, stok hijab voal motif bunga biru masih ada?', created_at:T(230)},
+    {sender:'ai', body:'Masih ada kak! Hijab Voal Premium — Motif Bunga Biru tersedia 12 pcs, Rp 89.000 sudah termasuk box eksklusif. Mau saya buatkan pesanannya sekarang?', created_at:T(229)},
+    {sender:'customer', body:'Oke kak, order satu ya. QRIS bisa?', created_at:T(185)},
+    {sender:'ai', body:'Bisa banget kak. Total Rp 96.000 termasuk ongkir Jabodetabek. Link QRIS sudah saya kirim ya kak 🙏', created_at:T(183)},
+    {sender:'system', body:'Invoice INV-2481 dibuat otomatis — menunggu pembayaran', created_at:T(178)} ]},
+  { id:'c2', contact_name:'Pak Deni', contact_phone:'+62 812-7710-4455', intent:'Cek Ongkir', status:'resolved', unread:0, created_at:T(150), last_message_at:T(120), messages:[
+    {sender:'customer', body:'Kak, kirim ke Cimahi ongkirnya berapa?', created_at:T(150)},
+    {sender:'ai', body:'Ke Cimahi kak: JNE Reguler Rp 18.000 (2–3 hari), SiCepat YES Rp 25.000 (besok sampai). Order sebelum jam 15.00 dikirim hari ini juga.', created_at:T(149)},
+    {sender:'customer', body:'Gas yang SiCepat kak, makasih', created_at:T(121)},
+    {sender:'ai', body:'Siap kak! Link pembayaran saya kirim ya. Terima kasih sudah order 😊', created_at:T(120)} ]},
+  { id:'c3', contact_name:'Rina', contact_phone:'+62 856-2233-9087', intent:'Komplain', status:'escalated', unread:2, created_at:T(95), last_message_at:T(48), messages:[
+    {sender:'customer', body:'Pesanan saya udah 5 hari belum sampai. Kecewa kak.', created_at:T(95)},
+    {sender:'ai', body:'Mohon maaf sekali kak. Saya cek resi JX-8821… status: tertahan di hub Jakarta. Kasus ini saya teruskan ke admin kami untuk penanganan cepat ya.', created_at:T(94)},
+    {sender:'system', body:'Eskalasi → Dinda (admin) menerima notifikasi + ringkasan kasus', created_at:T(93)},
+    {sender:'customer', body:'Iya tolong ya kak, udah lama banget', created_at:T(50)},
+    {sender:'customer', body:'Ditunggu follow up-nya', created_at:T(48)} ]},
+  { id:'c4', contact_name:'Ibu Wati', contact_phone:'+62 878-4455-1123', intent:'Negosiasi', status:'manual', unread:1, created_at:T(60), last_message_at:T(25), messages:[
+    {sender:'customer', body:'Kak ambil 3 pcs gamis bisa kurang gak?', created_at:T(60)},
+    {sender:'ai', body:'Untuk pembelian 3 pcs ada harga khusus kak. Sebentar ya, saya hubungkan dengan tim untuk konfirmasi harga grosir.', created_at:T(59)},
+    {sender:'system', body:'Eskalasi → ambil alih manual oleh Dinda (admin)', created_at:T(58)},
+    {sender:'customer', body:'Kak, jadi gak ya? Saya mau kirim besok', created_at:T(25)} ]},
+  { id:'c5', contact_name:'Andi', contact_phone:'+62 811-9900-3212', intent:'Order Malam', status:'ai', unread:1, created_at:T(20), last_message_at:T(12), messages:[
+    {sender:'customer', body:'mas, beli kopi gayo 200g 2. besok saya transfer ya', created_at:T(20)},
+    {sender:'ai', body:'Siap kak! Kopi Arabika Gayo 200g × 2 = Rp 156.000. Layanan ini aktif 24 jam — link pembayaran saya kirim sekarang ya.', created_at:T(19)},
+    {sender:'customer', body:'ok pagi saya bayar', created_at:T(12)} ]},
+];
+const WEEK = [46,62,55,71,68,89,74];
+const DAYS = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+const MONTH = { total:128, ai:84, admin:11, wait:5, spark:[32,41,38,52,49,61,58,72] };
+const CUST_REPLIES = ['Oke kak, makasih banyak 🙏','Siap kak!','Baik kak, ditunggu ya','Oke, siap. Terima kasih!'];
+const CANNED = ['Stok ready kak! 😊','Bisa COD khusus Jabodetabek ya kak','Order sebelum jam 15.00 dikirim hari ini','Terima kasih sudah order 🙏','Mohon ditunggu ya kak, saya cek dulu'];
+const QUA = { used:84, limit:100, perDay:[3,4,5,4,6,5,7,4,5,6,7,5,6,8], daysElapsed:22, resetIn:9 };
+
+/* stok: semantik inventory — TETAP hijau/kuning/merah */
+const STOCK = { in_stock:{label:'Tersedia',dot:'#10B981'}, low_stock:{label:'Stok Menipis',dot:'#F59E0B'}, out_of_stock:{label:'Stok Habis',dot:'#EF4444'} };
+/* status chat: AI = aksen brand (orange) */
+const CONV_ST = { ai:{t:'AI',c:'#EA580C',bg:'#FFF3E8'}, escalated:{t:'ESKALASI',c:'#B45309',bg:'#FFFBEB'}, manual:{t:'MANUAL',c:'#0369A1',bg:'#F0F9FF'}, resolved:{t:'SELESAI',c:'#64748B',bg:'#F1F5F9'} };
+const chipHTML = st => { const s=CONV_ST[st]||CONV_ST.ai; return '<span class="chip" style="color:'+s.c+';background:'+s.bg+'">'+s.t+'</span>'; };
+const stChip = q => { const s=STOCK[statusOf(q)]; return '<span class="chip" style="color:'+s.dot+';background:'+s.dot+'1A"><span class="mr-1.5 inline-block size-1.5 rounded-full" style="background:'+s.dot+'"></span>'+s.label+'</span>'; };
+
+/* ═══ nav & topbar ═══ */
+const PAGE_TITLE = { overview:'Ringkasan', inbox:'Riwayat Chat', products:'Katalog Produk', bot:'Bot AI', settings:'Pengaturan Toko', whatsapp:'Koneksi WhatsApp', billing:'Kuota & Plan' };
+function showPage(p){
+  document.querySelectorAll('.page').forEach(s => { s.classList.toggle('hidden', s.id !== 'page-'+p); if (s.id==='page-'+p){ s.classList.remove('show'); void s.offsetWidth; s.classList.add('show'); } });
+  document.querySelectorAll('.navlink').forEach(a => a.classList.toggle('on', a.dataset.page===p));
+  $('tbPage').textContent = PAGE_TITLE[p] || 'PesanLagi';
+  closeDrawer(); hideGResults(); hideBell();
+  if (p==='overview') renderOverview();
+  if (p==='inbox') renderInbox();
+  if (p==='products') renderProducts();
+  if (p==='bot') renderBot();
+  if (p==='whatsapp'){ renderWA(); renderNotif(); }
+  if (p==='billing') renderBilling();
+}
+document.querySelectorAll('.navlink').forEach(a => a.addEventListener('click', () => showPage(a.dataset.page)));
+ $('btnMenu').addEventListener('click', () => { $('mobDrawer').classList.remove('hidden'); $('mobOverlay').classList.remove('hidden'); });
+ $('mobOverlay').addEventListener('click', closeDrawer);
+function closeDrawer(){ $('mobDrawer').classList.add('hidden'); $('mobOverlay').classList.add('hidden'); }
+ $('mobNavClone').innerHTML = $('sideNav').innerHTML;
+ $('mobNavClone').querySelectorAll('.navlink').forEach(a => a.addEventListener('click', () => showPage(a.dataset.page)));
+ $('sideStore').textContent = STORE.store_name;
+
+function updateTopbar(){
+  const d = $('tbWaDot'), t = $('tbWaTxt');
+  const st = WA.status;
+  d.style.background = st==='connected' ? '#F97316' : st==='pending' ? '#F59E0B' : '#EF4444';
+  t.textContent = st==='connected' ? 'TERHUBUNG' : st==='pending' ? 'SCAN QR…' : 'PUTUS';
+  const need = CONVS.filter(c=>c.status==='escalated').length;
+  const b = $('bellBadge');
+  if (need){ b.textContent = need; b.classList.remove('hidden'); } else b.classList.add('hidden');
+}
+ $('tbWa').addEventListener('click', () => showPage('whatsapp'));
+
+/* pencarian global */
+function hideGResults(){ $('gResults').classList.add('hidden'); }
+ $('gSearch').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const box = $('gResults');
+  if (!q){ hideGResults(); return; }
+  const prods = PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)).slice(0,4);
+  const convs = CONVS.filter(c=>(c.contact_name+' '+c.contact_phone).toLowerCase().includes(q)).slice(0,4);
+  let html = '';
+  if (prods.length) html += '<p class="k px-4 pt-3">Produk</p>' + prods.map(p=>'<button class="gitem" data-gp="'+p.id+'">'+avatarHTML(p.name,26)+'<span class="font-semibold text-ink">'+esc(p.name)+'</span><span class="ml-auto font-mono text-xs text-slate-400">'+rupiah(p.price)+'</span></button>').join('');
+  if (convs.length) html += '<p class="k px-4 pt-3">Kontak</p>' + convs.map(c=>'<button class="gitem" data-gc="'+c.id+'">'+avatarHTML(c.contact_name,26)+'<span class="font-semibold text-ink">'+esc(c.contact_name)+'</span>'+chipHTML(c.status)+'</button>').join('');
+  box.innerHTML = html || '<p class="px-4 py-4 text-sm text-slate-400">Tidak ada hasil untuk "'+esc(q)+'".</p>';
+  box.classList.remove('hidden');
+  box.querySelectorAll('[data-gp]').forEach(b=>b.addEventListener('click',()=>{ hideGResults(); $('gSearch').value=''; showPage('products'); openPM(b.dataset.gp); }));
+  box.querySelectorAll('[data-gc]').forEach(b=>b.addEventListener('click',()=>{ hideGResults(); $('gSearch').value=''; showPage('inbox'); openConv(b.dataset.gc); }));
+});
+document.addEventListener('click', e => { if (!e.target.closest('#gResults') && e.target !== $('gSearch')) hideGResults(); });
+
+/* bel notifikasi */
+function hideBell(){ $('bellPanel').classList.add('hidden'); }
+ $('tbBell').addEventListener('click', e => {
+  e.stopPropagation();
+  const need = CONVS.filter(c=>c.status==='escalated'||c.status==='manual');
+  $('bellPanel').innerHTML = '<p class="k px-4 pt-3">Butuh penanganan admin</p>' +
+    (need.length ? need.map(c=>'<button class="gitem" data-bc="'+c.id+'">'+avatarHTML(c.contact_name,28)+'<span><span class="block text-[13px] font-semibold text-ink">'+esc(c.contact_name)+'</span><span class="text-[11px] text-slate-400">'+esc(c.intent||'')+'</span></span>'+chipHTML(c.status)+'</button>').join('')
+    : '<p class="px-4 py-4 text-sm text-slate-400">Tidak ada — AI menangani semuanya 👍</p>');
+  $('bellPanel').classList.remove('hidden');
+  $('bellPanel').querySelectorAll('[data-bc]').forEach(b=>b.addEventListener('click',()=>{ hideBell(); showPage('inbox'); openConv(b.dataset.bc); }));
+});
+document.addEventListener('click', e => { if (!e.target.closest('#bellPanel') && !e.target.closest('#tbBell')) hideBell(); });
+
+/* ═══ OVERVIEW ═══ */
+function renderOverview(){
+  const h = (new Date().getUTCHours()+7)%24;
+  $('ovGreeting').textContent = (h<11?'Selamat pagi':h<15?'Selamat siang':h<19?'Selamat sore':'Selamat malam')+', '+STORE.store_name+' 👋';
+  $('ovDate').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
+  $('ovMini').innerHTML = ['CHAT HARI INI|74','DITANGANI AI|84%','BALAS RATA²|1,8 DTK'].map(s=>{const [l,v]=s.split('|');
+    return '<div><p class="k !text-slate-500">'+l+'</p><p class="mono mt-1 font-mono text-lg font-bold text-white">'+v+'</p></div>';}).join('');
+
+  const waiting = CONVS.filter(c=>c.status==='escalated').length;
+  const kpis = [
+    { l:'Chat Bulan Ini', v:MONTH.total, fmt:n=>num(Math.round(n)), delta:'+18%', warn:false, spark:MONTH.spark },
+    { l:'Ditangani AI', v:MONTH.ai, fmt:n=>num(Math.round(n))+'%', delta:'+6%', warn:false, spark:[70,74,72,78,80,79,82,84] },
+    { l:'Eskalasi Admin', v:MONTH.admin, fmt:n=>num(Math.round(n)), delta: waiting?waiting+' menunggu':'—', warn:waiting>0, spark:[2,3,2,4,3,2,3,2] },
+    { l:'Estimasi Hemat', v:2100000, fmt:n=>'Rp '+num(Math.round(n)/1e6,1)+' jt', delta:'0 admin', warn:false, spark:[12,14,13,16,18,17,20,21] },
+  ];
+  $('kpiStrip').innerHTML = kpis.map((k,i)=>
+    '<div class="p-5'+(i<3?' max-sm:border-b max-sm:border-slate-100 sm:'+((i===1||i===3)?'border-l':''):'')+'">'+
+    '<p class="k">'+k.l+'</p>'+
+    '<p class="kpi-v mono mt-2 text-[1.55rem] font-bold leading-none text-ink" data-i="'+i+'">0</p>'+
+    '<div class="mt-3 flex items-end justify-between gap-2"><span class="chip" style="color:'+(k.warn?'#B45309':'#EA580C')+';background:'+(k.warn?'#FFFBEB':'#FFF3E8')+'">'+k.delta+'</span>'+sparkSVG(k.spark,70,22)+'</div></div>').join('');
+  $('kpiStrip').querySelectorAll('.kpi-v').forEach(el=>countUp(el,kpis[+el.dataset.i].v,kpis[+el.dataset.i].fmt));
+
+  const max = Math.max(...WEEK);
+  $('barChart').innerHTML = WEEK.map((v,i)=>'<div class="bar'+(i===WEEK.length-1?' today':'')+'" title="'+DAYS[i]+': '+v+' chat"><span class="bv">'+v+'</span><div class="bar-fill" data-h="'+Math.round(v/max*100)+'"></div><span class="bd">'+DAYS[i]+'</span></div>').join('');
+  $('barTotal').textContent = num(WEEK.reduce((a,b)=>a+b,0));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ $('barChart').querySelectorAll('.bar-fill').forEach(b=>b.style.height=b.dataset.h+'%'); }));
+
+  const recent = [...CONVS].sort((a,b)=>new Date(b.last_message_at)-new Date(a.last_message_at)).slice(0,5);
+  $('recentList').innerHTML = recent.map(c=>{
+    const last = c.messages[c.messages.length-1];
+    const prev = (last.sender==='ai'?'AI: ':last.sender==='admin'?'Anda: ':'')+last.body;
+    return '<button class="chk w-full text-left" data-rc="'+c.id+'">'+avatarHTML(c.contact_name,36)+
+    '<span class="min-w-0 flex-1"><span class="block text-[13.5px] font-bold text-ink">'+esc(c.contact_name)+'</span>'+
+    '<span class="block truncate text-xs text-slate-400">'+esc(prev)+'</span></span>'+chipHTML(c.status)+
+    '<span class="shrink-0 font-mono text-[10px] text-slate-400">'+fmtT(c.last_message_at)+'</span></button>';
+  }).join('');
+  $('recentList').querySelectorAll('[data-rc]').forEach(b=>b.addEventListener('click',()=>{ showPage('inbox'); openConv(b.dataset.rc); }));
+
+  const need = CONVS.filter(c=>c.status==='escalated'||c.status==='manual');
+  $('attentionCard').innerHTML = '<div class="flex items-center justify-between"><h2 class="text-[14px] font-extrabold text-ink">Butuh Perhatian</h2>'+
+    (need.length?'<span class="chip" style="color:#B45309;background:#FFFBEB">'+need.length+' CHAT</span>':'')+'</div>'+
+    (need.length ? '<div class="mt-3">'+need.map(c=>'<button class="chk w-full text-left" data-at="'+c.id+'">'+avatarHTML(c.contact_name,32)+
+      '<span class="min-w-0 flex-1"><span class="block text-[13px] font-bold text-ink">'+esc(c.contact_name)+'</span>'+
+      '<span class="block text-[11px] text-slate-400">'+esc(c.intent||'Chat')+(c.unread?' · '+c.unread+' pesan baru':'')+'</span></span>'+
+      '<span class="font-mono text-[10px] font-bold text-orange-600">TANGANI →</span></button>').join('')+'</div>'
+    : '<p class="mt-3 text-[13px] leading-relaxed text-slate-400">Tidak ada antrean — AI menangani semua chat dengan sendirinya. 👍</p>');
+  $('attentionCard').querySelectorAll('[data-at]').forEach(b=>b.addEventListener('click',()=>{ showPage('inbox'); openConv(b.dataset.at); }));
+
+  const pct = Math.round(QUA.used/QUA.limit*100);
+  $('quotaCard').innerHTML = '<div class="flex items-center justify-between"><h2 class="text-[14px] font-extrabold text-ink">Kuota Chat</h2>'+
+    '<button id="qcGo" class="font-mono text-[10px] font-semibold uppercase tracking-[.1em] text-orange-600 hover:underline">Detail →</button></div>'+
+    '<p class="mono mt-3 font-mono text-2xl font-bold text-ink">'+QUA.used+'<span class="text-sm text-slate-400"> / '+QUA.limit+'</span></p>'+
+    '<div class="track mt-2"><div style="width:'+pct+'%'+(pct>80?';background:#F59E0B':'')+'"></div></div>'+
+    '<p class="mt-2 text-xs text-slate-400">'+(QUA.limit-QUA.used)+' chat tersisa · reset dalam '+QUA.resetIn+' hari</p>';
+  $('qcGo').addEventListener('click',()=>showPage('billing'));
+
+  const st = WA.status;
+  $('waMiniCard').innerHTML = '<h2 class="text-[14px] font-extrabold text-ink">WhatsApp</h2>'+
+    '<p class="mt-3 flex items-center gap-2 font-mono text-[13px] font-bold text-ink"><span class="pd" style="background:'+(st==='connected'?'#F97316':st==='pending'?'#F59E0B':'#EF4444')+'"></span>'+
+    (st==='connected'?esc(WA.phone)+' · AKTIF 24/7':st==='pending'?'MENUNGGU SCAN QR':'BELUM TERHUBUNG')+'</p>'+
+    '<button id="waMiniBtn" class="btn '+(st==='connected'?'btn-o':'btn-e')+' btn-xs mt-4 w-full">'+(st==='connected'?'Kelola koneksi':'Hubungkan sekarang →')+'</button>';
+  $('waMiniBtn').addEventListener('click',()=>showPage('whatsapp'));
+}
+ $('ovAdd').addEventListener('click',()=>{ showPage('products'); openPM(null); });
+ $('ovImport').addEventListener('click',()=>{ showPage('products'); openImp(); });
+ $('ovAllChats').addEventListener('click',()=>showPage('inbox'));
+
+/* ═══ INBOX ═══ */
+let inboxFilter='all', activeConvId=null, convQuery='';
+function renderInbox(){
+  const list = CONVS
+    .filter(c => inboxFilter==='all' ? true : inboxFilter==='admin' ? (c.status==='escalated'||c.status==='manual') : (c.status==='ai'||c.status==='resolved'))
+    .filter(c => !convQuery || (c.contact_name+' '+c.contact_phone).toLowerCase().includes(convQuery))
+    .sort((a,b)=>new Date(b.last_message_at)-new Date(a.last_message_at));
+  document.querySelectorAll('.iflt').forEach(b=>b.classList.toggle('on', b.dataset.f===inboxFilter));
+  updateTopbar();
+
+  $('convList').innerHTML = list.map(c=>{
+    const last=c.messages[c.messages.length-1];
+    const prev=(last.sender==='ai'?'AI: ':last.sender==='admin'?'Anda: ':'')+last.body;
+    return '<div class="conv '+(c.id===activeConvId?'on':'')+'" data-conv="'+c.id+'"><div class="flex items-center gap-3">'+avatarHTML(c.contact_name,38)+
+    '<div class="min-w-0 flex-1"><div class="flex items-baseline justify-between gap-2"><p class="truncate text-[13.5px] font-bold text-ink">'+esc(c.contact_name)+'</p><span class="shrink-0 font-mono text-[10px] text-slate-400">'+fmtT(c.last_message_at)+'</span></div>'+
+    '<p class="truncate text-xs '+(c.unread?'font-semibold text-slate-600':'text-slate-500')+'">'+esc(prev)+'</p></div>'+
+    (c.unread?'<span class="rounded-full bg-orange-500 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">'+c.unread+'</span>':'')+'</div></div>';
+  }).join('') || '<div class="p-8 text-center text-sm text-slate-400">Tidak ada hasil.</div>';
+  $('convList').querySelectorAll('[data-conv]').forEach(el=>el.addEventListener('click',()=>openConv(el.dataset.conv)));
+  renderThread();
+}
+document.querySelectorAll('.iflt').forEach(b=>b.addEventListener('click',()=>{ inboxFilter=b.dataset.f; renderInbox(); }));
+ $('convSearch').addEventListener('input',e=>{ convQuery=e.target.value.trim().toLowerCase(); renderInbox(); });
+function openConv(id){ activeConvId=id; const c=CONVS.find(x=>x.id===id); if(c)c.unread=0; renderInbox(); }
+
+let typingEl=null;
+function showTyping(){
+  removeTyping();
+  typingEl=document.createElement('div');
+  typingEl.className='bub b-in'; typingEl.style.cssText='display:flex;gap:4px;padding:11px 13px';
+  typingEl.innerHTML='<span class="tdot"></span><span class="tdot" style="animation-delay:.15s"></span><span class="tdot" style="animation-delay:.3s"></span>';
+  $('threadBody').appendChild(typingEl); $('threadBody').scrollTop=$('threadBody').scrollHeight;
+}
+function removeTyping(){ if(typingEl){typingEl.remove();typingEl=null;} }
+
+function renderThread(){
+  const c = CONVS.find(x=>x.id===activeConvId);
+  $('threadEmpty').classList.toggle('hidden',!!c);
+  $('threadWrap').classList.toggle('hidden',!c);
+  $('threadWrap').classList.toggle('flex',!!c);
+  if(!c) return;
+
+  const actions =
+    (c.status==='escalated'?'<button id="takeoverBtn" class="btn btn-e btn-xs">Ambil Alih</button>':'') +
+    (c.status==='manual'?'<button id="toAiBtn" class="btn btn-o btn-xs">Serahkan ke AI</button>':'') +
+    ((c.status==='manual'||c.status==='escalated')?'<button id="resolveBtn" class="btn btn-o btn-xs">✓ Selesai</button>':'');
+  $('threadHead').innerHTML =
+    '<div class="flex min-w-0 items-center gap-3">'+avatarHTML(c.contact_name,38)+
+    '<div class="min-w-0"><p class="truncate text-sm font-extrabold text-ink">'+esc(c.contact_name)+' <span class="ml-1 font-mono text-[10px] font-medium text-slate-400">'+esc(c.contact_phone)+'</span></p>'+
+    '<div class="mt-0.5 flex items-center gap-2">'+chipHTML(c.status)+'<span class="font-mono text-[9.5px] text-slate-400">'+esc(c.intent||'—')+'</span></div></div></div>'+
+    '<div class="flex flex-wrap gap-2">'+actions+'</div>';
+
+  const LBL={ai:'PesanLagi AI',admin:'Dinda (Admin)'};
+  let html='<div class="ch-date">'+new Date(c.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long'})+'</div>';
+  for(const m of c.messages){
+    if(m.sender==='system'){ html+='<div class="b-sys">'+esc(m.body)+'</div>'; continue; }
+    if(m.sender==='customer'){
+      html+='<div class="bub b-in">'+esc(m.body)+'<div class="mt-1 text-right font-mono text-[9px] text-slate-400">'+fmtT(m.created_at)+'</div></div>';
+    } else {
+      html+='<p class="mmeta '+(m.sender==='ai'?'ai':'ad')+'">'+LBL[m.sender]+' · '+fmtT(m.created_at)+'</p>'+
+        '<div class="bub b-out">'+esc(m.body)+'<div class="mt-1 text-right font-mono text-[9px] text-slate-400">'+fmtT(m.created_at)+' ✓✓</div></div>';
+    }
+  }
+  $('threadBody').innerHTML=html;
+  $('threadBody').scrollTop=$('threadBody').scrollHeight;
+
+  if(c.status==='manual'){
+    $('composer').innerHTML =
+      '<div class="canned">'+CANNED.map((t,i)=>'<button data-cn="'+i+'">'+esc(t)+'</button>').join('')+'</div>'+
+      '<div class="flex items-end gap-2"><textarea id="cInput" rows="1" class="input flex-1 resize-none" placeholder="Ketik balasan… (Enter kirim)"></textarea><button id="cSend" class="btn btn-e">Kirim</button></div>';
+    $('cSend').addEventListener('click',sendReply);
+    $('cInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendReply();}});
+    $('composer').querySelectorAll('[data-cn]').forEach(b=>b.addEventListener('click',()=>{
+      const ta=$('cInput'); ta.value = ta.value ? ta.value.trim()+' '+CANNED[+b.dataset.cn] : CANNED[+b.dataset.cn]; ta.focus();
+    }));
+  } else if(c.status==='escalated'){
+    $('composer').innerHTML='<p class="rounded-lg px-3.5 py-2.5 text-[12.5px]" style="background:#FFFBEB;color:#92400E">Butuh balasan admin — klik <strong>"Ambil Alih"</strong> untuk membalas manual.</p>';
+  } else if(c.status==='resolved'){
+    $('composer').innerHTML='<p class="rounded-lg bg-slate-50 px-3.5 py-2.5 text-[12.5px] text-slate-500">Percakapan selesai.</p>';
+  } else {
+    $('composer').innerHTML='<p class="rounded-lg px-3.5 py-2.5 text-[12.5px]" style="background:#FFF3E8;color:#9A3412">AI sedang menangani obrolan ini secara otomatis.</p>';
+  }
+
+  const tk=$('takeoverBtn');
+  if(tk) tk.addEventListener('click',()=>{
+    c.status='manual'; c.messages.push({sender:'system',body:'Eskalasi → Anda (admin) mengambil alih obrolan',created_at:new Date().toISOString()});
+    toast('Obrolan diambil alih — mode manual'); renderInbox();
+  });
+  const ta=$('toAiBtn');
+  if(ta) ta.addEventListener('click',()=>{
+    c.status='ai'; c.messages.push({sender:'system',body:'Obrolan diserahkan kembali ke AI',created_at:new Date().toISOString()});
+    renderInbox();
+    setTimeout(()=>{ const cc=CONVS.find(x=>x.id===activeConvId); if(!cc)return; showTyping();
+      setTimeout(()=>{ removeTyping(); cc.messages.push({sender:'ai',body:'Terima kasih sudah menunggu kak! Saya lanjut bantu ya 😊',created_at:new Date().toISOString()}); cc.last_message_at=new Date().toISOString(); renderInbox(); },2200);
+    },800);
+  });
+  const rs=$('resolveBtn');
+  if(rs) rs.addEventListener('click',()=>{
+    c.status='resolved'; c.messages.push({sender:'system',body:'Kasus ditandai selesai oleh admin',created_at:new Date().toISOString()});
+    toast('Percakapan ditandai selesai'); renderInbox();
+  });
+}
+function sendReply(){
+  const c=CONVS.find(x=>x.id===activeConvId); if(!c) return;
+  const body=$('cInput').value.trim(); if(!body) return;
+  const now=new Date().toISOString();
+  c.messages.push({sender:'admin',body,created_at:now});
+  c.status='manual'; c.last_message_at=now; c.unread=0;
+  renderInbox();
+  setTimeout(showTyping,1100);
+  setTimeout(()=>{
+    removeTyping();
+    const cc=CONVS.find(x=>x.id===activeConvId); if(!cc) return;
+    cc.messages.push({sender:'customer',body:CUST_REPLIES[hash(cc.id+cc.messages.length)%CUST_REPLIES.length],created_at:new Date().toISOString()});
+    cc.last_message_at=new Date().toISOString(); renderInbox();
+  },2700);
+}
+
+/* ═══ EXPORT CHAT ═══ */
+function csvCell(v){ return '"'+String(v==null?'':v).replace(/\r?\n/g,' ').replace(/"/g,'""')+'"'; }
+function downloadCSV(filename,rows){
+  const csv='\uFEFF'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=filename; a.click(); URL.revokeObjectURL(a.href);
+}
+ $('btnExport').addEventListener('click',()=>{
+  const rows=[['tanggal','jam','kontak','nomor','niat','status','pengirim','pesan']];
+  [...CONVS].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(c=>{
+    const st=(CONV_ST[c.status]||{}).t||c.status;
+    c.messages.forEach(m=>{const d=new Date(m.created_at);
+      rows.push([d.toLocaleDateString('id-ID'),d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),
+        c.contact_name,c.contact_phone,c.intent||'-',st,
+        m.sender==='customer'?'Pelanggan':m.sender==='ai'?'AI':m.sender==='admin'?'Admin':'Sistem',m.body]);});
+  });
+  downloadCSV('pesanlagi-riwayat-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  toast((rows.length-1)+' baris terexport ke CSV');
+});
+
+/* ═══ PRODUK ═══ */
+let editingId=null, deleteId=null, draftImage=null;
+function renderProducts(){
+  const out=PRODUCTS.filter(p=>statusOf(p.stock_qty)==='out_of_stock').length;
+  const low=PRODUCTS.filter(p=>statusOf(p.stock_qty)==='low_stock').length;
+  $('prodMeta').textContent=PRODUCTS.length+' PRODUK · '+low+' MENIPIS · '+out+' HABIS';
+  const q=$('prodSearch').value.trim().toLowerCase();
+  const list=q?PRODUCTS.filter(p=>(p.name+' '+(p.description||'')).toLowerCase().includes(q)):PRODUCTS;
+  $('prodTbody').innerHTML=list.map(p=>{
+    const thumb=p.image?'<img class="pthumb" src="'+p.image+'" alt=""/>':avatarHTML(p.name,42);
+    return '<tr class="transition-colors hover:bg-slate-50/70">'+
+    '<td class="px-5 py-3.5"><div class="flex items-center gap-3">'+thumb+
+    '<div class="min-w-0"><p class="font-semibold text-ink">'+esc(p.name)+'</p>'+
+    (p.description?'<p class="truncate text-xs text-slate-400">'+esc(p.description)+'</p>':'')+'</div></div></td>'+
+    '<td class="mono whitespace-nowrap px-5 py-3.5 text-right font-mono font-semibold text-ink">'+rupiah(p.price)+'</td>'+
+    '<td class="px-5 py-3.5"><div class="stepper" style="margin-left:auto"><button data-stp="-1" data-id="'+p.id+'">−</button><span>'+p.stock_qty+'</span><button data-stp="1" data-id="'+p.id+'">+</button></div></td>'+
+    '<td class="px-5 py-3.5">'+stChip(p.stock_qty)+'</td>'+
+    '<td class="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[12px] font-semibold">'+
+    '<button data-edit="'+p.id+'" class="text-orange-600 hover:underline">UBAH</button><span class="mx-2 text-slate-200">|</span>'+
+    '<button data-del="'+p.id+'" class="text-red-500 hover:underline">HAPUS</button></td></tr>';
+  }).join('')||'<tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada yang cocok.</td></tr>';
+  $('prodTbody').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openPM(b.dataset.edit)));
+  $('prodTbody').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>openDM(b.dataset.del)));
+  $('prodTbody').querySelectorAll('[data-stp]').forEach(b=>b.addEventListener('click',()=>{
+    const p=PRODUCTS.find(x=>x.id===b.dataset.id); if(!p)return;
+    p.stock_qty=Math.max(0,p.stock_qty+ +b.dataset.stp);
+    renderProducts();
+  }));
+}
+ $('prodSearch').addEventListener('input',renderProducts);
+ $('prodAddBtn').addEventListener('click',()=>openPM(null));
+
+function readImage(file,cb){
+  const r=new FileReader();
+  r.onload=()=>{ const img=new Image();
+    img.onload=()=>{ const MAX=420, sc=Math.min(1,MAX/Math.max(img.width,img.height));
+      const cv=document.createElement('canvas'); cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); cb(cv.toDataURL('image/jpeg',.82)); };
+    img.onerror=()=>cb(r.result); img.src=r.result; };
+  r.readAsDataURL(file);
+}
+function setImgPreview(dataUrl){
+  draftImage=dataUrl;
+  if(dataUrl){ $('pImgPrev').src=dataUrl; $('pImgPrev').classList.remove('hidden'); $('pImgEmpty').classList.add('hidden'); $('pImgRemove').classList.remove('hidden'); }
+  else { $('pImgPrev').classList.add('hidden'); $('pImgEmpty').classList.remove('hidden'); $('pImgRemove').classList.add('hidden'); }
+}
+ $('pImgBox').addEventListener('click',e=>{ if(e.target.id!=='pImgRemove') $('pImgFile').click(); });
+ $('pImgFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) readImage(f,setImgPreview); });
+ $('pImgRemove').addEventListener('click',e=>{ e.stopPropagation(); setImgPreview(null); });
+
+ $('pQty').addEventListener('input',()=>{ const q=Math.max(0,Number($('pQty').value)||0); $('pStPrev').outerHTML=stChip(q).replace('class="chip"','class="chip shrink-0" id="pStPrev"'); });
+
+function openPM(id){
+  editingId=id; const p=id?PRODUCTS.find(x=>x.id===id):null;
+  $('pModalKicker').textContent=p?'Ubah produk':'Produk baru';
+  $('pModalTitle').textContent=p?p.name:'Tambah ke katalog';
+  $('pName').value=p?p.name:''; $('pPrice').value=p?num(p.price):'';
+  $('pQty').value=p?p.stock_qty:10; $('pDesc').value=p?(p.description||''):'';
+  setImgPreview(p?p.image:null);
+  const q=p?p.stock_qty:10;
+  $('pStPrev').outerHTML=stChip(q).replace('class="chip"','class="chip shrink-0" id="pStPrev"');
+  $('pErr').classList.add('hidden');
+  $('pSaveBtn').textContent=p?'Simpan Perubahan':'Tambah Produk';
+  $('pModal').classList.remove('hidden'); $('pModal').classList.add('flex');
+}
+window.closePM=function(){ $('pModal').classList.add('hidden'); $('pModal').classList.remove('flex'); };
+function openDM(id){ deleteId=id; $('dName').textContent=(PRODUCTS.find(x=>x.id===id)||{}).name||''; $('dModal').classList.remove('hidden'); $('dModal').classList.add('flex'); }
+window.closeDM=function(){ $('dModal').classList.add('hidden'); $('dModal').classList.remove('flex'); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closePM(); closeDM(); closeImp(); } });
+
+ $('pForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('pName').value.trim(), price=parsePrice($('pPrice').value);
+  const qty=Math.max(0,Math.round(Number($('pQty').value)||0));
+  if(!name){ $('pErr').textContent='Nama produk wajib diisi.'; $('pErr').classList.remove('hidden'); return; }
+  if(!Number.isFinite(price)||price<0){ $('pErr').textContent='Harga tidak valid — coba 89.000 / 89rb.'; $('pErr').classList.remove('hidden'); return; }
+  if(editingId){
+    Object.assign(PRODUCTS.find(x=>x.id===editingId),{name,price,description:$('pDesc').value.trim(),stock_qty:qty,image:draftImage});
+    toast('Produk diperbarui');
+  } else {
+    PRODUCTS.unshift({id:uid(),name,price,description:$('pDesc').value.trim(),stock_qty:qty,image:draftImage});
+    toast('Produk ditambahkan');
+  }
+  closePM(); renderProducts();
+});
+ $('dConfirmBtn').addEventListener('click',()=>{ PRODUCTS=PRODUCTS.filter(p=>p.id!==deleteId); closeDM(); renderProducts(); toast('Produk dihapus'); });
+
+/* ═══ IMPORT / EXPORT PRODUK ═══ */
+let importRows=[];
+ $('impTpl').addEventListener('click',()=>{
+  downloadCSV('template-produk-pesanlagi.csv',[
+    ['Nama Produk','Harga','Deskripsi','Stok'],
+    ['Hijab Voal Premium','89.000','Motif bunga biru, termasuk box','Tersedia'],
+    ['Gamis Ceruty','185rb','Jumbo sampai XL','3'],
+    ['Rok Plisket Jeans','95.000','Plisket jeans tebal','Habis']]);
+  toast('Template CSV terdownload');
+});
+ $('prodImportBtn').addEventListener('click',openImp);
+ $('prodExportBtn').addEventListener('click',()=>{
+  if(!PRODUCTS.length) return toast('Katalog kosong','err');
+  const rows=[['nama','harga','deskripsi','stok']];
+  PRODUCTS.forEach(p=>rows.push([p.name,p.price,p.description||'',p.stock_qty]));
+  downloadCSV('pesanlagi-katalog-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  toast(PRODUCTS.length+' produk terexport');
+});
+function openImp(){
+  importRows=[]; $('impPaste').value=''; $('impErr1').classList.add('hidden'); $('impFile').value='';
+  $('impStep1').classList.remove('hidden'); $('impStep2').classList.add('hidden');
+  $('impKicker').textContent='Import katalog · langkah 1 dari 2';
+  $('impModal').classList.remove('hidden'); $('impModal').classList.add('flex');
+}
+window.closeImp=function(){ $('impModal').classList.add('hidden'); $('impModal').classList.remove('flex'); };
+ $('impPick').addEventListener('click',()=>$('impFile').click());
+ $('impFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) readFile(f); });
+const dz=$('impDrop');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{ e.preventDefault(); dz.classList.remove('over'); const f=e.dataTransfer.files[0]; if(f) readFile(f); });
+function readFile(f){
+  if(!/\.(csv|txt)$/i.test(f.name)){ $('impErr1').textContent='Format harus .csv/.txt. Untuk Excel (.xlsx): buka di Excel → File → Save As → CSV.'; $('impErr1').classList.remove('hidden'); return; }
+  const r=new FileReader(); r.onload=()=>{ $('impPaste').value=r.result; processImport(); }; r.readAsText(f,'utf-8');
+}
+function detectDelim(text){
+  const line=(text.split(/\r?\n/).find(l=>l.trim())||'');
+  const s=(line.match(/;/g)||[]).length,c=(line.match(/,/g)||[]).length,t=(line.match(/\t/g)||[]).length;
+  if(t>s&&t>c) return '\t'; return s>=c?';':',';
+}
+function parseCSVText(text){
+  const d=detectDelim(text); const rows=[]; let row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){ const ch=text[i];
+    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; }
+    else { if(ch==='"')q=true; else if(ch===d){row.push(cell);cell='';} else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell='';} else if(ch!=='\r')cell+=ch; } }
+  if(cell!==''||row.length){row.push(cell);rows.push(row);}
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+function mapStock(v){
+  const s=String(v||'').trim().toLowerCase();
+  if(!s) return 10;
+  if(/habis|kosong|out|sold/.test(s)) return 0;
+  if(/menipis|sedikit|low/.test(s)) return 3;
+  if(/tersedia|ready|ada|available|in/.test(s)) return 10;
+  const d=s.replace(/[^\d]/g,'');
+  if(/^\d+$/.test(d)) return Number(d);
+  return null;
+}
+const H_NAME=['nama','nama produk','name','produk','product','item'];
+const H_PRICE=['harga','price','harga (rp)','price (rp)','harga rp'];
+const H_DESC=['deskripsi','description','desc','keterangan','detail'];
+const H_STOCK=['stok','stock','status','status stok','stock status','ketersediaan','jumlah'];
+const findCol=(hs,list)=>{ for(const h of list){ const i=hs.indexOf(h); if(i!==-1) return i; } return -1; };
+
+function processImport(){
+  const text=$('impPaste').value.trim();
+  if(!text){ $('impErr1').textContent='Data masih kosong — pilih file atau tempel dulu.'; $('impErr1').classList.remove('hidden'); return; }
+  const raw=parseCSVText(text);
+  if(!raw.length){ $('impErr1').textContent='Tidak ada baris yang terbaca.'; $('impErr1').classList.remove('hidden'); return; }
+  const first=raw[0].map(c=>String(c).trim().toLowerCase().replace(/\s+/g,' '));
+  const hasHeader=findCol(first,H_NAME)!==-1||findCol(first,H_PRICE)!==-1;
+  let ci={name:0,price:1,desc:2,stock:3}, dataRows=raw;
+  if(hasHeader){
+    ci={name:findCol(first,H_NAME),price:findCol(first,H_PRICE),desc:findCol(first,H_DESC),stock:findCol(first,H_STOCK)};
+    if(ci.name===-1||ci.price===-1){ $('impErr1').textContent='Header tidak dikenali — pastikan ada kolom "Nama" dan "Harga". Pakai template CSV.'; $('impErr1').classList.remove('hidden'); return; }
+    dataRows=raw.slice(1);
+  }
+  const mode=document.querySelector('input[name="impMode"]:checked').value;
+  const existing=new Set(PRODUCTS.map(p=>p.name.trim().toLowerCase()));
+  const seen=new Set();
+  importRows=dataRows.map(r=>{
+    const get=k=>(ci[k]!==-1&&r[ci[k]]!==undefined)?String(r[ci[k]]).trim():'';
+    const name=get('name'),item={name,price:0,description:get('desc'),stock_qty:10,status:'ok',reason:''};
+    if(!name){item.status='error';item.reason='nama kosong';return item;}
+    const price=parsePrice(get('price'));
+    if(!Number.isFinite(price)||price<0){item.status='error';item.reason='harga tidak valid ("'+get('price')+'")';return item;}
+    const qty=mapStock(get('stock'));
+    if(qty===null){item.status='error';item.reason='stok tidak dikenali ("'+get('stock')+'")';return item;}
+    item.price=price; item.stock_qty=qty;
+    const key=name.toLowerCase();
+    if(seen.has(key)){item.status='skip';item.reason='duplikat di file';return item;}
+    seen.add(key);
+    if(mode==='append'&&existing.has(key)){item.status='skip';item.reason='sudah ada di katalog';return item;}
+    return item;
+  });
+  const ok=importRows.filter(r=>r.status==='ok').length, err=importRows.filter(r=>r.status==='error').length, skip=importRows.filter(r=>r.status==='skip').length;
+  $('impSummary').innerHTML=
+    '<span class="chip" style="color:#EA580C;background:#FFF3E8">'+ok+' SIAP</span>'+
+    '<span class="chip" style="color:#B45309;background:#FFFBEB">'+skip+' DILEWATI</span>'+
+    '<span class="chip" style="color:#B91C1C;background:#FEF2F2">'+err+' ERROR</span>';
+  $('impPreviewBody').innerHTML=importRows.map((r,i)=>{
+    const badge=r.status==='ok'?'<span class="chip" style="color:#EA580C;background:#FFF3E8">OK</span>':r.status==='skip'?'<span class="chip" style="color:#B45309;background:#FFFBEB">SKIP</span>':'<span class="chip" style="color:#B91C1C;background:#FEF2F2">ERROR</span>';
+    return '<tr class="'+(r.status==='error'?'bg-red-50/40':r.status==='skip'?'opacity-60':'')+'">'+
+    '<td class="px-3 py-2 font-mono text-slate-400">'+(i+1)+'</td>'+
+    '<td class="px-3 py-2 font-semibold text-ink">'+esc(r.name||'—')+'</td>'+
+    '<td class="px-3 py-2 text-right font-mono">'+(r.price?rupiah(r.price):'—')+'</td>'+
+    '<td class="px-3 py-2 text-right font-mono">'+(r.status!=='error'?r.stock_qty:'—')+'</td>'+
+    '<td class="px-3 py-2">'+badge+(r.reason?' <span class="text-[11px] text-slate-400">'+esc(r.reason)+'</span>':'')+'</td></tr>';
+  }).join('');
+  $('impCommit').textContent='Import '+ok+' Produk';
+  $('impCommit').disabled=ok===0;
+  $('impKicker').textContent='Import katalog · langkah 2 dari 2 — periksa dulu';
+  $('impStep1').classList.add('hidden'); $('impStep2').classList.remove('hidden');
+}
+ $('impProcess').addEventListener('click',processImport);
+ $('impBack').addEventListener('click',()=>{ $('impStep2').classList.add('hidden'); $('impStep1').classList.remove('hidden'); $('impKicker').textContent='Import katalog · langkah 1 dari 2'; });
+ $('impCommit').addEventListener('click',()=>{
+  const mode=document.querySelector('input[name="impMode"]:checked').value;
+  const valid=importRows.filter(r=>r.status==='ok').map(r=>({id:uid(),name:r.name,price:r.price,description:r.description,stock_qty:r.stock_qty,image:null}));
+  if(!valid.length) return;
+  PRODUCTS = mode==='replace' ? valid : [...valid,...PRODUCTS];
+  closeImp(); renderProducts();
+  toast(valid.length+' produk diimport ('+(mode==='replace'?'katalog diganti':'ditambahkan')+')');
+});
+
+/* ═══ BOT AI ═══ */
+function renderBot(){
+  const b=STORE.bot;
+  $('botGreet').value=b.greeting;
+  $('botAuto').checked=b.autoOutside;
+  $('botStart').value=b.autoStart; $('botEnd').value=b.autoEnd;
+  $('toneSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.tone===b.tone));
+  renderKw(); updateBotPreview(); updateBotNow();
+}
+function renderKw(){
+  $('kwBox').querySelectorAll('.kw').forEach(x=>x.remove());
+  const inp=$('kwInput');
+  STORE.bot.keywords.slice().reverse().forEach(k=>{
+    const el=document.createElement('span'); el.className='kw';
+    el.innerHTML=esc(k)+' <button type="button" data-kw="'+esc(k)+'">×</button>';
+    $('kwBox').insertBefore(el,inp);
+  });
+  $('kwBox').querySelectorAll('[data-kw]').forEach(b=>b.addEventListener('click',()=>{
+    STORE.bot.keywords=STORE.bot.keywords.filter(k=>k!==b.dataset.kw); renderKw();
+  }));
+}
+ $('kwInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    const v=$('kwInput').value.trim().toLowerCase().replace(/,$/,'');
+    if(v&&!STORE.bot.keywords.includes(v)){ STORE.bot.keywords.push(v); renderKw(); }
+    $('kwInput').value='';
+  }
+});
+ $('kwBox').addEventListener('click',e=>{ if(e.target===$('kwBox')) $('kwInput').focus(); });
+ $('toneSeg').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  STORE.bot.tone=b.dataset.tone;
+  $('toneSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  updateBotPreview();
+}));
+['botGreet'].forEach(id=>$(id).addEventListener('input',updateBotPreview));
+function updateBotPreview(){
+  const g=$('botGreet').value.trim()||'…';
+  $('botPreview').textContent = STORE.bot.tone==='santai' ? 'Halo kak! 👋 '+g : 'Selamat datang di '+STORE.store_name+'. '+g;
+}
+function updateBotNow(){
+  const hm=wibHM(), b=STORE.bot;
+  if(!b.autoOutside){ $('botNow').style.cssText='background:#F5F5F4;color:#64748B'; $('botNow').textContent='JADWAL OTOMATIS MATI — JAM KERJA MENGGIKUTAN PENGATURAN MANUAL'; return; }
+  const onDesk = !(hm>=b.autoStart || hm<b.autoEnd);
+  $('botNow').style.cssText = onDesk ? 'background:#F0F9FF;color:#0369A1' : 'background:#FFF3E8;color:#9A3412';
+  $('botNow').textContent = 'SEKARANG '+hm.toUpperCase()+' WIB → '+(onDesk?'JAM KERJA (ADMIN AKTIF, AI SIAGA)':'LUAR JAM KERJA (AI MEMEGANG SEMUA CHAT)');
+}
+ $('botAuto').addEventListener('change',e=>{ STORE.bot.autoOutside=e.target.checked; updateBotNow(); });
+['botStart','botEnd'].forEach(id=>$(id).addEventListener('change',()=>{ STORE.bot.autoStart=$('botStart').value||'21:00'; STORE.bot.autoEnd=$('botEnd').value||'08:00'; updateBotNow(); }));
+ $('botSave').addEventListener('click',()=>{
+  STORE.bot.greeting=$('botGreet').value.trim()||STORE.bot.greeting;
+  updateBotPreview(); toast('Perilaku bot tersimpan');
+});
+
+/* ═══ PENGATURAN ═══ */
+function fillSettings(){
+  $('stName').value=STORE.store_name; $('stHours').value=STORE.operating_hours;
+  $('stAddress').value=STORE.address; $('stShip').value=STORE.shipping_policies; $('stPay').value=STORE.payment_info;
+  updatePreview();
+}
+function updatePreview(){
+  const g=k=>($(k).value||'').trim();
+  $('pvBubble').textContent=['Halo kak! '+(g('stName')||'Toko kami')+' buka setiap '+(g('stHours')||'—')+'.',
+    g('stShip')&&'Pengiriman kami: '+g('stShip'),g('stPay')&&'Pembayaran bisa via '+g('stPay')+'.',
+    g('stAddress')&&'Alamat toko: '+g('stAddress')+'.'].filter(Boolean).join(' ');
+}
+['stName','stHours','stAddress','stShip','stPay'].forEach(id=>$(id).addEventListener('input',updatePreview));
+ $('stForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!$('stName').value.trim()){ $('stErr').textContent='Nama toko wajib diisi.'; $('stErr').classList.remove('hidden'); return; }
+  $('stErr').classList.add('hidden');
+  STORE.store_name=$('stName').value.trim(); STORE.operating_hours=$('stHours').value.trim();
+  STORE.address=$('stAddress').value.trim(); STORE.shipping_policies=$('stShip').value.trim(); STORE.payment_info=$('stPay').value.trim();
+  $('sideStore').textContent=STORE.store_name;
+  $('stSaved').textContent='✓ TERSIMPAN · '+nowWib().toUpperCase();
+  $('stSaved').classList.remove('hidden');
+  toast('Pengaturan tersimpan');
+});
+
+/* ═══ WHATSAPP ═══ */
+const WA={status:'disconnected',phone:'+62 812-3456-7890',seed:42,since:0};
+let waTimer=null;
+function qrSvg(seed){
+  const N=21,C=7; let s=seed;
+  const rnd=()=>{s=(s*1103515245+12345)%2147483648;return s/2147483648;};
+  const fnd=(x,y)=>(x<8&&y<8)||(x>=N-8&&y<8)||(x<8&&y>=N-8);
+  let r='';
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){ if(fnd(x,y))continue; if(rnd()<.42)r+='<rect x="'+x*C+'" y="'+y*C+'" width="'+C+'" height="'+C+'" fill="#1C1917"/>'; }
+  const eye=(fx,fy)=>{r+='<rect x="'+fx*C+'" y="'+fy*C+'" width="'+7*C+'" height="'+7*C+'" fill="#1C1917"/><rect x="'+(fx+1)*C+'" y="'+(fy+1)*C+'" width="'+5*C+'" height="'+5*C+'" fill="#fff"/><rect x="'+(fx+2)*C+'" y="'+(fy+2)*C+'" width="'+3*C+'" height="'+3*C+'" fill="#1C1917"/>';};
+  eye(0,0); eye(N-7,0); eye(0,N-7);
+  const CORN='position:absolute;width:22px;height:22px;border:3px solid #F97316';
+  return '<div style="position:relative;padding:14px">'+
+    '<span style="'+CORN+';top:0;left:0;border-right:0;border-bottom:0;border-radius:8px 0 0 0"></span>'+
+    '<span style="'+CORN+';top:0;right:0;border-left:0;border-bottom:0;border-radius:0 8px 0 0"></span>'+
+    '<span style="'+CORN+';bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 8px"></span>'+
+    '<span style="'+CORN+';bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 8px 0"></span>'+
+    '<svg viewBox="0 0 147 147" style="height:170px;width:170px">'+r+'</svg></div>';
+}
+function renderWA(){
+  clearInterval(waTimer);
+  const st=WA.status;
+  const lbl=st==='connected'?['TERHUBUNG','#F97316']:st==='pending'?['MENUNGGU SCAN','#F59E0B']:['PUTUS','#EF4444'];
+  $('waStatus').innerHTML='<p class="k">Status koneksi</p>'+
+    '<p class="mt-3 flex items-center gap-2.5 font-mono text-lg font-semibold text-ink"><span class="pd" style="background:'+lbl[1]+'"></span>'+lbl[0]+'</p>'+
+    (st==='connected'
+      ?'<p class="mt-3 text-sm text-slate-500">Terhubung sebagai <strong class="text-ink">'+esc(STORE.store_name)+'</strong> · '+esc(WA.phone)+'</p><button id="waDisc" class="btn btn-o mt-5 w-full">Putuskan koneksi</button>'
+      :'<p class="mt-3 text-sm text-slate-500">'+(st==='pending'?'QR ditampilkan — scan sebelum kedaluwarsa.':'Nomor belum terhubung.')+'</p><button id="waConn" class="btn btn-e mt-5 w-full">'+(st==='pending'?'Batalkan':'Hubungkan via QR')+'</button>');
+  if(st==='pending'){
+    const left=Math.max(0,60-Math.floor((Date.now()-WA.since)/1000));
+    $('waPanel').innerHTML='<div class="flex flex-col items-center py-2"><div style="position:relative">'+qrSvg(WA.seed)+
+      '<div id="waExp" class="'+(left>0?'hidden':'')+'" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.95);border-radius:8px"><p class="font-mono text-[11px] font-bold text-red-500">QR KEDALUWARSA</p></div></div>'+
+      '<p class="mt-4 font-mono text-[11px] text-slate-400">BERLAKU <span id="waC" class="font-semibold text-ink">'+left+'</span> DTK</p>'+
+      '<div class="mt-4 flex gap-3"><button id="waRef" class="btn '+(left>0?'btn-o':'btn-e')+'">↻ Perbarui QR</button><button id="waSim" class="btn btn-ink">Simulasi scan</button></div></div>';
+    waTimer=setInterval(()=>{const l=Math.max(0,60-Math.floor((Date.now()-WA.since)/1000));const c=$('waC');if(c)c.textContent=l;if(l===0)$('waExp')?.classList.remove('hidden');},1000);
+    $('waRef').addEventListener('click',()=>{WA.seed=(WA.seed*7+13)%2147483647;WA.since=Date.now();renderWA();});
+    $('waSim').addEventListener('click',()=>{WA.status='connected';toast('WhatsApp terhubung (simulasi)');renderWA();});
+  } else if(st==='connected'){
+    $('waPanel').innerHTML='<div class="flex flex-col items-center py-6 text-center">'+
+      '<span class="grid size-16 place-items-center rounded-full font-mono text-2xl" style="background:#FFF3E8;color:#EA580C">✓</span>'+
+      '<p class="mt-4 text-lg font-extrabold text-ink">'+esc(WA.phone)+'</p>'+
+      '<p class="mt-1 font-mono text-[10.5px] tracking-[.12em] text-slate-400">AKTIF MENJAWAB 24/7</p>'+
+      '<div class="mt-6 flex w-full max-w-xs flex-col gap-2.5 rounded-xl p-4 text-left" style="background:#ECE5DD">'+
+      '<div class="bub b-in">kak pesananq udh dkirim?</div>'+
+      '<div class="bub b-out">Sudah dikirim hari ini kak — resi JX-8821, estimasi besok tiba. 🙏</div></div></div>';
+  } else {
+    $('waPanel').innerHTML='<p class="k">Cara kerja pairing</p><div class="mt-4">'+
+      '<div class="stepw"><span class="sn">01</span> klik "hubungkan via qr" di panel kiri</div>'+
+      '<div class="stepw"><span class="sn">02</span> scan qr dari whatsapp → perangkat tertaut</div>'+
+      '<div class="stepw" style="border:0"><span class="sn">03</span> bot langsung aktif di nomor toko</div></div>'+
+      '<div class="mt-6 flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-14"><p class="font-mono text-[11px] tracking-[.14em] text-slate-400">QR AKAN MUNCUL DI SINI</p></div>';
+  }
+  $('waConn')?.addEventListener('click',()=>{ if(WA.status==='pending')WA.status='disconnected'; else{WA.status='pending';WA.since=Date.now();} renderWA(); });
+  $('waDisc')?.addEventListener('click',()=>{ WA.status='disconnected'; toast('Koneksi diputus'); renderWA(); });
+  updateTopbar();
+}
+
+/* ═══ NOTIFIKASI ═══ */
+function notifBody(){
+  const c=CONVS.find(x=>x.status==='escalated');
+  return '🔔 BUTUH ADMIN — '+STORE.store_name.toUpperCase()+'\n'+
+    (c?c.contact_name+' ('+c.contact_phone+') · '+(c.intent||'Chat'):'Ada pelanggan butuh penanganan')+
+    '\nAI sudah mengeskalasi obrolan ini.\nBuka dashboard → Riwayat Chat.';
+}
+function renderNotif(){
+  const on=STORE.notify_on_escalation;
+  const waiting=CONVS.filter(c=>c.status==='escalated').length;
+  $('notifCard').innerHTML=
+    '<div class="flex flex-wrap items-start justify-between gap-4"><div>'+
+    '<p class="k">§ Notifikasi</p><h2 class="mt-1 text-[15px] font-extrabold text-ink">Eskalasi → WhatsApp admin</h2>'+
+    '<p class="mt-1.5 max-w-md text-[13px] text-slate-500">Begitu AI menemukan kata kunci sensitif, Anda langsung di-WA. (Demo: simulasi.)</p></div>'+
+    '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="nfToggle" type="checkbox" '+(on?'checked':'')+' style="width:18px;height:18px;accent-color:#F97316"><span class="font-mono text-[10px] font-semibold tracking-[.12em] '+(on?'text-orange-600':'text-slate-400')+'">'+(on?'AKTIF':'MATI')+'</span></label></div>'+
+    '<div class="mt-5 grid gap-6 lg:grid-cols-2"><div>'+
+    '<label class="label" for="nfPhone">Nomor WhatsApp admin</label>'+
+    '<div class="flex gap-2"><input id="nfPhone" class="input" value="'+esc(STORE.admin_phone)+'"/><button id="nfSave" class="btn btn-o shrink-0">Simpan</button></div>'+
+    '<p id="nfErr" class="mt-1.5 hidden text-xs font-semibold text-red-500"></p>'+
+    (waiting?'<a href="#" id="nfGo" class="mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[12.5px] font-semibold" style="border-color:#FDE68A;background:#FFFBEB;color:#92400E"><span class="pd" style="background:#F59E0B"></span>'+waiting+' chat menunggu admin → buka Riwayat</a>':'')+
+    '</div><div><p class="label">Pratinjau pesan</p>'+
+    '<div class="rounded-xl p-3.5" style="background:#ECE5DD"><div class="bub b-out" style="white-space:pre-line">'+esc(notifBody())+'</div></div>'+
+    '<button id="nfTest" class="btn btn-ink mt-3 w-full">Kirim notifikasi tes →</button></div></div>';
+  $('nfToggle').addEventListener('change',e=>{ STORE.notify_on_escalation=e.target.checked; renderNotif(); });
+  $('nfSave').addEventListener('click',()=>{
+    const p=normWa($('nfPhone').value);
+    if(!p){ $('nfErr').textContent='Nomor tidak valid — contoh: 081234567890'; $('nfErr').classList.remove('hidden'); return; }
+    $('nfErr').classList.add('hidden'); STORE.admin_phone=p; toast('Nomor admin tersimpan: '+p); renderNotif();
+  });
+  $('nfGo')?.addEventListener('click',e=>{e.preventDefault();showPage('inbox');});
+  $('nfTest').addEventListener('click',()=>toast('Notifikasi (simulasi) terkirim ke '+STORE.admin_phone));
+}
+
+/* ═══ KUOTA & PLAN ═══ */
+function renderBilling(){
+  countUp($('qUsed'),QUA.used,n=>num(Math.round(n)));
+  const pct=Math.round(QUA.used/QUA.limit*100);
+  requestAnimationFrame(()=>{ $('qBar').style.width=pct+'%'; if(pct>80)$('qBar').style.background='#F59E0B'; });
+  const remain=QUA.limit-QUA.used;
+  $('qRemain').textContent=remain+' chat tersisa · reset dalam '+QUA.resetIn+' hari';
+  const avg=QUA.used/QUA.daysElapsed;
+  $('qAvg').textContent='± '+num(avg,1)+' chat';
+  const days=Math.ceil(remain/avg);
+  const eta=new Date(Date.now()+days*86400000);
+  $('qEta').textContent=eta.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+  const pd=QUA.perDay, mx=Math.max(...pd);
+  $('qChart').innerHTML=pd.map((v,i)=>'<div class="bar'+(i===pd.length-1?' today':'')+'" title="H-'+(pd.length-i)+': '+v+' chat"><span class="bv">'+v+'</span><div class="bar-fill" data-h="'+Math.round(v/mx*100)+'"></div><span class="bd">-'+(pd.length-i)+'</span></div>').join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ $('qChart').querySelectorAll('.bar-fill').forEach(b=>b.style.height=b.dataset.h+'%'); }));
+}
+ $('qUpgrade').addEventListener('click',()=>toast('Ini demo — alur upgrade menyusul setelah payment gateway'));
+
+/* ═══ BOOT ═══ */
+fillSettings();
+renderBot();
+updateTopbar();
+showPage('overview');
+</script>
+</body>
+</html>
