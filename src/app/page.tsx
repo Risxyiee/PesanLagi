@@ -30,8 +30,6 @@ import {
   Shield,
   Headphones,
   CreditCard,
-  Instagram,
-  Twitter,
   LayoutDashboard,
 } from "lucide-react";
 
@@ -1356,13 +1354,15 @@ export default function Home() {
                 <li>
                   <a href="https://instagram.com/pesanlagi" target="_blank" rel="noopener"
                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-transform hover:scale-110 hover:bg-white/20">
-                    <Instagram className="size-5" />
+                    {/* <Instagram className="size-5" /> */}
+                    <span className="size-5 flex items-center justify-center text-sm font-semibold">Ig</span>
                   </a>
                 </li>
                 <li>
                   <a href="https://twitter.com/pesanlagi" target="_blank" rel="noopener"
                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-transform hover:scale-110 hover:bg-white/20">
-                    <Twitter className="size-5" />
+                    {/* <Twitter className="size-5" /> */}
+                    <span className="size-5 flex items-center justify-center text-sm font-semibold">X</span>
                   </a>
                 </li>
               </ul>
