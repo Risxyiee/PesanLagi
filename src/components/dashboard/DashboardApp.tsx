@@ -1422,7 +1422,7 @@ export default function DashboardApp() {
                   <span className="text-white font-bold text-lg">{storeName.charAt(0).toUpperCase()}</span>
                 </div>
               )}
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-slate-900 truncate">{storeName}</p>
@@ -1601,8 +1601,8 @@ export default function DashboardApp() {
                   <span className={`${styles.urlPill} text-sm text-slate-700 font-medium truncate flex-1`}>
                     pesanlagi.web.id/menu/{storeSlug}
                   </span>
-                  <span className="hidden sm:inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-md bg-green-100 text-green-700 text-[10px] font-bold">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> AKTIF
+                  <span className="hidden sm:inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-bold">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> AKTIF
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -1649,7 +1649,7 @@ export default function DashboardApp() {
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><Store className="w-5 h-5 text-green-600" /></div>
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center"><Store className="w-5 h-5 text-orange-600" /></div>
                   <div
                     className={`${styles.toggle} ${storeOpen ? styles.toggleOn : ""} ${togglingStore ? "opacity-50 pointer-events-none" : ""}`}
                     onClick={handleToggleStore}
@@ -1657,14 +1657,14 @@ export default function DashboardApp() {
                 </div>
                 <p className="text-base font-extrabold text-slate-900 leading-tight">{storeOpen ? "Toko Buka" : "Toko Tutup"}</p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Status Toko</p>
-                <p className={`text-[10px] font-semibold mt-1 ${storeOpen ? "text-green-600" : "text-red-500"}`}>
+                <p className={`text-[10px] font-semibold mt-1 ${storeOpen ? "text-orange-600" : "text-red-500"}`}>
                   {storeOpen ? `Buka sejak ${settingsOpenTime} WIB` : "Tutup sementara"}
                 </p>
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"><QrCode className="w-5 h-5 text-purple-600" /></div>
-                  <span className="px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 text-[10px] font-bold">READY</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-bold">READY</span>
                 </div>
                 <p className="text-base font-extrabold text-slate-900 leading-tight">Siap Cetak A6</p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Status QR Code</p>
@@ -1724,7 +1724,7 @@ export default function DashboardApp() {
                   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   showToast("Link menu dibagikan ke WhatsApp!");
                 }}>
-                  <div className={`${styles.tileIcon} w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg shadow-green-500/30`}>
+                  <div className={`${styles.tileIcon} w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-3 shadow-lg shadow-orange-500/30`}>
                     <Share2 className="w-6 h-6 text-white" strokeWidth={2.5} />
                   </div>
                   <p className="text-sm font-bold text-slate-900 leading-tight">Bagikan WhatsApp</p>
@@ -1765,7 +1765,7 @@ export default function DashboardApp() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className={`hidden sm:inline text-xs font-semibold ${m.is_available !== false ? "text-green-600" : "text-red-500"}`}>
+                          <span className={`hidden sm:inline text-xs font-semibold ${m.is_available !== false ? "text-orange-600" : "text-red-500"}`}>
                             {m.is_available !== false ? "Tersedia" : "Habis"}
                           </span>
                           <div
@@ -1975,8 +1975,8 @@ export default function DashboardApp() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: isDarkQr ? 'rgba(34,197,94,0.15)' : '#F0FDF4' }}>
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-[9px] font-semibold text-green-700">Live</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
+                        <span className="text-[9px] font-semibold text-orange-700">Live</span>
                       </div>
                     </div>
 
@@ -2243,10 +2243,10 @@ export default function DashboardApp() {
               </button>
             </div>
             {/* WhatsApp info banner */}
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-5">
+            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 mb-5">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-                  <MessageCircle className="w-5 h-5 text-green-600" />
+                <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">Pesanan pelanggan masuk ke WhatsApp Anda</p>
@@ -2284,8 +2284,8 @@ export default function DashboardApp() {
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <span className={`w-2.5 h-2.5 ${isNew ? "bg-amber-500" : isProcess ? "bg-blue-500" : "bg-green-500"} rounded-full ${isNew ? styles.pulseDot : ""}`} />
-                            <span className={`text-xs font-bold ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`}>
+                            <span className={`w-2.5 h-2.5 ${isNew ? "bg-amber-500" : isProcess ? "bg-blue-500" : "bg-orange-500"} rounded-full ${isNew ? styles.pulseDot : ""}`} />
+                            <span className={`text-xs font-bold ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-orange-600"}`}>
                               {isNew ? "PESANAN BARU" : isProcess ? "SEDANG DIPROSES" : "SELESAI"}
                             </span>
                             <span className="text-[11px] text-slate-400">• {order.time}</span>
@@ -2293,8 +2293,8 @@ export default function DashboardApp() {
                           <span className="text-sm font-extrabold text-slate-900">{order.id}</span>
                         </div>
                         <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
-                          <div className={`w-10 h-10 rounded-xl ${isNew ? "bg-amber-100" : isProcess ? "bg-blue-100" : "bg-green-100"} flex items-center justify-center`}>
-                            <User className={`w-5 h-5 ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-green-600"}`} />
+                          <div className={`w-10 h-10 rounded-xl ${isNew ? "bg-amber-100" : isProcess ? "bg-blue-100" : "bg-orange-100"} flex items-center justify-center`}>
+                            <User className={`w-5 h-5 ${isNew ? "text-amber-600" : isProcess ? "text-blue-600" : "text-orange-600"}`} />
                           </div>
                           <div>
                             <p className="text-sm font-bold text-slate-900">{order.customer}</p>
@@ -2312,10 +2312,10 @@ export default function DashboardApp() {
                         <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                           <div>
                             <p className="text-[11px] text-slate-500">Total Pembayaran</p>
-                            <p className={`text-lg font-extrabold ${isDone ? "text-green-600" : "text-amber-600"}`}>{order.total}</p>
+                            <p className={`text-lg font-extrabold ${isDone ? "text-orange-600" : "text-amber-600"}`}>{order.total}</p>
                           </div>
                           {isDone ? (
-                            <span className="px-3 py-2 rounded-lg bg-green-50 text-green-600 text-xs font-bold">✓ Selesai</span>
+                            <span className="px-3 py-2 rounded-lg bg-orange-50 text-orange-600 text-xs font-bold">✓ Selesai</span>
                           ) : (
                             <div className="flex gap-2">
                               <button
@@ -2329,7 +2329,7 @@ export default function DashboardApp() {
                               </button>
                               <button
                                 onClick={() => handleOrderAction(order.id, isProcess ? "done" : "process")}
-                                className={`${styles.ctaBtn} px-4 py-2 rounded-lg ${isProcess ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-amber-500 to-amber-600"} text-white text-xs font-bold shadow-md ${isProcess ? "shadow-green-500/30" : "shadow-amber-500/30"}`}
+                                className={`${styles.ctaBtn} px-4 py-2 rounded-lg ${isProcess ? "bg-gradient-to-r from-orange-500 to-orange-600" : "bg-gradient-to-r from-amber-500 to-amber-600"} text-white text-xs font-bold shadow-md ${isProcess ? "shadow-orange-500/30" : "shadow-amber-500/30"}`}
                               >
                                 {isProcess ? "Tandai Selesai" : "Terima"}
                               </button>
@@ -2400,7 +2400,7 @@ export default function DashboardApp() {
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><LayoutGrid className="w-5 h-5 text-green-600" /></div>
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center"><LayoutGrid className="w-5 h-5 text-orange-600" /></div>
                 </div>
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{catCount}</p>
                 <p className="text-xs text-slate-500 mt-1.5 font-medium">Total Kategori</p>
@@ -2561,8 +2561,8 @@ export default function DashboardApp() {
                   {menus.slice(0, 5).map((m, i) => (
                     <div key={m.id ?? i} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-                          <UtensilsCrossed className="w-5 h-5 text-green-600" />
+                        <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
+                          <UtensilsCrossed className="w-5 h-5 text-orange-600" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-bold text-slate-900">Menu ditambahkan</p>
@@ -2622,12 +2622,12 @@ export default function DashboardApp() {
                 },
                 {
                   icon: <TrendingUp className="w-5 h-5" />,
-                  iconBg: "bg-green-100",
-                  iconColor: "text-green-600",
+                  iconBg: "bg-orange-100",
+                  iconColor: "text-orange-600",
                   title: "Cara Menentukan Harga Menu",
                   desc: "Hitung HPP (Harga Pokok Penjualan) dengan teliti. Tambahkan margin 30-50% untuk menentukan harga jual. Jangan lupa pertimbangkan biaya listrik, gas, dan tenaga kerja.",
                   tag: "Keuangan",
-                  tagColor: "bg-green-100 text-green-700",
+                  tagColor: "bg-orange-100 text-orange-700",
                 },
                 {
                   icon: <Store className="w-5 h-5" />,
@@ -2778,7 +2778,7 @@ export default function DashboardApp() {
                         placeholder="nama-toko-anda"
                       />
                       {slugAvailable === true && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-green-600">Tersedia</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-orange-600">Tersedia</span>
                       )}
                       {slugAvailable === false && (
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-red-500">Sudah dipakai</span>
@@ -2810,7 +2810,7 @@ export default function DashboardApp() {
               {/* Operating hours */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><Clock className="w-4 h-4 text-green-600" /></div>
+                  <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center"><Clock className="w-4 h-4 text-orange-600" /></div>
                   <h3 className="text-sm font-bold text-slate-900">Jam Operasional</h3>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3 mb-3">
@@ -2872,7 +2872,7 @@ export default function DashboardApp() {
                 <div className="flex gap-2.5 mb-4">
                   {([
                     { id: "amber", gradient: "from-amber-400 to-amber-600", ring: "ring-amber-500", bg: "bg-amber-100", text: "text-amber-600" },
-                    { id: "green", gradient: "from-green-400 to-green-600", ring: "ring-green-500", bg: "bg-green-100", text: "text-green-600" },
+                    { id: "green", gradient: "from-orange-400 to-orange-600", ring: "ring-orange-500", bg: "bg-orange-100", text: "text-orange-600" },
                     { id: "blue", gradient: "from-blue-400 to-blue-600", ring: "ring-blue-500", bg: "bg-blue-100", text: "text-blue-600" },
                     { id: "red", gradient: "from-red-400 to-red-600", ring: "ring-red-500", bg: "bg-red-100", text: "text-red-600" },
                     { id: "dark", gradient: "from-slate-700 to-slate-900", ring: "ring-slate-500", bg: "bg-slate-200", text: "text-slate-600" },
@@ -2890,8 +2890,8 @@ export default function DashboardApp() {
                     <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "grid" ? "bg-amber-100" : "bg-slate-100"}`}><LayoutGrid className={`w-5 h-5 ${menuLayout === "grid" ? "text-amber-600" : "text-slate-500"}`} /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">Grid</p>
                   </button>
-                  <button onClick={() => setMenuLayout("list")} className={`p-2 border-2 ${menuLayout === "list" ? "border-green-500 bg-green-50/50" : "border-slate-200 hover:border-green-300"} rounded-xl transition-colors`}>
-                    <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "list" ? "bg-green-100" : "bg-slate-100"}`}><List className={`w-5 h-5 ${menuLayout === "list" ? "text-green-600" : "text-slate-500"}`} /></div>
+                  <button onClick={() => setMenuLayout("list")} className={`p-2 border-2 ${menuLayout === "list" ? "border-orange-500 bg-orange-50/50" : "border-slate-200 hover:border-orange-300"} rounded-xl transition-colors`}>
+                    <div className={`w-full h-12 rounded-lg flex items-center justify-center ${menuLayout === "list" ? "bg-orange-100" : "bg-slate-100"}`}><List className={`w-5 h-5 ${menuLayout === "list" ? "text-orange-600" : "text-slate-500"}`} /></div>
                     <p className="text-[10px] font-bold text-slate-900 mt-1">List</p>
                   </button>
                   <button onClick={() => setMenuLayout("category")} className={`p-2 border-2 ${menuLayout === "category" ? "border-blue-500 bg-blue-50/50" : "border-slate-200 hover:border-blue-300"} rounded-xl transition-colors`}>
@@ -3164,7 +3164,7 @@ export default function DashboardApp() {
 
       {/* ==================== TOAST ==================== */}
       <div className={`${styles.toast} ${toast.show ? styles.toastShow : ""} ${toast.type === 'error' ? styles.toastError : toast.type === 'info' ? styles.toastInfo : ""}`}>
-        {toast.type === 'error' ? <X className="w-4 h-4 text-red-400" /> : toast.type === 'info' ? <Bell className="w-4 h-4 text-blue-400" /> : <CheckCircle2 className="w-4 h-4 text-green-400" />}
+        {toast.type === 'error' ? <X className="w-4 h-4 text-red-400" /> : toast.type === 'info' ? <Bell className="w-4 h-4 text-blue-400" /> : <CheckCircle2 className="w-4 h-4 text-orange-400" />}
         <span>{toast.message}</span>
       </div>
     </div>
