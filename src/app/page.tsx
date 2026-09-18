@@ -455,7 +455,9 @@ export default function Home() {
             <button onClick={() => scrollToSection("kalkulator")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Kalkulator ROI</button>
             <button onClick={() => scrollToSection("harga")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">Harga</button>
             <button onClick={() => scrollToSection("faq")} className="text-sm font-medium text-slate-600 transition-colors hover:text-[#0B1220]">FAQ</button>
-            <a href="/login" className="text-sm font-medium text-slate-600 transition-colors hover:text-orange-600">Masuk</a>
+            <a href="/login" className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600">
+              Masuk
+            </a>
             <a href="/dashboard" className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-50 px-4 py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-100">
               <LayoutDashboard className="size-3.5" />
               Demo Dashboard
@@ -479,7 +481,9 @@ export default function Home() {
             <button onClick={() => { scrollToSection("kalkulator"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Kalkulator ROI</button>
             <button onClick={() => { scrollToSection("harga"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">Harga</button>
             <button onClick={() => { scrollToSection("faq"); setMobileMenuOpen(false); }} className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">FAQ</button>
-            <a href="/login" className="mobile-link block w-full rounded-lg px-2 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 text-orange-600">Masuk</a>
+            <a href="/login" className="mobile-link mt-4 block w-full rounded-full border border-slate-200 px-5 py-3 text-center text-sm font-medium text-slate-700 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600">
+              Masuk
+            </a>
             <a href="/dashboard" className="mobile-link mt-2 block w-full rounded-full border border-orange-500/30 bg-orange-50 px-5 py-3 text-center text-sm font-semibold text-orange-600">
               Demo Dashboard
             </a>
@@ -529,6 +533,10 @@ export default function Home() {
                    className="group inline-flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-colors hover:bg-orange-600">
                   Coba Demo Gratis
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </a>
+                <a href="/login"
+                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-7 py-3.5 text-sm font-semibold text-slate-200 transition-colors hover:border-orange-500 hover:text-white">
+                  Masuk
                 </a>
                 <a href="/dashboard"
                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-7 py-3.5 text-sm font-semibold text-slate-200 transition-colors hover:border-orange-500 hover:text-white">
