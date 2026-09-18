@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export interface AuthContext {
-  user: { id: string; email: string; [key: string]: any };
+  user: { id: string; email?: string; [key: string]: any };
   storeId: string;
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
   admin: ReturnType<typeof createSupabaseAdminClient>;

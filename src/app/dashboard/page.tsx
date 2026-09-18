@@ -1504,11 +1504,12 @@ export default function DashboardPage() {
                     );
                     showToast("Produk diperbarui");
                   } else {
+                    const { id: _id, ...productData } = productForm as Product;
                     setProducts((prev) => [
                       ...prev,
                       {
                         id: uid(),
-                        ...(productForm as Product),
+                        ...productData,
                         status: "ok",
                       },
                     ]);
