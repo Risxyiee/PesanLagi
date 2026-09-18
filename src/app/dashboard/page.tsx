@@ -338,6 +338,54 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
+  // Handle upgrade
+  const handleUpgrade = () => {
+    // For now, redirect to pricing section on landing page
+    window.location.href = "/#harga";
+  };
+
+  // Handle Pro upgrade
+  const handleProUpgrade = async () => {
+    // Create Midtrans transaction
+    try {
+      const res = await fetch("/api/midtrans/create-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: "pro_umkm",
+          amount: 149000,
+          description: "PesanLagi Pro UMKM - 1 Bulan",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        // Fallback to admin contact
+        window.open(
+          "https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Pro%20UMKM",
+          "_blank"
+        );
+      }
+    } catch {
+      // Fallback to admin contact
+      window.open(
+        "https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Pro%20UMKM",
+        "_blank"
+      );
+    }
+  };
+
+  // Handle Agency contact
+  const handleAgencyContact = () => {
+    window.open(
+      "https://t.me/Risxyie?text=Halo%2C%20saya%20tertarik%20dengan%20paket%20Agency%20PesanLagi",
+      "_blank"
+    );
+  };
+
   // Filter conversations
   const filteredConversations = conversations.filter((conv) => {
     const matchesFilter = chatFilter === "all" || conv.status === chatFilter;
@@ -1422,7 +1470,7 @@ export default function DashboardPage() {
                         Rp 0/bulan · Gratis selamanya
                       </p>
                     </div>
-                    <button className="rounded-full border border-[\#fb923c] bg-[\#ECFDF5] px-4 py-2 text-xs font-semibold text-[\#ea580c] hover:bg-[\#D1FAE5]">
+                    <button onClick={handleUpgrade} className="rounded-full border border-[\#fb923c] bg-[\#ECFDF5] px-4 py-2 text-xs font-semibold text-[\#ea580c] hover:bg-[\#D1FAE5]">
                       Upgrade
                     </button>
                   </div>
@@ -1462,7 +1510,7 @@ export default function DashboardPage() {
                           <p className="text-sm font-bold text-[#1C1917]">Pro UMKM</p>
                           <p className="text-xs text-slate-500">Rp 149.000/bulan</p>
                         </div>
-                        <button className="rounded-full bg-[\#f97316] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#ea580c]">
+                        <button onClick={handleProUpgrade} className="rounded-full bg-[\#f97316] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#ea580c]">
                           Pilih
                         </button>
                       </div>
@@ -1488,7 +1536,7 @@ export default function DashboardPage() {
                           <p className="text-sm font-bold text-[#1C1917]">Agency</p>
                           <p className="text-xs text-slate-500">Custom pricing</p>
                         </div>
-                        <button className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]">
+                        <button onClick={handleAgencyContact} className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]">
                           Hubungi Sales
                         </button>
                       </div>

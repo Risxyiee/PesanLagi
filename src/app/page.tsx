@@ -1338,16 +1338,16 @@ export default function Home() {
             <div>
               <p className="text-sm font-bold text-white">Perusahaan</p>
               <ul className="mt-4 space-y-2.5 text-sm">
-                <li><a href="#" className="transition-colors hover:text-orange-400">Tentang Kami</a></li>
-                <li><a href="#" className="transition-colors hover:text-orange-400">Blog</a></li>
-                <li><a href="#" className="transition-colors hover:text-orange-400">Kontak</a></li>
+                <li><a href="https://t.me/Risxyie" target="_blank" rel="noopener" className="transition-colors hover:text-orange-400">Tentang Kami</a></li>
+                <li><a href="https://t.me/Risxyie" target="_blank" rel="noopener" className="transition-colors hover:text-orange-400">Kontak</a></li>
               </ul>
             </div>
             <div>
               <p className="text-sm font-bold text-white">Legal</p>
               <ul className="mt-4 space-y-2.5 text-sm">
-                <li><a href="#" className="transition-colors hover:text-orange-400">Kebijakan Privasi</a></li>
-                <li><a href="#" className="transition-colors hover:text-orange-400">Syarat & Ketentuan</a></li>
+                <li><a href="/privacy" className="transition-colors hover:text-orange-400">Kebijakan Privasi</a></li>
+                <li><a href="/terms" className="transition-colors hover:text-orange-400">Syarat & Ketentuan</a></li>
+                <li><a href="/refund-policy" className="transition-colors hover:text-orange-400">Kebijakan Pengembalian</a></li>
               </ul>
             </div>
             <div>
