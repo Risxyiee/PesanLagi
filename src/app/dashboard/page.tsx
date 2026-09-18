@@ -324,7 +324,7 @@ export default function DashboardPage() {
       {toast && (
         <div
           className={`fixed top-0 left-0 right-0 z-50 px-4 py-3 text-center text-sm font-medium ${
-            toast.type === "success" ? "bg-[\#25D366] text-white" : "bg-red-500 text-white"
+            toast.type === "success" ? "bg-[\#f97316] text-white" : "bg-red-500 text-white"
           }`}
         >
           {toast.message}
@@ -346,20 +346,20 @@ export default function DashboardPage() {
         <div className="relative mx-auto hidden w-full max-w-sm md:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <input
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 pl-9 text-sm outline-none focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366]/20"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 pl-9 text-sm outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]/20"
             placeholder="Cari produk atau kontak… (/)"
           />
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <button className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600 hover:border-[#25D366] sm:flex">
-            <span className={`size-2 rounded-full ${waConnected ? "bg-green-500" : "bg-red-500"}`} />
+          <button className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600 hover:border-[#f97316] sm:flex">
+            <span className={`size-2 rounded-full ${waConnected ? "bg-orange-500" : "bg-red-500"}`} />
             {waStatus === "connected" ? "TERHUBUNG" : "PUTUS"}
           </button>
           <button className="relative grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100">
             <Bell className="size-4.5" />
           </button>
-          <div className="grid size-9 place-items-center rounded-full bg-[\#128C7E] text-xs font-bold text-white">
+          <div className="grid size-9 place-items-center rounded-full bg-[\#ea580c] text-xs font-bold text-white">
             TB
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function DashboardPage() {
       <aside className="fixed bottom-0 left-0 top-14 z-30 hidden w-60 flex-col overflow-y-auto bg-[#1C1917] text-white lg:flex">
         <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-5">
           <span className="text-lg font-extrabold tracking-tight">
-            PesanLagi<span className="text-[\#34D399]">.</span>
+            PesanLagi<span className="text-[\#fb923c]">.</span>
           </span>
         </div>
         <nav className="flex-1 space-y-0.5 p-4">
@@ -384,7 +384,7 @@ export default function DashboardPage() {
                 onClick={() => setCurrentPage(item.id)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   currentPage === item.id
-                    ? "bg-[\#25D366]/16 text-[\#6EE7B7]"
+                    ? "bg-[\#f97316]/16 text-[\#fdba74]"
                     : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 }`}
               >
@@ -404,7 +404,7 @@ export default function DashboardPage() {
                 onClick={() => setCurrentPage(item.id)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   currentPage === item.id
-                    ? "bg-[\#25D366]/16 text-[\#6EE7B7]"
+                    ? "bg-[\#f97316]/16 text-[\#fdba74]"
                     : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 }`}
               >
@@ -415,12 +415,12 @@ export default function DashboardPage() {
           })}
         </nav>
         <div className="shrink-0 border-t border-white/10 p-4">
-          <div className="mb-3 rounded-lg border border-[\#34D399]/25 bg-[\#34D399]/10 px-3 py-2 text-[9.5px] font-semibold uppercase tracking-widest text-[\#6EE7B7]">
+          <div className="mb-3 rounded-lg border border-[\#fb923c]/25 bg-[\#fb923c]/10 px-3 py-2 text-[9.5px] font-semibold uppercase tracking-widest text-[\#fdba74]">
             AI AKTIF · MODE DEMO
           </div>
           <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Toko</p>
           <p className="mt-1 text-[13px] font-semibold text-slate-200">{storeConfig.store_name}</p>
-          <p className="mt-0.5 text-[10px] font-mono uppercase tracking-widest text-[\#34D399]">
+          <p className="mt-0.5 text-[10px] font-mono uppercase tracking-widest text-[\#fb923c]">
             PLAN: STARTER
           </p>
         </div>
@@ -453,7 +453,7 @@ export default function DashboardPage() {
                 }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   currentPage === item.id
-                    ? "bg-[\#25D366]/16 text-[\#6EE7B7]"
+                    ? "bg-[\#f97316]/16 text-[\#fdba74]"
                     : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 }`}
               >
@@ -476,7 +476,7 @@ export default function DashboardPage() {
                 }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   currentPage === item.id
-                    ? "bg-[\#25D366]/16 text-[\#6EE7B7]"
+                    ? "bg-[\#f97316]/16 text-[\#fdba74]"
                     : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 }`}
               >
@@ -507,11 +507,11 @@ export default function DashboardPage() {
                   <div className="mt-5 flex gap-2.5">
                     <button
                       onClick={() => setCurrentPage("products")}
-                      className="rounded-full bg-[\#25D366] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#128C7E]"
+                      className="rounded-full bg-[\#f97316] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#ea580c]"
                     >
                       ＋ Produk
                     </button>
-                    <button className="rounded-full border border-white/20 bg-transparent px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-[\#34D399] hover:text-[\#6EE7B7]">
+                    <button className="rounded-full border border-white/20 bg-transparent px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-[\#fb923c] hover:text-[\#fdba74]">
                       ⬆ Import
                     </button>
                   </div>
@@ -526,7 +526,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">AI Balas</p>
-                  <p className="mt-1 text-2xl font-extrabold text-[\#128C7E]">{stats.aiReplied}</p>
+                  <p className="mt-1 text-2xl font-extrabold text-[\#ea580c]">{stats.aiReplied}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Perlu Admin</p>
@@ -544,7 +544,7 @@ export default function DashboardPage() {
                   <h2 className="text-[15px] font-extrabold text-[#1C1917]">Percakapan Terbaru</h2>
                   <button
                     onClick={() => setCurrentPage("inbox")}
-                    className="text-[10.5px] font-semibold uppercase tracking-widest text-[\#128C7E] hover:underline"
+                    className="text-[10.5px] font-semibold uppercase tracking-widest text-[\#ea580c] hover:underline"
                   >
                     Lihat semua →
                   </button>
@@ -556,7 +556,7 @@ export default function DashboardPage() {
                       className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#128C7E]">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#ea580c]">
                           {conv.name.charAt(0)}
                         </div>
                         <div>
@@ -567,7 +567,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-slate-400">{conv.time}</span>
                         {conv.unread > 0 && (
-                          <span className="rounded-full bg-[\#25D366] px-2 py-0.5 text-[10px] font-bold text-white">
+                          <span className="rounded-full bg-[\#f97316] px-2 py-0.5 text-[10px] font-bold text-white">
                             {conv.unread}
                           </span>
                         )}
@@ -586,7 +586,7 @@ export default function DashboardPage() {
               <div className="card flex flex-col overflow-hidden lg:col-span-4 rounded-2xl border border-slate-200 bg-white" style={{ height: "620px" }}>
                 <div className="border-b border-slate-100 px-3 pt-3">
                   <input
-                    className="mb-2.5 h-9 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[\#34D399]"
+                    className="mb-2.5 h-9 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[\#fb923c]"
                     placeholder="Cari nama / nomor…"
                     value={chatSearch}
                     onChange={(e) => setChatSearch(e.target.value)}
@@ -596,7 +596,7 @@ export default function DashboardPage() {
                       onClick={() => setChatFilter("all")}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                         chatFilter === "all"
-                          ? "bg-[\#25D366] text-white"
+                          ? "bg-[\#f97316] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
@@ -606,7 +606,7 @@ export default function DashboardPage() {
                       onClick={() => setChatFilter("admin")}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                         chatFilter === "admin"
-                          ? "bg-[\#25D366] text-white"
+                          ? "bg-[\#f97316] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
@@ -616,7 +616,7 @@ export default function DashboardPage() {
                       onClick={() => setChatFilter("ai")}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                         chatFilter === "ai"
-                          ? "bg-[\#25D366] text-white"
+                          ? "bg-[\#f97316] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
@@ -633,7 +633,7 @@ export default function DashboardPage() {
                         selectedConversation === conv.id ? "bg-[\#ECFDF5]" : ""
                       }`}
                     >
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#128C7E]">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#ea580c]">
                         {conv.name.charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                         <p className="mt-0.5 truncate text-xs text-slate-500">{conv.lastMessage}</p>
                       </div>
                       {conv.unread > 0 && (
-                        <span className="shrink-0 rounded-full bg-[\#25D366] px-2 py-0.5 text-[10px] font-bold text-white">
+                        <span className="shrink-0 rounded-full bg-[\#f97316] px-2 py-0.5 text-[10px] font-bold text-white">
                           {conv.unread}
                         </span>
                       )}
@@ -673,7 +673,7 @@ export default function DashboardPage() {
                         <button onClick={() => setSelectedConversation(null)} className="lg:hidden">
                           <ChevronLeft className="size-5 text-slate-600" />
                         </button>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#128C7E]">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-[\#D1FAE5] text-sm font-bold text-[\#ea580c]">
                           {currentConversation.name.charAt(0)}
                         </div>
                         <div>
@@ -691,7 +691,7 @@ export default function DashboardPage() {
                             );
                             showToast("Chat diambil alih ke admin");
                           }}
-                          className="rounded-full border border-[\#34D399] bg-[\#ECFDF5] px-3 py-1.5 text-xs font-semibold text-[\#128C7E] hover:bg-[\#D1FAE5]"
+                          className="rounded-full border border-[\#fb923c] bg-[\#ECFDF5] px-3 py-1.5 text-xs font-semibold text-[\#ea580c] hover:bg-[\#D1FAE5]"
                         >
                           Ambil Alih
                         </button>
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                     <div className="border-t border-slate-100 p-3">
                       <div className="flex items-center gap-2">
                         <input
-                          className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[\#34D399]"
+                          className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[\#fb923c]"
                           placeholder="Tulis balasan…"
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
@@ -781,7 +781,7 @@ export default function DashboardPage() {
                               setNewMessage("");
                             }
                           }}
-                          className="grid size-10 shrink-0 place-items-center rounded-full bg-[\#25D366] text-white transition-colors hover:bg-[\#128C7E]"
+                          className="grid size-10 shrink-0 place-items-center rounded-full bg-[\#f97316] text-white transition-colors hover:bg-[\#ea580c]"
                         >
                           <Send className="size-4" fill="currentColor" />
                         </button>
@@ -813,7 +813,7 @@ export default function DashboardPage() {
                                 )
                               );
                             }}
-                            className="rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition-colors hover:border-[\#34D399] hover:text-[\#128C7E]"
+                            className="rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition-colors hover:border-[\#fb923c] hover:text-[\#ea580c]"
                           >
                             {reply}
                           </button>
@@ -841,14 +841,14 @@ export default function DashboardPage() {
 
               <div className="flex flex-wrap items-center gap-2.5">
                 <input
-                  className="h-9 max-w-xs rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[\#34D399]"
+                  className="h-9 max-w-xs rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[\#fb923c]"
                   placeholder="Cari produk…"
                 />
                 <div className="ml-auto flex flex-wrap gap-2.5">
-                  <button className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#34D399] hover:text-[\#128C7E]">
+                  <button className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]">
                     ⬆ Import CSV
                   </button>
-                  <button className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#34D399] hover:text-[\#128C7E]">
+                  <button className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]">
                     ⬇ Export
                   </button>
                   <button
@@ -857,7 +857,7 @@ export default function DashboardPage() {
                       setProductForm({ name: "", price: 0, description: "", stock_qty: 10 });
                       setProductModalOpen(true);
                     }}
-                    className="rounded-full bg-[\#25D366] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#128C7E]"
+                    className="rounded-full bg-[\#f97316] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#ea580c]"
                   >
                     + Tambah Produk
                   </button>
@@ -894,7 +894,7 @@ export default function DashboardPage() {
                               Menipis
                             </span>
                           ) : (
-                            <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-600">
+                            <span className="inline-flex rounded-full bg-orange-100 px-2 py-1 text-[10px] font-semibold text-orange-600">
                               Tersedia
                             </span>
                           )}
@@ -949,7 +949,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Pesan Sapaan</label>
                       <textarea
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         rows={3}
                         value={botConfig.greeting}
                         onChange={(e) => setBotConfig((prev) => ({ ...prev, greeting: e.target.value }))}
@@ -1005,7 +1005,7 @@ export default function DashboardPage() {
                       <button
                         onClick={() => setBotConfig((prev) => ({ ...prev, autoOutside: !prev.autoOutside }))}
                         className={`relative h-6 w-11 rounded-full transition-colors ${
-                          botConfig.autoOutside ? "bg-[\#25D366]" : "bg-slate-300"
+                          botConfig.autoOutside ? "bg-[\#f97316]" : "bg-slate-300"
                         }`}
                       >
                         <span
@@ -1020,7 +1020,7 @@ export default function DashboardPage() {
                         <label className="mb-2 block text-sm font-medium text-[#1C1917]">Mulai AI</label>
                         <input
                           type="time"
-                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                           value={botConfig.autoStart}
                           onChange={(e) => setBotConfig((prev) => ({ ...prev, autoStart: e.target.value }))}
                         />
@@ -1029,7 +1029,7 @@ export default function DashboardPage() {
                         <label className="mb-2 block text-sm font-medium text-[#1C1917]">Akhir AI</label>
                         <input
                           type="time"
-                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                           value={botConfig.autoEnd}
                           onChange={(e) => setBotConfig((prev) => ({ ...prev, autoEnd: e.target.value }))}
                         />
@@ -1038,7 +1038,7 @@ export default function DashboardPage() {
                     <div
                       className={`rounded-lg p-3 text-xs font-medium ${
                         botConfig.autoOutside
-                          ? "bg-[\#ECFDF5] text-[\#128C7E]"
+                          ? "bg-[\#ECFDF5] text-[\#ea580c]"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
@@ -1059,7 +1059,7 @@ export default function DashboardPage() {
                     {botConfig.keywords.map((kw) => (
                       <span
                         key={kw}
-                        className="inline-flex items-center gap-1 rounded-full bg-[\#ECFDF5] px-3 py-1 text-[11.5px] font-semibold text-[\#128C7E] border border-orange-200"
+                        className="inline-flex items-center gap-1 rounded-full bg-[\#ECFDF5] px-3 py-1 text-[11.5px] font-semibold text-[\#ea580c] border border-orange-200"
                       >
                         {kw}
                         <button
@@ -1069,7 +1069,7 @@ export default function DashboardPage() {
                               keywords: prev.keywords.filter((k) => k !== kw),
                             }));
                           }}
-                          className="font-bold text-[\#128C7E]"
+                          className="font-bold text-[\#ea580c]"
                         >
                           ×
                         </button>
@@ -1100,7 +1100,7 @@ export default function DashboardPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => showToast("Konfigurasi bot tersimpan")}
-                  className="rounded-full bg-[\#25D366] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[\#128C7E]"
+                  className="rounded-full bg-[\#f97316] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[\#ea580c]"
                 >
                   Simpan Konfigurasi
                 </button>
@@ -1124,7 +1124,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Nama Toko</label>
                       <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         value={storeConfig.store_name}
                         onChange={(e) => setStoreConfig((prev) => ({ ...prev, store_name: e.target.value }))}
                       />
@@ -1132,7 +1132,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Jam Operasional</label>
                       <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         value={storeConfig.operating_hours}
                         onChange={(e) =>
                           setStoreConfig((prev) => ({ ...prev, operating_hours: e.target.value }))
@@ -1148,7 +1148,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Alamat Toko</label>
                       <textarea
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         rows={2}
                         value={storeConfig.address}
                         onChange={(e) => setStoreConfig((prev) => ({ ...prev, address: e.target.value }))}
@@ -1157,7 +1157,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Kebijakan Pengiriman</label>
                       <textarea
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         rows={2}
                         value={storeConfig.shipping_policies}
                         onChange={(e) =>
@@ -1168,7 +1168,7 @@ export default function DashboardPage() {
                     <div>
                       <label className="mb-2 block text-sm font-medium text-[#1C1917]">Metode Pembayaran</label>
                       <textarea
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                         rows={2}
                         value={storeConfig.payment_info}
                         onChange={(e) =>
@@ -1199,7 +1199,7 @@ export default function DashboardPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => showToast("Pengaturan toko tersimpan")}
-                  className="rounded-full bg-[\#25D366] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[\#128C7E]"
+                  className="rounded-full bg-[\#f97316] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[\#ea580c]"
                 >
                   Simpan Pengaturan
                 </button>
@@ -1230,11 +1230,11 @@ export default function DashboardPage() {
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
                         waConnected
-                          ? "bg-green-100 text-green-600"
+                          ? "bg-orange-100 text-orange-600"
                           : "bg-red-100 text-red-600"
                       }`}
                     >
-                      <span className={`size-2 rounded-full ${waConnected ? "bg-green-600" : "bg-red-600"}`} />
+                      <span className={`size-2 rounded-full ${waConnected ? "bg-orange-600" : "bg-red-600"}`} />
                       {waConnected ? "TERHUBUNG" : "PUTUS"}
                     </span>
                   </div>
@@ -1281,25 +1281,25 @@ export default function DashboardPage() {
                   <h3 className="text-[15px] font-extrabold text-[#1C1917]">Panduan Koneksi</h3>
                   <ol className="mt-4 space-y-3 text-sm text-slate-600">
                     <li className="flex gap-3">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#128C7E]">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#ea580c]">
                         1
                       </span>
                       <p>Buka WhatsApp Business di HP Anda</p>
                     </li>
                     <li className="flex gap-3">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#128C7E]">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#ea580c]">
                         2
                       </span>
                       <p>Pergi ke Menu → Perangkat Tertaut</p>
                     </li>
                     <li className="flex gap-3">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#128C7E]">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#ea580c]">
                         3
                       </span>
                       <p>Tap "Tautkan Perangkat" dan scan QR code di atas</p>
                     </li>
                     <li className="flex gap-3">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#128C7E]">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[\#D1FAE5] text-xs font-bold text-[\#ea580c]">
                         4
                       </span>
                       <p>Tunggu sampai status berubah menjadi "TERHUBUNG"</p>
@@ -1324,7 +1324,7 @@ export default function DashboardPage() {
                 <div className="rounded-2xl border-2 border-orange-200 bg-white p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="inline-flex rounded-full bg-[\#D1FAE5] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[\#128C7E]">
+                      <span className="inline-flex rounded-full bg-[\#D1FAE5] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[\#ea580c]">
                         Current Plan
                       </span>
                       <h3 className="mt-3 text-xl font-extrabold text-[#1C1917]">Starter</h3>
@@ -1332,7 +1332,7 @@ export default function DashboardPage() {
                         Rp 0/bulan · Gratis selamanya
                       </p>
                     </div>
-                    <button className="rounded-full border border-[\#34D399] bg-[\#ECFDF5] px-4 py-2 text-xs font-semibold text-[\#128C7E] hover:bg-[\#D1FAE5]">
+                    <button className="rounded-full border border-[\#fb923c] bg-[\#ECFDF5] px-4 py-2 text-xs font-semibold text-[\#ea580c] hover:bg-[\#D1FAE5]">
                       Upgrade
                     </button>
                   </div>
@@ -1344,7 +1344,7 @@ export default function DashboardPage() {
                         <span className="font-semibold text-[#1C1917]">47 / 100</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                        <div className="h-full rounded-full bg-[\#25D366]" style={{ width: "47%" }} />
+                        <div className="h-full rounded-full bg-[\#f97316]" style={{ width: "47%" }} />
                       </div>
                     </div>
                     <div>
@@ -1354,7 +1354,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                         <div
-                          className="h-full rounded-full bg-[\#25D366]"
+                          className="h-full rounded-full bg-[\#f97316]"
                           style={{ width: `${(products.length / 10) * 100}%` }}
                         />
                       </div>
@@ -1372,21 +1372,21 @@ export default function DashboardPage() {
                           <p className="text-sm font-bold text-[#1C1917]">Pro UMKM</p>
                           <p className="text-xs text-slate-500">Rp 149.000/bulan</p>
                         </div>
-                        <button className="rounded-full bg-[\#25D366] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#128C7E]">
+                        <button className="rounded-full bg-[\#f97316] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[\#ea580c]">
                           Pilih
                         </button>
                       </div>
                       <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           Chat AI tanpa batas
                         </li>
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           Katalog produk tak terbatas
                         </li>
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           Support prioritas
                         </li>
                       </ul>
@@ -1398,21 +1398,21 @@ export default function DashboardPage() {
                           <p className="text-sm font-bold text-[#1C1917]">Agency</p>
                           <p className="text-xs text-slate-500">Custom pricing</p>
                         </div>
-                        <button className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#34D399] hover:text-[\#128C7E]">
+                        <button className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]">
                           Hubungi Sales
                         </button>
                       </div>
                       <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           Multi-nomor & multi-klien
                         </li>
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           White-label dashboard
                         </li>
                         <li className="flex items-center gap-2">
-                          <Check className="size-3.5 text-[\#128C7E]" />
+                          <Check className="size-3.5 text-[\#ea580c]" />
                           Account manager khusus
                         </li>
                       </ul>
@@ -1452,7 +1452,7 @@ export default function DashboardPage() {
               <div>
                 <label className="mb-2 block text-sm font-medium text-[#1C1917]">Nama Produk</label>
                 <input
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                   value={productForm.name || ""}
                   onChange={(e) => setProductForm((prev) => ({ ...prev, name: e.target.value }))}
                 />
@@ -1461,7 +1461,7 @@ export default function DashboardPage() {
                 <label className="mb-2 block text-sm font-medium text-[#1C1917]">Harga</label>
                 <input
                   type="number"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                   value={productForm.price || 0}
                   onChange={(e) => setProductForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
                 />
@@ -1469,7 +1469,7 @@ export default function DashboardPage() {
               <div>
                 <label className="mb-2 block text-sm font-medium text-[#1C1917]">Deskripsi</label>
                 <textarea
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                   rows={2}
                   value={productForm.description || ""}
                   onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -1479,7 +1479,7 @@ export default function DashboardPage() {
                 <label className="mb-2 block text-sm font-medium text-[#1C1917]">Stok</label>
                 <input
                   type="number"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#34D399]"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[\#fb923c]"
                   value={productForm.stock_qty || 0}
                   onChange={(e) => setProductForm((prev) => ({ ...prev, stock_qty: Number(e.target.value) }))}
                 />
@@ -1488,7 +1488,7 @@ export default function DashboardPage() {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 onClick={() => setProductModalOpen(false)}
-                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-[#1C1917] hover:border-[\#34D399] hover:text-[\#128C7E]"
+                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-[#1C1917] hover:border-[\#fb923c] hover:text-[\#ea580c]"
               >
                 Batal
               </button>
@@ -1516,7 +1516,7 @@ export default function DashboardPage() {
                   }
                   setProductModalOpen(false);
                 }}
-                className="rounded-full bg-[\#25D366] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[\#128C7E]"
+                className="rounded-full bg-[\#f97316] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[\#ea580c]"
               >
                 {editingProduct ? "Simpan" : "Tambah"}
               </button>
