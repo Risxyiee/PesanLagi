@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -33,6 +35,7 @@ import {
   RefreshCw,
   ExternalLink,
   QrCode,
+  LogOut,
 } from "lucide-react";
 
 // Types
@@ -250,6 +253,9 @@ const rupiah = (num: number): string => {
 const uid = (): string => Date.now().toString(36) + Math.random().toString(36).slice(2);
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, loading, signOut } = useAuth();
+
   // State
   const [currentPage, setCurrentPage] = useState<string>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -280,6 +286,57 @@ export default function DashboardPage() {
 
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  // Logout dropdown state
+  const [logoutDropdownOpen, setLogoutDropdownOpen] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500/5 via-white to-orange-600/5">
+        <div className="text-center">
+          <svg
+            className="size-10 animate-spin text-orange-600 mx-auto"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          <p className="mt-3 text-sm text-slate-600">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
+
+  // Handle logout
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   // Filter conversations
   const filteredConversations = conversations.filter((conv) => {
@@ -359,8 +416,41 @@ export default function DashboardPage() {
           <button className="relative grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100">
             <Bell className="size-4.5" />
           </button>
-          <div className="grid size-9 place-items-center rounded-full bg-[\#ea580c] text-xs font-bold text-white">
-            TB
+
+          {/* User Menu with Logout */}
+          <div className="relative">
+            <button
+              className="flex items-center gap-2 rounded-full border border-slate-200 px-2 py-1 hover:bg-slate-50"
+              onClick={() => setLogoutDropdownOpen(!logoutDropdownOpen)}
+            >
+              <div className="grid size-7 place-items-center rounded-full bg-[\#ea580c] text-xs font-bold text-white">
+                {user?.email?.[0]?.toUpperCase() || "U"}
+              </div>
+              <ChevronLeft className="size-3.5 text-slate-400 rotate-[-90deg]" />
+            </button>
+
+            {logoutDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setLogoutDropdownOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg z-50">
+                  <div className="px-3 py-2 border-b border-slate-100">
+                    <p className="text-xs font-semibold text-slate-900 truncate">
+                      {user?.email || "user@example.com"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <LogOut className="size-4" />
+                    Keluar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>

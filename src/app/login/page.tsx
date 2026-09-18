@@ -1,24 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MessageCircle, Mail, Lock, Eye, EyeOff, ArrowRight, Send } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { signIn, user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
+  useEffect(() => {
+    // Redirect to dashboard if already logged in
+    if (user && !loading) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
+    setError("");
 
-    // Simulasi login - redirect ke dashboard
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 1000);
+    const result = await signIn(formData.email, formData.password);
+
+    if (result.error) {
+      setError(result.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Success - router will redirect on user state change
   };
 
   return (
@@ -59,6 +77,13 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              {/* Error Message */}
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
               {/* Email */}
               <div>
                 <label
@@ -138,10 +163,10 @@ export default function LoginPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSubmitting || loading}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:bg-orange-600 hover:shadow-orange-600/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
+                {isSubmitting || loading ? (
                   <>
                     <svg
                       className="size-4 animate-spin"
@@ -176,24 +201,18 @@ export default function LoginPage() {
             {/* Demo Account */}
             <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-center">
               <p className="text-xs font-medium text-slate-500 mb-2">
-                Akun Demo (tidak perlu password):
+                Belum punya akun?{" "}
+                <a
+                  href="https://t.me/Risxyie?text=Halo%2C%20saya%20ingin%20mendaftar%20PesanLagi"
+                  target="_blank"
+                  rel="noopener"
+                  className="font-semibold text-orange-600 hover:text-orange-700"
+                >
+                  Hubungi Admin Telegram untuk daftar
+                </a>
               </p>
-              <button
-                onClick={() => window.location.href = "/dashboard"}
-                className="text-sm font-semibold text-orange-600 hover:text-orange-700 hover:underline"
-              >
-                Masuk sebagai Demo User →
-              </button>
             </div>
           </div>
-
-          {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-slate-600">
-            Belum punya akun?{" "}
-            <a href="#" className="font-semibold text-orange-600 hover:text-orange-700">
-              Daftar sekarang
-            </a>
-          </p>
         </div>
       </main>
 
